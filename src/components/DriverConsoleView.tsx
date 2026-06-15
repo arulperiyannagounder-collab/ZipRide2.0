@@ -31,6 +31,8 @@ interface DriverConsoleViewProps {
   };
   drivers: Driver[];
   onPushDriverLocation: (rideId: string, lat: number, lng: number) => Promise<void>;
+  allRides: Ride[];
+  currentUser: string | null;
 }
 
 export default function DriverConsoleView({
@@ -41,8 +43,21 @@ export default function DriverConsoleView({
   onRefresh,
   systemConfig,
   drivers,
-  onPushDriverLocation
+  onPushDriverLocation,
+  allRides,
+  currentUser
 }: DriverConsoleViewProps) {
+  const [profile, setProfile] = useState<any>(null);
+  const [isOnline, setIsOnline] = useState(() => {
+    return localStorage.getItem('zipride_driver_online') !== 'false';
+  });
+
+  const [availableOrders, setAvailableOrders] = useState<Ride[]>([]);
+  const [rejectedRideIds, setRejectedRideIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('zipride_rejected_rides');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [speed, setSpeed] = useState<number>(0);
   const [isAutoSimulating, setIsAutoSimulating] = useState(false);
   const [simulationProgress, setSimulationProgress] = useState(0);
@@ -54,10 +69,46 @@ export default function DriverConsoleView({
 
   const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Get current driver details from drivers pool
-  const currentDriver = activeRide?.driverId
-    ? drivers.find(d => d.id === activeRide.driverId)
-    : null;
+  // Poll GET /api/driver/orders
+  useEffect(() => {
+    if (!isOnline || activeRide) return;
+    
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch('/api/driver/orders');
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableOrders(data);
+        }
+      } catch (err) {
+        console.error('Error fetching driver orders:', err);
+      }
+    };
+
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 3000);
+    return () => clearInterval(interval);
+  }, [isOnline, activeRide]);
+
+  // Fetch driver profile dynamically from GET /api/driver/profile
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/driver/profile?name=${encodeURIComponent(currentUser)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProfile(data);
+          setIsOnline(data.status === 'online');
+        }
+      } catch (err) {
+        console.error('Error fetching driver profile:', err);
+      }
+    };
+
+    fetchProfile();
+  }, [currentUser, allRides, activeRide]);
 
   // Sync state values from active ride on mount/update
   useEffect(() => {
@@ -179,62 +230,208 @@ export default function DriverConsoleView({
     }
   };
 
+  const myHistoryRides = allRides.filter(r => 
+    (r.status === 'completed' || r.status === 'cancelled') && r.driverName === currentUser
+  );
+
   const currentSpeedLimit = getLimits(activeRide ? activeRide.weatherType : systemConfig.weather);
 
   return (
     <div className="space-y-6">
       
       {/* Driver metadata card — Dynamic from database */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-brand-emerald">
             <User className="w-6 h-6 shrink-0" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 text-base">{currentDriver?.name || activeRide?.driverName || 'Awaiting Assignment'} (Driver)</h3>
-            <p className="text-xs font-mono text-slate-500 flex items-center gap-1">
+            <h3 className="font-bold text-theme-text-primary text-base">{profile?.name || currentUser || 'Awaiting Assignment'} (Driver)</h3>
+            <p className="text-xs font-mono text-theme-text-secondary flex items-center gap-1">
               <Bike className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
-              <span>{currentDriver?.vehicle || activeRide?.driverVehicle || '—'} • Rated {currentDriver?.rating || activeRide?.driverRating || '—'}★</span>
+              <span>ID: {profile?.id || '—'} • {profile?.vehicleType || 'Bike'} ({profile?.vehicleNumber || '—'}) • Rated {profile?.rating || '—'}★</span>
             </p>
-            {(currentDriver?.phone || activeRide?.driverPhone) && (
-              <p className="text-[10px] font-mono text-slate-400 mt-0.5">📞 {currentDriver?.phone || activeRide?.driverPhone}</p>
-            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono bg-brand-emerald/10 text-brand-emerald border border-brand-emerald/10 px-4 py-2 rounded-full text-xs font-bold">
-          <Radio className="w-4 h-4 animate-ping shrink-0" />
-          <span>Driver Shift: ACTIVE</span>
-        </div>
+        <button
+          onClick={async () => {
+            const nextOnline = !isOnline;
+            setIsOnline(nextOnline);
+            localStorage.setItem('zipride_driver_online', String(nextOnline));
+            if (currentUser) {
+              try {
+                await fetch('/api/driver/status', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: currentUser, status: nextOnline ? 'online' : 'offline' })
+                });
+              } catch (err) {
+                console.error('Failed to update driver status:', err);
+              }
+            }
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold font-mono border transition duration-200 cursor-pointer ${
+            isOnline 
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-200/80' 
+              : 'bg-theme-bg text-theme-text-secondary border-theme-border'
+          }`}
+          title="Click to toggle Shift Status"
+        >
+          <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+          <span>Shift: {isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+        </button>
       </div>
 
       {/* RIDE REQUEST BLOCK (WAITING FOR ORDER) */}
-      {!activeRide && (
-        <div className="bg-white border border-slate-200 rounded-2xl py-12 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-xs">
-          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 mb-4 animate-pulse">
-            <Radio className="w-8 h-8 text-brand-emerald" />
+      {!isOnline ? (
+        <div className="bg-theme-card border border-theme-border rounded-3xl py-16 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-theme-bg flex items-center justify-center border border-theme-border mb-4 text-theme-text-secondary">
+            <Radio className="w-8 h-8 text-theme-text-secondary animate-pulse" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800">Awaiting Booking Broadcast...</h3>
-          <p className="text-xs text-slate-400 max-w-[340px] mt-1 mb-5">Ensure your shift toggle remains active. Any rider creating a booking on Mumbai locations will prompt on this screen.</p>
+          <h3 className="text-xl font-bold text-theme-text-primary">Shift is Offline</h3>
+          <p className="text-xs text-theme-text-secondary max-w-[360px] mt-2 mb-6">You are currently offline. Toggle your shift status online to view available requests, manage earnings, and receive Mumbai dispatch bookings.</p>
           <button 
-            onClick={onRefresh}
-            className="px-5 py-2.5 bg-brand-emerald hover:bg-brand-emerald-dark font-semibold text-white rounded-xl text-xs shadow-sm transition"
+            onClick={async () => {
+              setIsOnline(true);
+              localStorage.setItem('zipride_driver_online', 'true');
+              if (currentUser) {
+                try {
+                  await fetch('/api/driver/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: currentUser, status: 'online' })
+                  });
+                } catch (err) {
+                  console.error('Failed to update driver status:', err);
+                }
+              }
+            }}
+            className="px-6 py-3 bg-[#00C896] hover:bg-[#00b384] font-bold text-white rounded-2xl text-xs shadow transition cursor-pointer"
           >
-            Refresh Feed Link
+            Go Online & Start Shift
           </button>
         </div>
-      )}
+      ) : !activeRide ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Available Orders Section */}
+          <div className="lg:col-span-8 bg-theme-card border border-theme-border rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex justify-between items-center border-b border-theme-border pb-3">
+              <h3 className="text-base font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Radio className="w-5 h-5 text-brand-emerald animate-pulse" />
+                <span>Available Orders</span>
+              </h3>
+              <button 
+                onClick={onRefresh}
+                className="px-3.5 py-1.5 bg-[#00C896] hover:bg-[#00b384] font-bold text-white rounded-lg text-xs transition cursor-pointer"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-theme-border text-theme-text-secondary font-mono font-bold uppercase text-[10px]">
+                    <th className="py-3 px-3">Order ID</th>
+                    <th className="py-3 px-3">Passenger</th>
+                    <th className="py-3 px-3">Pickup</th>
+                    <th className="py-3 px-3">Destination</th>
+                    <th className="py-3 px-3">Dist</th>
+                    <th className="py-3 px-3">Fare</th>
+                    <th className="py-3 px-3">Payment</th>
+                    <th className="py-3 px-3">Time</th>
+                    <th className="py-3 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-theme-border font-semibold text-theme-text-primary">
+                  {(() => {
+                    const visibleOrders = availableOrders.filter(r => !rejectedRideIds.includes(r.id));
+                    return visibleOrders.length > 0 ? (
+                      visibleOrders.map(ride => (
+                        <tr key={ride.id} className="hover:bg-theme-bg/50 transition duration-150">
+                          <td className="py-3 px-3 font-mono font-bold text-theme-text-primary">{ride.id}</td>
+                          <td className="py-3 px-3">{ride.riderName || 'Saran'}</td>
+                          <td className="py-3 px-3 truncate max-w-[100px]" title={ride.pickup}>{ride.pickup.split(',')[0]}</td>
+                          <td className="py-3 px-3 truncate max-w-[100px]" title={ride.drop}>{ride.drop.split(',')[0]}</td>
+                          <td className="py-3 px-3 font-mono">{ride.distanceKm} km</td>
+                          <td className="py-3 px-3 font-mono">₹{ride.finalFare.toFixed(2)}</td>
+                          <td className="py-3 px-3 font-mono">{ride.paymentMethod}</td>
+                          <td className="py-3 px-3 font-mono text-theme-text-secondary font-medium">
+                            {new Date(ride.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="py-3 px-3 flex gap-1 justify-center items-center">
+                            <button
+                              onClick={() => onAcceptRide(ride.id)}
+                              className="px-2.5 py-1.5 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 font-extrabold rounded-lg text-[10px] transition cursor-pointer"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => {
+                                const newRejected = [...rejectedRideIds, ride.id];
+                                setRejectedRideIds(newRejected);
+                                localStorage.setItem('zipride_rejected_rides', JSON.stringify(newRejected));
+                              }}
+                              className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-lg text-[10px] transition cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={9} className="py-12 text-center text-theme-text-secondary font-medium">
+                          No available orders at the moment. Awaiting passenger bookings...
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Side Panel: Earnings Overview */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Earnings Overview */}
+            <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-xs">
+              <h4 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono mb-4 flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-amber-500" />
+                <span>Shift Earnings</span>
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono">Today's Revenue</span>
+                  <span className="text-2xl font-mono font-black text-theme-text-primary block mt-0.5">₹{(profile?.todayEarnings ?? 0).toFixed(2)}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-theme-border text-xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono">Trips Completed</span>
+                    <span className="font-bold text-theme-text-primary block mt-0.5">{profile?.completedRides ?? 0}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono">Acceptance</span>
+                    <span className="font-bold text-theme-text-primary block mt-0.5">100%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* ACTIVE JOB PRESENT */}
-      {activeRide && (
+      {isOnline && activeRide && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Job Dispatch Info / Navigation Controller */}
-          <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="lg:col-span-4 bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="flex items-center justify-between border-b border-theme-border pb-3">
               <div>
-                <span className="text-[10px] font-mono text-slate-400 block font-bold leading-none uppercase">Assigned Ride ID</span>
-                <span className="text-base font-mono font-bold text-slate-800 mt-1 block">{activeRide.id}</span>
+                <span className="text-[10px] font-mono text-theme-text-secondary block font-bold leading-none uppercase">Assigned Ride ID</span>
+                <span className="text-base font-mono font-bold text-theme-text-primary mt-1 block">{activeRide.id}</span>
               </div>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
                 activeRide.status === 'booked' ? 'bg-orange-50 text-orange-600' :
@@ -250,8 +447,8 @@ export default function DriverConsoleView({
             {activeRide.status === 'booked' ? (
               <div className="p-4 bg-orange-50/50 border border-orange-200 text-center rounded-2xl space-y-3.5">
                 <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto animate-bounce" />
-                <h4 className="font-bold text-slate-800 text-sm">Incoming Taxi Command!</h4>
-                <div className="text-[11px] text-slate-500 font-semibold space-y-1">
+                <h4 className="font-bold text-theme-text-primary text-sm">Incoming Taxi Command!</h4>
+                <div className="text-[11px] text-theme-text-secondary font-semibold space-y-1">
                   <div>📍 <strong>From:</strong> {activeRide.pickup}</div>
                   <div>📍 <strong>To:</strong> {activeRide.drop}</div>
                   <div>💰 <strong>Fare:</strong> ₹{activeRide.initialFare.toFixed(2)}</div>
@@ -266,19 +463,19 @@ export default function DriverConsoleView({
             ) : (
               <div className="space-y-4">
                 {/* Simulated Path Locations */}
-                <div className="space-y-3.5 p-4 bg-slate-50 rounded-2xl border border-slate-100/50 text-xs text-slate-600 font-semibold">
+                <div className="space-y-3.5 p-4 bg-theme-bg rounded-2xl border border-theme-border/50 text-xs text-theme-text-secondary font-semibold">
                   <div className="flex gap-2.5 items-start">
                     <CircleDot className="w-4 h-4 text-brand-emerald mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">Pickup Origin</span>
-                      <p className="mt-0.5 text-slate-700">{activeRide.pickup}</p>
+                      <span className="text-[10px] font-mono uppercase text-theme-text-secondary block font-bold">Pickup Origin</span>
+                      <p className="mt-0.5 text-theme-text-primary">{activeRide.pickup}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2.5 items-start border-t border-slate-200/50 pt-2.5">
+                  <div className="flex gap-2.5 items-start border-t border-theme-border/50 pt-2.5">
                     <MapPin className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">Transit Destination</span>
-                      <p className="mt-0.5 text-slate-700">{activeRide.drop}</p>
+                      <span className="text-[10px] font-mono uppercase text-theme-text-secondary block font-bold">Transit Destination</span>
+                      <p className="mt-0.5 text-theme-text-primary">{activeRide.drop}</p>
                     </div>
                   </div>
                 </div>
@@ -289,16 +486,16 @@ export default function DriverConsoleView({
                     <span className="text-[10px] font-mono uppercase text-indigo-500 block font-bold">RIDER DETAILS</span>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-indigo-600 shrink-0" />
-                      <span className="font-bold text-slate-800">{activeRide.riderName}</span>
+                      <span className="font-bold text-theme-text-primary">{activeRide.riderName}</span>
                     </div>
                     {activeRide.riderPhone && (
-                      <div className="flex items-center gap-2 text-slate-600">
+                      <div className="flex items-center gap-2 text-theme-text-secondary">
                         <span>📞</span>
                         <span className="font-mono font-semibold">{activeRide.riderPhone}</span>
                       </div>
                     )}
                     {activeRide.riderLat && activeRide.riderLng && (
-                      <div className="flex items-center gap-2 text-slate-500 font-mono text-[10px]">
+                      <div className="flex items-center gap-2 text-theme-text-secondary font-mono text-[10px]">
                         <MapPin className="w-3 h-3 text-indigo-400 shrink-0" />
                         <span>Rider GPS: {activeRide.riderLat.toFixed(4)}, {activeRide.riderLng.toFixed(4)}</span>
                       </div>
@@ -306,13 +503,53 @@ export default function DriverConsoleView({
                   </div>
                 )}
 
+                {/* Active Ride Action Controls */}
+                <div className="p-4 bg-slate-55 border border-slate-800 rounded-2xl space-y-3">
+                  <span className="text-[10px] font-mono uppercase text-theme-text-secondary block font-bold">Trip Actions</span>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => handleManualTelemetryUpdate({ status: 'pickup', progress: 10 })}
+                      disabled={activeRide.status !== 'assigned'}
+                      className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition cursor-pointer ${
+                        activeRide.status === 'assigned'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-slate-800 text-theme-text-secondary cursor-not-allowed'
+                      }`}
+                    >
+                      Reached Pickup
+                    </button>
+                    <button
+                      onClick={() => handleManualTelemetryUpdate({ status: 'en_route', progress: 25, seat: 'occupied', nfc: 'active', motion: 'riding' })}
+                      disabled={activeRide.status !== 'pickup'}
+                      className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition cursor-pointer ${
+                        activeRide.status === 'pickup'
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                          : 'bg-slate-800 text-theme-text-secondary cursor-not-allowed'
+                      }`}
+                    >
+                      Start Ride
+                    </button>
+                    <button
+                      onClick={() => onCompleteRide(activeRide.id)}
+                      disabled={['completed', 'cancelled', 'booked'].includes(activeRide.status) || activeRide.status === 'assigned' || activeRide.status === 'pickup'}
+                      className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition cursor-pointer ${
+                        ['en_route', 'arrived', 'anomaly'].includes(activeRide.status)
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : 'bg-slate-800 text-theme-text-secondary cursor-not-allowed'
+                      }`}
+                    >
+                      Complete Ride
+                    </button>
+                  </div>
+                </div>
+
                 {/* Automation trigger progress */}
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
+                  <div className="flex justify-between items-center text-xs font-semibold text-theme-text-primary">
                     <span>Progress Trajectory</span>
                     <span className="font-mono">{simulationProgress}%</span>
                   </div>
-                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-theme-bg rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-brand-emerald transition-all duration-300"
                       style={{ width: `${simulationProgress}%` }}
@@ -358,12 +595,12 @@ export default function DriverConsoleView({
 
           {/* Core Telemetry Simulators Form (LG Col 8) */}
           {activeRide.status !== 'booked' && (
-            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+            <div className="lg:col-span-8 bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs space-y-6">
               
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center justify-between border-b border-theme-border pb-3">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-brand-emerald" />
-                  <h4 className="font-bold text-slate-800 text-sm">Hardware Sensor Telemetry Board</h4>
+                  <h4 className="font-bold text-theme-text-primary text-sm">Hardware Sensor Telemetry Board</h4>
                 </div>
                 <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">STREAMING ACTIVE</span>
               </div>
@@ -372,13 +609,13 @@ export default function DriverConsoleView({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Speed Slider Parameter */}
-                <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+                <div className="bg-theme-bg/50 p-5 rounded-2xl border border-theme-border">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-theme-text-primary flex items-center gap-1.5">
                       <Gauge className="w-4 h-4 text-brand-emerald shrink-0" />
                       Dynamic Bike Speed
                     </span>
-                    <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${speed > currentSpeedLimit ? 'bg-rose-50 text-rose-500 animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${speed > currentSpeedLimit ? 'bg-rose-50 text-rose-500 animate-pulse' : 'bg-theme-bg text-theme-text-secondary'}`}>
                       {speed} km/h
                     </span>
                   </div>
@@ -396,7 +633,7 @@ export default function DriverConsoleView({
                     className="w-full accent-brand-emerald h-1.5 bg-slate-200 rounded-lg cursor-pointer"
                   />
                   
-                  <div className="flex justify-between items-center mt-3 text-[10px] font-mono text-slate-400">
+                  <div className="flex justify-between items-center mt-3 text-[10px] font-mono text-theme-text-secondary">
                     <span>Weather Speed Limit: <strong>{currentSpeedLimit} km/h</strong></span>
                     {speed > currentSpeedLimit && (
                       <span className="text-rose-500 font-bold">💥 Exceeds safe limit! (Fare will discount)</span>
@@ -405,20 +642,20 @@ export default function DriverConsoleView({
                 </div>
 
                 {/* Harsh Braking simulator trigger */}
-                <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                <div className="bg-theme-bg/50 p-5 rounded-2xl border border-theme-border flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-2">
+                    <span className="text-xs font-bold text-theme-text-primary flex items-center gap-1.5 mb-2">
                       <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
                       Unsafe Braking Event
                     </span>
-                    <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+                    <p className="text-[11px] text-theme-text-secondary leading-relaxed mb-4">
                       Trigger sudden deceleration sensor reading. This applies harsh-braking rules, deducts ₹10.00 from final client cost, and updates safety score metrics.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={triggerHarshBrakingSimulation}
-                    className="w-full bg-yellow-400 text-slate-900 border border-yellow-400 hover:bg-yellow-500 font-bold text-xs py-3 rounded-xl transition flex items-center justify-center gap-1"
+                    className="w-full bg-yellow-400 text-theme-text-primary border border-yellow-400 hover:bg-yellow-500 font-bold text-xs py-3 rounded-xl transition flex items-center justify-center gap-1"
                   >
                     <AlertTriangle className="w-4 h-4" />
                     <span>Abruptly Slam Brakes</span>
@@ -429,24 +666,24 @@ export default function DriverConsoleView({
 
               {/* Auxiliary Sensor Toggles (Seat, NFC, Ignition) */}
               <div>
-                <span className="text-xs font-bold text-slate-700 block mb-3">Auxiliary Embedded Hardware Status</span>
+                <span className="text-xs font-bold text-theme-text-primary block mb-3">Auxiliary Embedded Hardware Status</span>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {/* Select Ignition */}
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5 text-center">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Ignition State</span>
+                  <div className="p-3 bg-theme-bg border border-theme-border rounded-xl space-y-1.5 text-center">
+                    <span className="text-[10px] font-mono text-theme-text-secondary uppercase font-bold">Ignition State</span>
                     <div className="flex justify-center gap-1">
                       <button 
                         type="button"
                         onClick={() => { setIgnition('on'); handleManualTelemetryUpdate({ ignition: 'on' }); }}
-                        className={`px-2 py-1 text-[10px] font-mono rounded font-bold ${ignition === 'on' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-2 py-1 text-[10px] font-mono rounded font-bold ${ignition === 'on' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         ON
                       </button>
                       <button 
                         type="button"
                         onClick={() => { setIgnition('off'); handleManualTelemetryUpdate({ ignition: 'off' }); }}
-                        className={`px-2 py-1 text-[10px] font-mono rounded font-bold ${ignition === 'off' ? 'bg-rose-500 text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-2 py-1 text-[10px] font-mono rounded font-bold ${ignition === 'off' ? 'bg-rose-500 text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         OFF
                       </button>
@@ -454,20 +691,20 @@ export default function DriverConsoleView({
                   </div>
 
                   {/* Select Seat status */}
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5 text-center">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Seat sensor</span>
+                  <div className="p-3 bg-theme-bg border border-theme-border rounded-xl space-y-1.5 text-center">
+                    <span className="text-[10px] font-mono text-theme-text-secondary uppercase font-bold">Seat sensor</span>
                     <div className="flex justify-center gap-1 font-mono">
                       <button 
                         type="button"
                         onClick={() => { setSeat('occupied'); handleManualTelemetryUpdate({ seat: 'occupied' }); }}
-                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${seat === 'occupied' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${seat === 'occupied' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         BUSY
                       </button>
                       <button 
                         type="button"
                         onClick={() => { setSeat('empty'); handleManualTelemetryUpdate({ seat: 'empty' }); }}
-                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${seat === 'empty' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${seat === 'empty' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         EMPTY
                       </button>
@@ -475,20 +712,20 @@ export default function DriverConsoleView({
                   </div>
 
                   {/* Select NFC status */}
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5 text-center">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Helmet NFC Link</span>
+                  <div className="p-3 bg-theme-bg border border-theme-border rounded-xl space-y-1.5 text-center">
+                    <span className="text-[10px] font-mono text-theme-text-secondary uppercase font-bold">Helmet NFC Link</span>
                     <div className="flex justify-center gap-1 font-mono">
                       <button 
                         type="button"
                         onClick={() => { setNfc('active'); handleManualTelemetryUpdate({ nfc: 'active' }); }}
-                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${nfc === 'active' ? 'bg-brand-emerald text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${nfc === 'active' ? 'bg-brand-emerald text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         LINK
                       </button>
                       <button 
                         type="button"
                         onClick={() => { setNfc('inactive'); handleManualTelemetryUpdate({ nfc: 'inactive' }); }}
-                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${nfc === 'inactive' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-slate-600'}`}
+                        className={`px-1.5 py-1 text-[9px] rounded font-bold ${nfc === 'inactive' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-theme-text-secondary'}`}
                       >
                         NULL
                       </button>
@@ -496,8 +733,8 @@ export default function DriverConsoleView({
                   </div>
 
                   {/* Motion state select */}
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5 text-center">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold text-center block">Motion Tag</span>
+                  <div className="p-3 bg-theme-bg border border-theme-border rounded-xl space-y-1.5 text-center">
+                    <span className="text-[10px] font-mono text-theme-text-secondary uppercase font-bold text-center block">Motion Tag</span>
                     <select
                       value={motion}
                       onChange={(e) => {
@@ -505,7 +742,7 @@ export default function DriverConsoleView({
                         setMotion(mVal);
                         handleManualTelemetryUpdate({ motion: mVal });
                       }}
-                      className="bg-white border border-slate-200 rounded font-mono text-[10px] py-1 px-1 text-slate-700 outline-none w-full"
+                      className="bg-theme-card border border-theme-border rounded font-mono text-[10px] py-1 px-1 text-theme-text-primary outline-none w-full"
                     >
                       <option value="stationary">stationary</option>
                       <option value="moving">moving</option>
@@ -517,8 +754,8 @@ export default function DriverConsoleView({
               </div>
 
               {/* Dynamic bill status in real-time */}
-              <div className="p-4 bg-emerald-50 text-slate-800 rounded-2xl flex items-center justify-between border border-brand-emerald/10">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+              <div className="p-4 bg-emerald-50 text-theme-text-primary rounded-2xl flex items-center justify-between border border-brand-emerald/10">
+                <div className="flex items-center gap-2 text-xs font-semibold text-theme-text-primary">
                   <Coins className="w-5 h-5 text-brand-emerald shrink-0" />
                   <div>
                     <span>Running client fare: <strong>₹{activeRide.finalFare}</strong></span>
@@ -528,7 +765,7 @@ export default function DriverConsoleView({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-mono text-slate-400 block font-bold uppercase">Dynamic safety score</span>
+                  <span className="text-[10px] font-mono text-theme-text-secondary block font-bold uppercase">Dynamic safety score</span>
                   <span className={`text-lg font-black font-mono block ${activeRide.safetyScore < 80 ? 'text-rose-500' : 'text-emerald-500'}`}>
                     {activeRide.safetyScore}%
                   </span>
@@ -553,7 +790,7 @@ export default function DriverConsoleView({
                         });
                         onRefresh();
                       }}
-                      className="text-xs bg-white text-amber-800 font-semibold py-2 px-3 border border-amber-300 rounded shadow-sm hover:bg-amber-100 transition"
+                      className="text-xs bg-theme-card text-amber-800 font-semibold py-2 px-3 border border-amber-300 rounded shadow-sm hover:bg-amber-100 transition"
                     >
                       Trigger Weather (+15%)
                     </button>
@@ -566,7 +803,7 @@ export default function DriverConsoleView({
                         });
                         onRefresh();
                       }}
-                      className="text-xs bg-white text-amber-800 font-semibold py-2 px-3 border border-amber-300 rounded shadow-sm hover:bg-amber-100 transition"
+                      className="text-xs bg-theme-card text-amber-800 font-semibold py-2 px-3 border border-amber-300 rounded shadow-sm hover:bg-amber-100 transition"
                     >
                       Trigger Route (+30% capped)
                     </button>
@@ -576,14 +813,14 @@ export default function DriverConsoleView({
 
               {/* If adjustment pending, show outcome disabled mirror status */}
               {activeRide.adjustmentStatus && activeRide.status !== 'completed' && (
-                <div className="mt-6 p-4 rounded-2xl bg-slate-100 border border-slate-200">
-                  <h4 className="font-bold text-slate-800 text-xs flex items-center gap-2 mb-1">
+                <div className="mt-6 p-4 rounded-2xl bg-theme-bg border border-theme-border">
+                  <h4 className="font-bold text-theme-text-primary text-xs flex items-center gap-2 mb-1">
                     <span className="w-2 h-2 rounded-full bg-slate-400"></span> Driver Mirror: Fare Adjustment Status
                   </h4>
-                  {activeRide.adjustmentStatus === 'pending' && <p className="text-[11px] text-slate-600 font-semibold">User reviewing ₹{activeRide.adjustmentAmount} system adjustment on Rider App...</p>}
+                  {activeRide.adjustmentStatus === 'pending' && <p className="text-[11px] text-theme-text-secondary font-semibold">User reviewing ₹{activeRide.adjustmentAmount} system adjustment on Rider App...</p>}
                   {activeRide.adjustmentStatus === 'accepted' && <p className="text-[11px] text-emerald-600 font-bold">Rider approved ₹{activeRide.adjustmentAmount} adjustment. New fare: ₹{activeRide.finalFare}</p>}
                   {activeRide.adjustmentStatus === 'disputed' && <p className="text-[11px] text-rose-600 font-bold">Rider disputed. Original fare ₹{activeRide.finalFare} applies pending ops review.</p>}
-                  <p className="text-[10px] text-slate-400 mt-2 border-t border-slate-200 pt-1">You cannot trigger, view evidence, or modify adjustments directly.</p>
+                  <p className="text-[10px] text-theme-text-secondary mt-2 border-t border-theme-border pt-1">You cannot trigger, view evidence, or modify adjustments directly.</p>
                 </div>
               )}
 
@@ -593,22 +830,22 @@ export default function DriverConsoleView({
           {/* ARRIVAL PAYMENT POPUP (Update for Addition 6) */}
           {activeRide.status === 'completed' && (
             <div className="lg:col-span-8">
-              <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-500 max-w-lg mx-auto">
+              <div className="bg-theme-card border-2 border-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-500 max-w-lg mx-auto">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-indigo-500"></div>
                 
                 <div className="text-center mb-6">
-                  <div className="inline-flex rounded-full bg-slate-900 text-white p-3 mb-4 shadow-sm border-4 border-slate-100">
+                  <div className="inline-flex rounded-full bg-slate-900 text-white p-3 mb-4 shadow-sm border-4 border-theme-border">
                     <MapPin className="w-8 h-8" />
                   </div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">📍 You've arrived!</h3>
-                  <p className="text-slate-500 mt-1 font-medium text-sm">Please finalize the payment with the rider</p>
+                  <h3 className="text-2xl font-black text-theme-text-primary tracking-tight">📍 You've arrived!</h3>
+                  <p className="text-theme-text-secondary mt-1 font-medium text-sm">Please finalize the payment with the rider</p>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3 mb-6">
+                <div className="bg-theme-bg border border-theme-border/80 rounded-2xl p-5 space-y-3 mb-6">
                   
                   <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-slate-600">Original locked fare:</span>
-                    <span className="font-mono text-slate-500">₹{activeRide.initialFare.toFixed(2)}</span>
+                    <span className="font-semibold text-theme-text-secondary">Original locked fare:</span>
+                    <span className="font-mono text-theme-text-secondary">₹{activeRide.initialFare.toFixed(2)}</span>
                   </div>
 
                   {activeRide.behaviorDiscount > 0 && (
@@ -639,10 +876,10 @@ export default function DriverConsoleView({
                   <div className="h-px w-full bg-slate-200/80 my-1"></div>
 
                   <div className="flex justify-between items-end">
-                    <span className="font-black text-slate-900 text-lg">Final total:</span>
+                    <span className="font-black text-theme-text-primary text-lg">Final total:</span>
                     <div className="text-right">
                       <span className="font-mono font-black text-3xl text-indigo-600 tracking-tight block">₹{activeRide.finalFare.toFixed(2)}</span>
-                      <span className="text-[11px] font-semibold text-slate-400 mt-1 block">Payment: {activeRide.paymentMethod} ••••4521</span>
+                      <span className="text-[11px] font-semibold text-theme-text-secondary mt-1 block">Payment: {activeRide.paymentMethod} ••••4521</span>
                     </div>
                   </div>
 
@@ -653,7 +890,7 @@ export default function DriverConsoleView({
                     <Check className="w-5 h-5 shrink-0" />
                     Confirm & Pay ₹{activeRide.finalFare.toFixed(2)}
                   </button>
-                  <button className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 py-3.5 rounded-xl font-bold transition shadow-sm text-sm">
+                  <button className="w-full bg-theme-card hover:bg-theme-bg border border-theme-border text-theme-text-primary py-3.5 rounded-xl font-bold transition shadow-sm text-sm">
                     ? Something's wrong
                   </button>
                 </div>
@@ -663,6 +900,53 @@ export default function DriverConsoleView({
 
         </div>
       )}
+
+      {/* COMPLETED RIDES HISTORY */}
+      <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-sm mt-6">
+        <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono mb-4 flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-indigo-500" />
+          <span>Your Ride History</span>
+        </h3>
+        
+        {myHistoryRides.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-theme-border text-theme-text-secondary font-mono font-bold uppercase text-[10px]">
+                  <th className="py-3 px-4">Ride ID</th>
+                  <th className="py-3 px-4">Pickup</th>
+                  <th className="py-3 px-4">Drop</th>
+                  <th className="py-3 px-4 font-mono">Date</th>
+                  <th className="py-3 px-4 font-mono text-right">Fare</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-theme-border font-semibold text-theme-text-primary">
+                {myHistoryRides.map(ride => (
+                  <tr key={ride.id} className="hover:bg-theme-bg/50 transition duration-150">
+                    <td className="py-3.5 px-4 font-mono text-theme-text-primary font-bold">{ride.id}</td>
+                    <td className="py-3.5 px-4 truncate max-w-[150px]" title={ride.pickup}>{ride.pickup.split(',')[0]}</td>
+                    <td className="py-3.5 px-4 truncate max-w-[150px]" title={ride.drop}>{ride.drop.split(',')[0]}</td>
+                    <td className="py-3.5 px-4 text-theme-text-secondary font-medium font-mono">{new Date(ride.createdAt).toLocaleDateString()}</td>
+                    <td className="py-3.5 px-4 text-theme-text-primary font-bold font-mono text-right">₹{ride.finalFare.toFixed(2)}</td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        ride.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+                      }`}>
+                        {ride.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-theme-text-secondary">
+            No history found. Complete rides to populate your history.
+          </div>
+        )}
+      </div>
 
     </div>
   );

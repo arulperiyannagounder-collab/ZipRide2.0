@@ -23,6 +23,7 @@ interface RideTrackerViewProps {
   onFileDispute: (rideId: string, reason: string) => Promise<void>;
   drivers: Driver[];
   onPushRiderLocation: (rideId: string, lat: number, lng: number) => Promise<void>;
+  onRateRide: (id: string, rating: number) => Promise<void>;
 }
 
 interface ChatMessage {
@@ -35,8 +36,10 @@ export default function RideTrackerView({
   onRefresh,
   onFileDispute,
   drivers,
-  onPushRiderLocation
+  onPushRiderLocation,
+  onRateRide
 }: RideTrackerViewProps) {
+  console.log("Active Ride:", activeRide);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { 
@@ -112,13 +115,13 @@ export default function RideTrackerView({
       
       // Parse Headings
       if (line.startsWith('### ')) {
-        return <h4 key={idx} className="font-bold text-slate-800 text-sm mt-3 mb-1">{content.slice(4)}</h4>;
+        return <h4 key={idx} className="font-bold text-theme-text-primary text-sm mt-3 mb-1">{content.slice(4)}</h4>;
       }
       if (line.startsWith('- ')) {
-        return <li key={idx} className="list-disc ml-4 mt-1 text-slate-600 font-medium pl-1 text-[11px]">{content.slice(2)}</li>;
+        return <li key={idx} className="list-disc ml-4 mt-1 text-theme-text-secondary font-medium pl-1 text-[11px]">{content.slice(2)}</li>;
       }
       
-      return <p key={idx} className="leading-relaxed mt-1 text-slate-600 text-[11px] font-medium" dangerouslySetInnerHTML={{ __html: content }} />;
+      return <p key={idx} className="leading-relaxed mt-1 text-theme-text-secondary text-[11px] font-medium" dangerouslySetInnerHTML={{ __html: content }} />;
     });
   };
 
@@ -177,10 +180,10 @@ export default function RideTrackerView({
     <div className="space-y-6">
       
       {!activeRide ? (
-        <div className="bg-white border border-slate-200 rounded-2xl py-16 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-xs">
+        <div className="bg-theme-card border border-theme-border rounded-2xl py-16 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-xs">
           <Navigation className="w-12 h-12 text-slate-300 mb-3 animate-bounce" />
-          <h3 className="text-lg font-bold text-slate-800">No Active Ride in Progress</h3>
-          <p className="text-xs text-slate-400 max-w-[340px] mt-1 mb-5">You are not currently monitoring any ride. Create a booking on the Book tab and turn on driver console acceptance.</p>
+          <h3 className="text-lg font-bold text-theme-text-primary">No Active Ride in Progress</h3>
+          <p className="text-xs text-theme-text-secondary max-w-[340px] mt-1 mb-5">You are not currently monitoring any ride. Create a booking on the Book tab and turn on driver console acceptance.</p>
           <button 
             onClick={() => onRefresh()}
             className="px-5 py-2.5 bg-brand-emerald hover:bg-brand-emerald-dark font-semibold text-white rounded-xl text-xs shadow-sm transition"
@@ -233,7 +236,7 @@ export default function RideTrackerView({
 
               {/* Pickup Pin */}
               <div className="absolute flex flex-col items-center shrink-0" style={{ left: '10%', top: '70%', transform: 'translate(-50%, -100%)' }}>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Pickup</span>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Pickup</span>
                 <CircleDot className="w-5 h-5 text-brand-emerald bg-slate-950 rounded-full" />
               </div>
 
@@ -256,16 +259,16 @@ export default function RideTrackerView({
 
               {/* Drop Pin */}
               <div className="absolute flex flex-col items-center shrink-0" style={{ left: '90%', top: '70%', transform: 'translate(-50%, -100%)' }}>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Drop</span>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Drop</span>
                 <MapPin className="w-5 h-5 text-rose-500" />
               </div>
             </div>
 
             {/* Assigned Driver Details Card */}
             {activeRide.driverId && (
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+              <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-mono uppercase text-slate-400 font-bold">ASSIGNED DRIVER</span>
+                  <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold">ASSIGNED DRIVER</span>
                   <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">LIVE</span>
                 </div>
                 <div className="flex items-center gap-4">
@@ -274,33 +277,33 @@ export default function RideTrackerView({
                   </div>
                   <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-1.5">
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Name</span>
-                      <span className="text-sm font-bold text-slate-800">{assignedDriver?.name || activeRide.driverName || '—'}</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Name</span>
+                      <span className="text-sm font-bold text-theme-text-primary">{assignedDriver?.name || activeRide.driverName || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Vehicle</span>
-                      <span className="text-sm font-bold text-slate-800">{assignedDriver?.vehicle || activeRide.driverVehicle || '—'}</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Vehicle</span>
+                      <span className="text-sm font-bold text-theme-text-primary">{assignedDriver?.vehicle || activeRide.driverVehicle || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Rating</span>
-                      <span className="text-sm font-bold text-slate-800">{assignedDriver?.rating || activeRide.driverRating || '—'}★</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Rating</span>
+                      <span className="text-sm font-bold text-theme-text-primary">{assignedDriver?.rating || activeRide.driverRating || '—'}★</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Phone</span>
-                      <span className="text-sm font-bold text-slate-800">{assignedDriver?.phone || activeRide.driverPhone || '—'}</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Phone</span>
+                      <span className="text-sm font-bold text-theme-text-primary">{assignedDriver?.phone || activeRide.driverPhone || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Type</span>
-                      <span className="text-sm font-bold text-slate-800">{assignedDriver?.vehicleType || activeRide.driverVehicleType || '—'}</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Type</span>
+                      <span className="text-sm font-bold text-theme-text-primary">{assignedDriver?.vehicleType || activeRide.driverVehicleType || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Driver ID</span>
-                      <span className="text-sm font-mono font-bold text-slate-800">{activeRide.driverId}</span>
+                      <span className="text-[10px] text-theme-text-secondary font-mono uppercase block">Driver ID</span>
+                      <span className="text-sm font-mono font-bold text-theme-text-primary">{activeRide.driverId}</span>
                     </div>
                   </div>
                 </div>
                 {activeRide.driverLat && activeRide.driverLng && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-[10px] font-mono text-slate-500">
+                  <div className="mt-3 pt-3 border-t border-theme-border flex items-center gap-2 text-[10px] font-mono text-theme-text-secondary">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                     <span>Driver GPS: {activeRide.driverLat.toFixed(4)}, {activeRide.driverLng.toFixed(4)}</span>
                     <span className="text-slate-300">|</span>
@@ -346,10 +349,10 @@ export default function RideTrackerView({
                       </span>
                     </p>
 
-                    <div className="mt-4 p-3 bg-white/60 border border-amber-200/60 rounded-xl space-y-2">
+                    <div className="mt-4 p-3 bg-theme-card/60 border border-amber-200/60 rounded-xl space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-amber-800/80 font-medium">Original locked fare:</span>
-                        <span className="font-mono text-slate-500 line-through">₹{activeRide.finalFare}</span>
+                        <span className="font-mono text-theme-text-secondary line-through">₹{activeRide.finalFare}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-amber-800/80 font-medium">Adjustment:</span>
@@ -390,7 +393,7 @@ export default function RideTrackerView({
                         if (res.ok) onRefresh();
                       } catch (e) { console.error(e) }
                     }}
-                    className="flex-shrink-0 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 font-bold py-3 px-5 rounded-xl shadow-sm transition active:scale-95 text-sm"
+                    className="flex-shrink-0 bg-theme-card border border-amber-300 hover:bg-amber-100 text-amber-800 font-bold py-3 px-5 rounded-xl shadow-sm transition active:scale-95 text-sm"
                   >
                     ✗ Dispute
                   </button>
@@ -399,11 +402,11 @@ export default function RideTrackerView({
             )}
 
             {activeRide.adjustmentStatus === 'disputed' && (
-              <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 shadow-sm flex items-start gap-3">
+              <div className="bg-theme-bg border border-theme-border rounded-2xl p-4 shadow-sm flex items-start gap-3">
                 <ShieldAlert className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-slate-800 text-sm">Fare Adjustment Disputed</h4>
-                  <p className="text-xs text-slate-600 mt-1">You disputed the +₹{activeRide.adjustmentAmount} charge. Original locked fare of <span className="font-mono font-bold">₹{activeRide.finalFare}</span> applies pending operations review. Decision within 2 hours.</p>
+                  <h4 className="font-bold text-theme-text-primary text-sm">Fare Adjustment Disputed</h4>
+                  <p className="text-xs text-theme-text-secondary mt-1">You disputed the +₹{activeRide.adjustmentAmount} charge. Original locked fare of <span className="font-mono font-bold">₹{activeRide.finalFare}</span> applies pending operations review. Decision within 2 hours.</p>
                 </div>
               </div>
             )}
@@ -412,10 +415,10 @@ export default function RideTrackerView({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               
               {/* Dynamic Cost */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">DYNAMIC LOCKED FARE</span>
+              <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">DYNAMIC LOCKED FARE</span>
                 <div className="flex items-baseline gap-1 mt-1.5">
-                  <h3 className="text-2xl font-black font-mono text-slate-800 tracking-tight">₹{activeRide.finalFare}</h3>
+                  <h3 className="text-2xl font-black font-mono text-theme-text-primary tracking-tight">₹{activeRide.finalFare}</h3>
                   {activeRide.behaviorDiscount > 0 && (
                     <span className="text-[10px] text-emerald-500 font-bold font-mono">(-₹{activeRide.behaviorDiscount})</span>
                   )}
@@ -423,8 +426,8 @@ export default function RideTrackerView({
               </div>
 
               {/* Safety Rating */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">SAFETY INDEX SCORE</span>
+              <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">SAFETY INDEX SCORE</span>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <h3 className={`text-2xl font-black font-mono tracking-tight ${activeRide.safetyScore < 80 ? 'text-rose-500' : 'text-emerald-500'}`}>
                     {activeRide.safetyScore}%
@@ -438,17 +441,17 @@ export default function RideTrackerView({
               </div>
 
               {/* Distance Info */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">TRANSIT ESTIMATION</span>
-                <h3 className="text-2xl font-black font-mono text-slate-800 tracking-tight mt-1.5">
+              <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">TRANSIT ESTIMATION</span>
+                <h3 className="text-2xl font-black font-mono text-theme-text-primary tracking-tight mt-1.5">
                   {activeRide.distanceKm} km
                 </h3>
               </div>
 
               {/* ETA Mins */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">REMAINING TIME ETA</span>
-                <h3 className="text-2xl font-black font-mono text-slate-800 tracking-tight mt-1.5">
+              <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">REMAINING TIME ETA</span>
+                <h3 className="text-2xl font-black font-mono text-theme-text-primary tracking-tight mt-1.5">
                   {(activeRide.durationMin * (1 - activeRide.progress / 100)).toFixed(1)} mins
                 </h3>
               </div>
@@ -493,31 +496,57 @@ export default function RideTrackerView({
 
             {/* TRIP COMPLETED -> FILE COMPLAINT / DISPUTE DIRECT FORM */}
             {activeRide.status === 'completed' && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+              <div className="bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs space-y-4">
+                {/* Stars Rating selection */}
+                <div className="border-b border-theme-border pb-4">
+                  <span className="text-xs font-bold text-theme-text-primary block">Rate Your Commute</span>
+                  <p className="text-[11px] text-theme-text-secondary mt-0.5">Let us know how your driver performed.</p>
+                  
+                  {activeRide.rating ? (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <span className="text-amber-500 text-sm">★</span>
+                      <span className="text-xs font-bold text-theme-text-primary">You rated this trip {activeRide.rating} stars</span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 mt-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => onRateRide(activeRide.id, star)}
+                          className="text-lg text-theme-text-secondary hover:text-amber-500 cursor-pointer transition-colors"
+                          id={`rate-star-${star}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 border-b border-theme-border pb-3">
                   <ShieldAlert className="w-5 h-5 text-brand-emerald" />
-                  <h4 className="font-bold text-slate-800 text-sm">File Dynamic Safe Shield Report</h4>
+                  <h4 className="font-bold text-theme-text-primary text-sm">File Dynamic Safe Shield Report</h4>
                 </div>
                 
                 {disputeFiled ? (
-                  <div className="p-4 bg-emerald-50 text-slate-800 border border-emerald-100 rounded-xl space-y-1">
+                  <div className="p-4 bg-emerald-50 text-theme-text-primary border border-emerald-100 rounded-xl space-y-1">
                     <span className="font-bold text-emerald-800 text-xs text-center block">Dispute Filed Successfully!</span>
-                    <p className="text-[11px] text-slate-600 text-center">Your operations analyst summary has booted. Head to the Disputes tab to watch Gemini analytical decision trees.</p>
+                    <p className="text-[11px] text-theme-text-secondary text-center">Your operations analyst summary has booted. Head to the Disputes tab to watch Gemini analytical decision trees.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleComplaint} className="space-y-4">
-                    <p className="text-xs text-slate-500">Provide an operational note about any transit overspeeding risks, harsh driving, or surcharges to initiate fully automated dispute adjudication.</p>
+                    <p className="text-xs text-theme-text-secondary">Provide an operational note about any transit overspeeding risks, harsh driving, or surcharges to initiate fully automated dispute adjudication.</p>
                     <textarea
                       value={complaintText}
                       onChange={(e) => setComplaintText(e.target.value)}
                       placeholder="Comment on overspeeding/harsh braking or fare billing issues..."
                       rows={3}
-                      className="w-full bg-slate-50 border border-slate-200 p-3 text-xs font-semibold text-slate-700 rounded-xl outline-none focus:border-brand-emerald focus:ring-2 focus:ring-brand-emerald/10 transition"
+                      className="w-full bg-theme-bg border border-theme-border p-3 text-xs font-semibold text-theme-text-primary rounded-xl outline-none focus:border-brand-emerald focus:ring-2 focus:ring-brand-emerald/10 transition"
                     />
                     <button
                       type="submit"
                       disabled={!complaintText.trim()}
-                      className="bg-slate-900 text-white hover:bg-black disabled:bg-slate-200 disabled:text-slate-400 text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer disabled:cursor-not-allowed transition"
+                      className="bg-slate-900 text-white hover:bg-black disabled:bg-slate-200 disabled:text-theme-text-secondary text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer disabled:cursor-not-allowed transition"
                     >
                       File Analysis Dispute
                     </button>
@@ -529,31 +558,31 @@ export default function RideTrackerView({
           </div>
 
           {/* AI HELPFUL AGENT CHAT BOT ASSISTANT (LG Col 4) */}
-          <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl h-[560px] flex flex-col justify-between overflow-hidden shadow-xs">
+          <div className="lg:col-span-4 bg-theme-card border border-theme-border rounded-2xl h-[560px] flex flex-col justify-between overflow-hidden shadow-xs">
             
             {/* Chat header */}
-            <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+            <div className="p-4 border-b border-theme-border bg-theme-bg/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-brand-emerald/15 flex items-center justify-center text-brand-emerald shrink-0">
                   <MessageSquare className="w-4 h-4 shrink-0" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">ZipRide AI Copilot</span>
-                  <span className="text-[9px] font-mono text-slate-400 block font-bold leading-none uppercase">Grounded policy support</span>
+                  <span className="text-xs font-bold text-theme-text-primary block">ZipRide AI Copilot</span>
+                  <span className="text-[9px] font-mono text-theme-text-secondary block font-bold leading-none uppercase">Grounded policy support</span>
                 </div>
               </div>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             </div>
 
             {/* Chat message body feeds */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4.5 bg-slate-50/30">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4.5 bg-theme-bg/30">
               {chatMessages.map((msg, index) => {
                 const isModel = msg.role === 'model';
                 return (
                   <div key={index} className={`flex ${isModel ? 'justify-start' : 'justify-end'}`}>
                     <div className={`max-w-[85%] rounded-2xl p-4 border shadow-xs ${
                       isModel 
-                        ? 'bg-white border-slate-200 text-slate-700' 
+                        ? 'bg-theme-card border-theme-border text-theme-text-primary' 
                         : 'bg-slate-900 border-slate-900 text-white'
                     }`}>
                       {isModel ? (
@@ -570,7 +599,7 @@ export default function RideTrackerView({
               
               {isSendingChat && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-2 text-slate-400">
+                  <div className="bg-theme-card border border-theme-border rounded-2xl p-4 flex items-center gap-2 text-theme-text-secondary">
                     <span className="w-2 h-2 rounded-full bg-brand-emerald animate-bounce" />
                     <span className="w-2 h-2 rounded-full bg-brand-emerald animate-bounce [animation-delay:0.2s]" />
                     <span className="w-2 h-2 rounded-full bg-brand-emerald animate-bounce [animation-delay:0.4s]" />
@@ -582,13 +611,13 @@ export default function RideTrackerView({
             </div>
 
             {/* Message input triggers */}
-            <form onSubmit={handleSendChat} className="p-3 border-t border-slate-250 bg-white flex gap-2">
+            <form onSubmit={handleSendChat} className="p-3 border-t border-theme-border bg-theme-card flex gap-2">
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Ask about weather fee or safety refunds..."
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 text-xs font-semibold text-slate-700 outline-none focus:border-brand-emerald focus:ring-2 focus:ring-brand-emerald/10 transition"
+                className="flex-1 bg-theme-bg border border-theme-border rounded-xl px-4 text-xs font-semibold text-theme-text-primary outline-none focus:border-brand-emerald focus:ring-2 focus:ring-brand-emerald/10 transition"
               />
               <button
                 type="submit"

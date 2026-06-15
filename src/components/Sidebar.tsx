@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -6,8 +6,10 @@ import {
   Navigation, 
   Flag, 
   IndianRupee,
-  ShieldAlert,
-  Globe
+  History,
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,38 +19,85 @@ interface SidebarProps {
     weather: string;
     traffic: string;
   };
+  userRole: 'passenger' | 'driver' | 'admin' | null;
 }
 
-export default function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/booking', label: 'Booking', icon: MapPin },
-    { path: '/driver', label: 'Driver', icon: Bike },
-    { path: '/tracker', label: 'Ride Tracker', icon: Navigation },
-    { path: '/disputes', label: 'Disputes', icon: Flag },
-    { path: '/fares', label: 'Fares', icon: IndianRupee },
-  ];
+export default function Sidebar({ activeTab, onSelectTab, userRole }: SidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('zipride_sidebar_collapsed') === 'true';
+  });
+
+  const toggleCollapse = () => {
+    const nextCollapsed = !isCollapsed;
+    setIsCollapsed(nextCollapsed);
+    localStorage.setItem('zipride_sidebar_collapsed', String(nextCollapsed));
+  };
+
+  const getNavItems = () => {
+    if (userRole === 'passenger') {
+      return [
+        { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/booking', label: 'Book Ride', icon: MapPin },
+        { path: '/tracker', label: 'Ride Tracker', icon: Navigation },
+        { path: '/fares', label: 'Fare Policy', icon: IndianRupee },
+        { path: '/history', label: 'Ride History', icon: History },
+        { path: '/settings', label: 'Settings', icon: Settings },
+      ];
+    } else if (userRole === 'driver') {
+      return [
+        { path: '/driver', label: 'Driver Console', icon: Bike },
+        { path: '/settings', label: 'Settings', icon: Settings },
+      ];
+    } else { // admin
+      return [
+        { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/booking', label: 'Book Ride', icon: MapPin },
+        { path: '/tracker', label: 'Ride Tracker', icon: Navigation },
+        { path: '/driver', label: 'Driver Console', icon: Bike },
+        { path: '/disputes', label: 'Disputes', icon: Flag },
+        { path: '/fares', label: 'Fare Policy', icon: IndianRupee },
+        { path: '/history', label: 'Ride History', icon: History },
+        { path: '/settings', label: 'Settings', icon: Settings },
+      ];
+    }
+  };
+
+  const navItems = getNavItems();
 
   return (
     <aside 
       id="zipride-sidebar" 
-      className="w-64 bg-[#0B111E] border-r border-[#151D30] flex flex-col h-screen text-slate-350 sticky top-0 shrink-0 hidden md:flex"
+      className={`${isCollapsed ? 'w-20' : 'w-64'} bg-theme-sidebar-bg border-r border-theme-sidebar-border flex flex-col h-screen text-theme-sidebar-text sticky top-0 shrink-0 hidden md:flex transition-all duration-300 ease-in-out`}
     >
       {/* Brand Header */}
-      <div className="p-6 flex items-start gap-3">
-        <div className="text-[#00C896]">
-          <Bike className="w-6 h-6" />
+      <div className={`p-6 flex items-center justify-between ${isCollapsed ? 'flex-col gap-4' : 'flex-row'}`}>
+        <div className="flex items-center gap-3">
+          <div className="text-[#00C896] shrink-0">
+            <Bike className="w-6 h-6 animate-pulse" />
+          </div>
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-lg font-bold text-theme-text-primary tracking-tight">
+                ZipRide
+              </h1>
+              <p className="text-[10px] text-theme-text-secondary font-medium tracking-wide capitalize">
+                {userRole === 'admin' ? 'Operations Hub' : userRole === 'driver' ? 'Driver Console' : 'Rider Portal'}
+              </p>
+            </div>
+          )}
         </div>
-        <div>
-          <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
-            ZipRide
-          </h1>
-          <p className="text-[11px] text-slate-400 font-medium tracking-wide">Ops Console</p>
-        </div>
+
+        <button
+          onClick={toggleCollapse}
+          className="p-1.5 rounded-lg bg-theme-sidebar-active-bg border border-theme-sidebar-active-border hover:bg-theme-sidebar-hover-bg text-[#00C896] transition cursor-pointer"
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
       </div>
 
-      {/* Navigation Tab Links (Matching Screenshot 5 Style) */}
-      <nav className="flex-1 px-4 py-2 space-y-1.5">
+      {/* Navigation Tab Links */}
+      <nav className="flex-1 px-4 py-2 space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.path;
@@ -57,41 +106,31 @@ export default function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
               key={item.path}
               id={`nav-tab-${item.path.replace('/', 'root')}`}
               onClick={() => onSelectTab(item.path)}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-left font-sans font-medium text-[13px] transition-all duration-150 ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center py-3' : 'px-4 py-3'} rounded-xl text-left font-sans font-medium text-[13px] transition-all duration-150 cursor-pointer ${
                 isActive 
-                  ? 'bg-[#151E33] text-[#00C896]' 
-                  : 'text-slate-400 hover:bg-[#111A2E] hover:text-slate-200'
+                  ? 'bg-theme-sidebar-active-bg text-[#00C896] shadow-sm border border-theme-sidebar-active-border' 
+                  : 'text-theme-sidebar-text hover:bg-theme-sidebar-hover-bg hover:text-theme-text-primary border border-transparent'
               }`}
+              title={isCollapsed ? item.label : undefined}
             >
-              <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-[#00C896]' : 'text-slate-500'}`} />
-              <span className="tracking-tight">{item.label}</span>
+              <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-[#00C896]' : 'text-theme-sidebar-text'}`} />
+              {!isCollapsed && <span className="tracking-tight ml-3.5">{item.label}</span>}
             </button>
           );
         })}
       </nav>
 
-      {/* Admin Quick Gate */}
-      <div className="px-4 mb-2">
-        <button
-          onClick={() => onSelectTab('/login')}
-          className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-left font-sans font-medium text-[13px] transition-all duration-150 ${
-            activeTab === '/login'
-              ? 'bg-[#151E33] text-[#00C896]'
-              : 'text-slate-500 hover:bg-[#111A2E] hover:text-slate-300'
-          }`}
-        >
-          <ShieldAlert className="w-4.5 h-4.5 shrink-0 text-slate-500" />
-          <span>Admin Portal</span>
-        </button>
-      </div>
-
-      {/* System Live Status (Matching Screenshot 5 bottom-left) */}
-      <div className="p-6 border-t border-[#121A2C] mt-auto">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00C896] animate-pulse" />
-          <span className="text-xs text-slate-400 font-medium">System Online</span>
+      {/* System Live Status */}
+      <div className="p-6 border-t border-theme-sidebar-border mt-auto">
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#00C896] animate-pulse shrink-0" />
+          {!isCollapsed && (
+            <div>
+              <span className="text-xs text-theme-sidebar-text font-bold block">Service Online</span>
+              <span className="text-[10px] text-theme-text-secondary block font-mono">v1.0.0</span>
+            </div>
+          )}
         </div>
-        <span className="text-[10px] text-slate-600 block mt-0.5 font-sans font-medium">v1.0.0</span>
       </div>
     </aside>
   );

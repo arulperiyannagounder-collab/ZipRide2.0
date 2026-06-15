@@ -19,11 +19,15 @@ import {
   CheckCircle2,
   Bike,
   Car,
-  Gauge
+  Gauge,
+  Menu,
+  X,
+  CloudRain
 } from 'lucide-react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Ride, SystemConfig } from '../types';
 import LiveJourneyMap from './LiveJourneyMap';
+
 
 // Props matching main app expectation
 interface BookingViewProps {
@@ -161,6 +165,8 @@ interface WeatherReport {
   weatherText: string;
   windSpeed: number;
   humidity: number;
+  rainChance?: number;
+  weatherMultiplier?: number;
 }
 
 type VehicleType = 'Bike' | 'Auto' | 'Cab';
@@ -176,9 +182,9 @@ interface FareProfile {
 }
 
 const VEHICLE_FARE_PROFILES: FareProfile[] = [
-  { id: 'Bike', label: 'Bike', description: 'Fastest low-cost ride', baseFare: 25, perKmRate: 10, perMinRate: 1.2, capacity: '1 rider' },
-  { id: 'Auto', label: 'Auto', description: 'Balanced city commute', baseFare: 35, perKmRate: 14, perMinRate: 1.5, capacity: '2-3 riders' },
-  { id: 'Cab', label: 'Cab', description: 'Comfort ride', baseFare: 50, perKmRate: 18, perMinRate: 2, capacity: '4 riders' }
+  { id: 'Bike', label: 'Bike', description: 'Fastest low-cost ride', baseFare: 25, perKmRate: 8, perMinRate: 1.0, capacity: '1 rider' },
+  { id: 'Auto', label: 'Auto', description: 'Balanced city commute', baseFare: 40, perKmRate: 12, perMinRate: 1.5, capacity: '2-3 riders' },
+  { id: 'Cab', label: 'Cab', description: 'Comfort ride', baseFare: 80, perKmRate: 18, perMinRate: 2.5, capacity: '4 riders' }
 ];
 
 interface PlaceSuggestion {
@@ -335,32 +341,25 @@ const getFallbackIndianCoords = (address: string): Coords => {
   return { lat: 19.0760 + (Math.random() - 0.5) * 0.05, lng: 72.8777 + (Math.random() - 0.5) * 0.05 };
 };
 
-// Fetch Weather details from Open-Meteo
+// Fetch Weather details from backend WeatherAPI proxy
 const fetchWeatherDetails = async (lat: number, lng: number): Promise<WeatherReport> => {
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&relative_humidity_2m=true&current=relative_humidity_2m`);
+    const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`);
     if (res.ok) {
       const data = await res.json();
-      const current = data.current_weather || data.current || {};
-      const weatherCode = current.weathercode !== undefined ? current.weathercode : current.weather_code || 0;
-      const temp = Math.round(current.temperature !== undefined ? current.temperature : current.temperature_2m || 28);
-      const windSpeed = Math.round(current.windspeed !== undefined ? current.windspeed : current.wind_speed_10m || 12);
-      const humidity = data.current?.relative_humidity_2m !== undefined ? Math.round(data.current.relative_humidity_2m) : 62;
-      
-      let weatherText = "Clear Sky";
-      if (weatherCode === 1 || weatherCode === 2 || weatherCode === 3) weatherText = "Partly Cloudy";
-      else if (weatherCode === 45 || weatherCode === 48) weatherText = "Foggy";
-      else if (weatherCode >= 51 && weatherCode <= 67) weatherText = "Light Drizzle";
-      else if (weatherCode >= 71 && weatherCode <= 77) weatherText = "Snowy Sky";
-      else if (weatherCode >= 80 && weatherCode <= 82) weatherText = "Rain Showers";
-      else if (weatherCode >= 95) weatherText = "Heavy Thunderstorm";
-
-      return { temp, weatherText, windSpeed, humidity };
+      return {
+        temp: typeof data.temp === 'number' ? data.temp : 28,
+        weatherText: data.weatherText || "Clear",
+        windSpeed: typeof data.windSpeed === 'number' ? data.windSpeed : 10,
+        humidity: typeof data.humidity === 'number' ? data.humidity : 55,
+        rainChance: typeof data.rainChance === 'number' ? data.rainChance : 0,
+        weatherMultiplier: typeof data.weatherMultiplier === 'number' ? data.weatherMultiplier : 1.0
+      };
     }
   } catch (err) {
     console.warn("Weather forecast fetch error:", err);
   }
-  return { temp: 28, weatherText: "Clear & Sunny", windSpeed: 10, humidity: 55 };
+  return { temp: 28, weatherText: "Clear & Sunny", windSpeed: 10, humidity: 55, rainChance: 0, weatherMultiplier: 1.0 };
 };
 
 function BookingViewInner({
@@ -375,6 +374,7 @@ function BookingViewInner({
   const [drop, setDrop] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('Bike');
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Wallet' | 'Card'>('UPI');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   const pickupRef = React.useRef<HTMLInputElement>(null);
   const dropRef = React.useRef<HTMLInputElement>(null);
@@ -392,6 +392,31 @@ function BookingViewInner({
   const [selectedDrop, setSelectedDrop] = useState('');
   const [isPickupVerified, setIsPickupVerified] = useState(false);
   const [isDropVerified, setIsDropVerified] = useState(false);
+
+  // Rebook auto-fill loader hook
+  useEffect(() => {
+    const p = localStorage.getItem('zipride_rebook_pickup');
+    const d = localStorage.getItem('zipride_rebook_drop');
+    if (p && d) {
+      setPickup(p);
+      setSelectedPickup(p);
+      setIsPickupVerified(true);
+      
+      setDrop(d);
+      setSelectedDrop(d);
+      setIsDropVerified(true);
+
+      // Resolve and set correct coordinates from local suggestions or known list immediately
+      const pCoords = getFallbackIndianCoords(p);
+      setPickupCoords(pCoords);
+      const dCoords = getFallbackIndianCoords(d);
+      setDropCoords(dCoords);
+      
+      // Clear out stored values
+      localStorage.removeItem('zipride_rebook_pickup');
+      localStorage.removeItem('zipride_rebook_drop');
+    }
+  }, []);
 
   // Monitor verification state based on selection or exact fallback lookup
   useEffect(() => {
@@ -781,23 +806,30 @@ function BookingViewInner({
   };
 
   // Pricing Calculation algorithm structure
-  const getDynamicFareValues = () => {
-    const base = 25.0; // flag down block
-    const distFare = Number((calculatedDistance * 13.5).toFixed(2)); // ₹13.5 per km
-    const timeFare = Number((calculatedDuration * 1.75).toFixed(2)); // ₹1.75 per minute
+  const getDynamicFareValues = (vehicleId: VehicleType = selectedVehicle) => {
+    const profile = VEHICLE_FARE_PROFILES.find(p => p.id === vehicleId) || VEHICLE_FARE_PROFILES[0];
+    const base = profile.baseFare;
+    const distFare = Number((calculatedDistance * profile.perKmRate).toFixed(2));
+    const timeFare = Number((calculatedDuration * profile.perMinRate).toFixed(2));
 
-    // Weather surcharge from real-time climate checks
+    // Weather surcharge from real-time climate checks or system config
     let weatherSurcharge = 0;
     const peakPickupWeather = weatherPickup?.weatherText || systemConfig.weather;
-    if (peakPickupWeather.includes("Rain") || peakPickupWeather.includes("Shower")) weatherSurcharge = 35;
-    else if (peakPickupWeather.includes("Storm") || peakPickupWeather.includes("Thunder")) weatherSurcharge = 55;
-    else if (peakPickupWeather.includes("Drizzle")) weatherSurcharge = 20;
+    const wt = peakPickupWeather.toLowerCase();
+    
+    if (wt.includes('overcast') || wt.includes('clouds') || wt.includes('mist') || wt.includes('haze') || wt.includes('fog')) {
+      weatherSurcharge = 10;
+    } else if (wt.includes('rain') || wt.includes('drizzle')) {
+      weatherSurcharge = 30;
+    } else if (wt.includes('storm') || wt.includes('thunderstorm') || wt.includes('snow') || wt.includes('extreme')) {
+      weatherSurcharge = 50;
+    }
 
     // Traffic surcharge multiplier factors
     let trafficMultiplier = 1.0;
-    if (systemConfig.traffic === 'Moderate') trafficMultiplier = 1.15;
-    else if (systemConfig.traffic === 'Heavy Congestion') trafficMultiplier = 1.35;
-    else if (systemConfig.traffic === 'Gridlock') trafficMultiplier = 1.60;
+    if (systemConfig.traffic === 'Moderate') trafficMultiplier = 1.1;
+    else if (systemConfig.traffic === 'Heavy Congestion') trafficMultiplier = 1.3;
+    else if (systemConfig.traffic === 'Gridlock') trafficMultiplier = 1.5;
 
     const environmentalTransitSurcharges = (distFare + timeFare) * (trafficMultiplier - 1.0);
     const total = Number((base + weatherSurcharge + distFare + timeFare + environmentalTransitSurcharges).toFixed(2));
@@ -812,7 +844,7 @@ function BookingViewInner({
     };
   };
 
-  const currentFare = getDynamicFareValues();
+  const currentFare = getDynamicFareValues(selectedVehicle);
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -821,15 +853,17 @@ function BookingViewInner({
     setIsSubmitting(true);
     try {
       // Pass client-side computed real-time coordinates, distance, and details to keep everything locked and accurate
-      await onBookRide(pickup, drop, paymentMethod, {
+      const createdRide = await onBookRide(pickup, drop, paymentMethod, {
         distanceKm: calculatedDistance,
         durationMin: calculatedDuration,
         weatherType: weatherPickup?.weatherText || systemConfig.weather,
         trafficType: systemConfig.traffic,
         initialFare: currentFare.total,
         gpsLat: pickupCoords.lat,
-        gpsLng: pickupCoords.lng
+        gpsLng: pickupCoords.lng,
+        vehicleType: selectedVehicle
       });
+      console.log("Created Ride:", createdRide);
       onSelectTab('tracker');
     } catch (err) {
       console.error('Booking submission failed:', err);
@@ -843,9 +877,9 @@ function BookingViewInner({
     if (!isOpen) return null;
 
     return (
-      <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-[0_16px_40px_rgba(15,23,42,0.18)] overflow-hidden max-h-72 overflow-y-auto">
+      <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-theme-card border border-theme-border rounded-xl shadow-[0_16px_40px_rgba(15,23,42,0.18)] overflow-hidden max-h-72 overflow-y-auto">
         {suggestionsLoading && (
-          <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 border-b border-slate-100">
+          <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary bg-theme-bg border-b border-theme-border">
             Searching Indian places...
           </div>
         )}
@@ -855,7 +889,7 @@ function BookingViewInner({
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => selectSuggestion(field, suggestion)}
-            className="w-full text-left px-4 py-3 hover:bg-indigo-50/70 border-b border-slate-100 last:border-b-0 transition-colors"
+            className="w-full text-left px-4 py-3 hover:bg-indigo-50/70 border-b border-theme-border last:border-b-0 transition-colors"
           >
             <span className="flex items-start gap-3">
               {field === 'pickup' ? (
@@ -864,8 +898,8 @@ function BookingViewInner({
                 <MapPin className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
               )}
               <span className="min-w-0">
-                <span className="block text-sm font-bold text-slate-800 truncate">{suggestion.name}</span>
-                <span className="block text-[11px] font-semibold text-slate-500 truncate">
+                <span className="block text-sm font-bold text-theme-text-primary truncate">{suggestion.name}</span>
+                <span className="block text-[11px] font-semibold text-theme-text-secondary truncate">
                   {[suggestion.district, suggestion.state].filter(Boolean).join(", ") || "India"}
                 </span>
               </span>
@@ -877,57 +911,36 @@ function BookingViewInner({
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] overflow-hidden" id="ride-setup-container">
+    <div className="relative w-full h-[calc(100vh-80px)] overflow-hidden rounded-3xl bg-theme-card border border-theme-border/80 shadow-sm" id="ride-setup-container">
       
-      {/* Background Full View Dynamic visualizing Map */}
-      <div className="absolute inset-0 z-0 bg-slate-100" id="live-map-container">
-        {pickup || drop ? (
-          <LiveJourneyMap
-            apiKey={apiKey}
-            hasValidKey={hasValidKey}
-            pickupName={pickup}
-            dropName={drop}
-            pickupCoords={pickupCoords}
-            dropCoords={dropCoords}
-            distanceKm={calculatedDistance}
-            weatherAtPickup={weatherPickup ? `${weatherPickup.temp}°C ${weatherPickup.weatherText}` : undefined}
-            weatherAtDrop={weatherDrop ? `${weatherDrop.temp}°C ${weatherDrop.weatherText}` : undefined}
-            speedbreakers={speedbreakers}
-            heavyTrafficSegments={heavyTrafficPoints}
-            onRouteSelect={(dist, dur) => {
-              if (dist !== calculatedDistance || dur !== calculatedDuration) {
-                setCalculatedDistance(dist);
-                setCalculatedDuration(dur);
-              }
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-900/5 relative overflow-hidden">
-             {/* Map placeholder pattern */}
-             <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:24px_24px] opacity-30 z-0"></div>
-             
-             <div className="relative z-10 flex flex-col items-center justify-center p-8 bg-white/60 backdrop-blur-md rounded-3xl border border-slate-200/50 shadow-sm max-w-sm text-center">
-               <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
-               <h3 className="text-lg font-bold text-slate-800 tracking-tight">Map Display</h3>
-               <p className="text-xs font-semibold text-slate-500 mt-2">Enter your pickup and destination on the left to see live roads, weather, and real traffic mapping.</p>
-             </div>
-          </div>
-        )}
-      </div>
+      {/* Absolute floating Hamburger toggle button */}
+      <button
+        type="button"
+        onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+        className="absolute top-4 left-4 z-40 p-3 bg-theme-card/95 hover:bg-theme-card border border-theme-border rounded-xl shadow-lg hover:shadow-xl text-theme-text-primary transition-all duration-300 flex items-center justify-center cursor-pointer"
+        aria-label="Toggle Booking Panel"
+      >
+        {isDrawerOpen ? <X className="w-6 h-6 text-rose-500" /> : <Menu className="w-6 h-6 text-indigo-600" />}
+      </button>
 
-      {/* Floating Left Column: Form Setup & Calculations */}
-      <div className="absolute top-4 left-4 right-4 lg:right-auto lg:left-6 z-20 w-auto lg:w-full lg:max-w-[380px] h-auto max-h-[calc(100vh-120px)] flex flex-col gap-5 overflow-y-auto pr-2 pb-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
-        <div className="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] shrink-0" id="booking-form-card">
-          <h3 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+      {/* Left Collapsible Slide Drawer: Form Setup & Calculations */}
+      <div 
+        className={`absolute top-0 bottom-0 left-0 z-35 w-full sm:w-[410px] h-full flex flex-col gap-5 overflow-y-auto p-5 pt-20 md:p-6 md:pt-20 bg-theme-bg border-r border-theme-border shrink-0 transition-transform duration-300 ease-in-out ${
+          isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        id="booking-form-panel"
+      >
+        <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-sm shrink-0" id="booking-form-card">
+          <h3 className="text-xl font-bold text-theme-text-primary tracking-tight flex items-center gap-2">
             <Compass className="w-5 h-5 text-indigo-600 animate-spin-slow" />
             <span>Set Up Your Journey</span>
           </h3>
-          <p className="text-xs text-slate-400 mt-1 mb-6">Enter real-time pickup and drop locations in India with Google Maps validation.</p>
+          <p className="text-xs text-theme-text-secondary mt-1 mb-6">Enter real-time pickup and drop locations in India with Google Maps validation.</p>
 
           <form onSubmit={handleBooking} className="space-y-4">
             {/* Pickup Input Field */}
             <div className="relative" id="pickup-selection-block">
-              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 mb-2">PICKUP LOCATION POINT</label>
+              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-2">PICKUP LOCATION POINT</label>
               <div className="relative">
                 <CircleDot className="w-5 h-5 text-emerald-500 absolute left-4 top-1/2 -translate-y-1/2 shrink-0" />
                 <input
@@ -943,7 +956,7 @@ function BookingViewInner({
                   onFocus={() => setIsActiveField('pickup')}
                   onBlur={() => window.setTimeout(() => setIsActiveField(null), 120)}
                   placeholder="Type any place, city, or landmark in India..."
-                  className="w-full bg-slate-50 pl-12 pr-4 py-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-850 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition duration-200"
+                  className="w-full bg-theme-bg pl-12 pr-4 py-4 rounded-xl border border-theme-border text-sm font-semibold text-theme-text-primary outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition duration-200"
                 />
               </div>
               {renderSuggestionList('pickup', pickupSuggestions)}
@@ -966,7 +979,7 @@ function BookingViewInner({
 
             {/* Drop Destination Input Field */}
             <div className="relative" id="drop-selection-block">
-              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 mb-2">DROP DESTINATION POINT</label>
+              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-2">DROP DESTINATION POINT</label>
               <div className="relative">
                 <MapPin className="w-5 h-5 text-rose-500 absolute left-4 top-1/2 -translate-y-1/2 shrink-0" />
                 <input
@@ -982,7 +995,7 @@ function BookingViewInner({
                   onFocus={() => setIsActiveField('drop')}
                   onBlur={() => window.setTimeout(() => setIsActiveField(null), 120)}
                   placeholder="Type full destination address in India..."
-                  className="w-full bg-slate-50 pl-12 pr-4 py-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-850 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition duration-200"
+                  className="w-full bg-theme-bg pl-12 pr-4 py-4 rounded-xl border border-theme-border text-sm font-semibold text-theme-text-primary outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition duration-200"
                 />
               </div>
               {renderSuggestionList('drop', dropSuggestions)}
@@ -1013,7 +1026,7 @@ function BookingViewInner({
                 className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 border transition duration-300 cursor-pointer disabled:cursor-not-allowed ${
                   showFare
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-xs disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-xs disabled:bg-theme-bg disabled:border-theme-border disabled:text-theme-text-secondary'
                 }`}
               >
                 {weatherLoading ? (
@@ -1043,9 +1056,41 @@ function BookingViewInner({
               </div>
             )}
 
+            {/* Vehicle Options Selector */}
+            {showFare && (
+              <div>
+                <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-2">CHOOSE VEHICLE OPTION</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {VEHICLE_FARE_PROFILES.map(profile => {
+                    const isSelected = selectedVehicle === profile.id;
+                    const calculated = getDynamicFareValues(profile.id);
+                    return (
+                      <button
+                        key={profile.id}
+                        type="button"
+                        onClick={() => setSelectedVehicle(profile.id)}
+                        className={`flex flex-col items-center justify-center p-3.5 border-2 rounded-xl gap-1.5 transition duration-200 cursor-pointer ${
+                          isSelected 
+                            ? 'border-[#00C896] bg-[#F4FDFB] text-[#00C896] font-bold ring-2 ring-[#00C896]/10' 
+                            : 'border-theme-border bg-theme-card hover:border-theme-border text-theme-text-secondary font-semibold'
+                        }`}
+                      >
+                        <span className="text-xl">
+                          {profile.id === 'Bike' ? '🏍️' : profile.id === 'Auto' ? '🛺' : '🚗'}
+                        </span>
+                        <span className="text-xs font-bold text-theme-text-primary">{profile.label}</span>
+                        <span className="text-[10px] text-theme-text-secondary">{profile.capacity}</span>
+                        <span className="text-xs font-extrabold text-emerald-600 font-mono mt-1">₹{calculated.total.toFixed(0)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Payment Mode Selector */}
             <div>
-              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 mb-2">DIGITAL MODE SELECTOR</label>
+              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-2">DIGITAL MODE SELECTOR</label>
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { id: 'UPI', label: 'UPI Node', icon: Smartphone },
@@ -1062,7 +1107,7 @@ function BookingViewInner({
                       className={`flex flex-col items-center justify-center p-3.5 border-2 rounded-xl gap-2 transition duration-200 ${
                         isSelected 
                           ? 'border-indigo-600 bg-indigo-50/40 text-indigo-700 font-bold' 
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-500 font-semibold'
+                          : 'border-theme-border bg-theme-card hover:border-theme-border text-theme-text-secondary font-semibold'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -1078,7 +1123,7 @@ function BookingViewInner({
               type="submit"
               id="book-ride-btn"
               disabled={isSubmitting || !pickup || !drop || pickup === drop || !showFare || distanceExceeded || !isPickupVerified || !isDropVerified}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition duration-300 cursor-pointer disabled:cursor-not-allowed"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-theme-text-secondary text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition duration-300 cursor-pointer disabled:cursor-not-allowed"
             >
               <Zap className="w-5 h-5 shrink-0" />
               <span>{isSubmitting ? 'Securing Bike Connection...' : !showFare ? 'Show Price First to Book' : 'Trigger Taxi Booking'}</span>
@@ -1088,70 +1133,84 @@ function BookingViewInner({
 
         {/* Real-time details region of Weather/Traffic (highly user-friendly) */}
         {showFare && (
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4" id="weather-traffic-detail-card">
-            <h4 className="text-sm font-bold text-slate-800 tracking-wide flex items-center gap-1.5 uppercase font-mono border-b border-slate-100 pb-3">
+          <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-6 shadow-xs space-y-4" id="weather-traffic-detail-card">
+            <h4 className="text-sm font-bold text-theme-text-primary tracking-wide flex items-center gap-1.5 uppercase font-mono border-b border-theme-border pb-3">
               <Info className="w-4 h-4 text-emerald-600" />
               <span>Journey Regional Weather & Traffic Details</span>
             </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Pickup forecast */}
-              <div className="bg-slate-50/60 p-4 rounded-xl border border-slate-150 relative overflow-hidden">
+              <div className="bg-theme-bg/60 p-4 rounded-xl border border-theme-border relative overflow-hidden">
                 <span className="absolute right-3 top-3 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-[9px] font-bold font-mono">PICKUP POINT</span>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Location Conditions</p>
+                <p className="text-[10px] text-theme-text-secondary font-bold uppercase tracking-wider font-mono">Location Conditions</p>
                 <div className="flex items-center gap-3 mt-2.5">
                   <div className="p-2.5 bg-sky-50 rounded-lg text-sky-600">
                     <Thermometer className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-slate-800">{weatherPickup?.temp}°C <span className="text-xs font-semibold text-sky-600">({weatherPickup?.weatherText})</span></h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Air Temperature</p>
+                    <h5 className="text-sm font-bold text-theme-text-primary">{weatherPickup?.temp}°C <span className="text-xs font-semibold text-sky-600">({weatherPickup?.weatherText})</span></h5>
+                    <p className="text-[10px] text-theme-text-secondary mt-0.5">Air Temperature</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200/50">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-theme-border/50">
                   <div className="flex items-center gap-1.5">
-                    <Droplets className="w-3.5 h-3.5 text-blue-500" />
+                    <Droplets className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                     <div>
-                      <span className="text-xs font-bold text-slate-700 block">{weatherPickup?.humidity}%</span>
-                      <span className="text-[9px] text-slate-400">Humidity</span>
+                      <span className="text-[11px] font-bold text-theme-text-primary block">{weatherPickup?.humidity}%</span>
+                      <span className="text-[9px] text-theme-text-secondary">Humidity</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Wind className="w-3.5 h-3.5 text-sky-500" />
+                    <Wind className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                     <div>
-                      <span className="text-xs font-bold text-slate-700 block">{weatherPickup?.windSpeed} km/h</span>
-                      <span className="text-[9px] text-slate-400">Wind Velocity</span>
+                      <span className="text-[11px] font-bold text-theme-text-primary block leading-tight">{weatherPickup?.windSpeed} km/h</span>
+                      <span className="text-[9px] text-theme-text-secondary">Wind</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CloudRain className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    <div>
+                      <span className="text-[11px] font-bold text-theme-text-primary block">{weatherPickup?.rainChance ?? 0}%</span>
+                      <span className="text-[9px] text-theme-text-secondary">Rain %</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Destination forecast */}
-              <div className="bg-slate-50/60 p-4 rounded-xl border border-slate-150 relative overflow-hidden">
+              <div className="bg-theme-bg/60 p-4 rounded-xl border border-theme-border relative overflow-hidden">
                 <span className="absolute right-3 top-3 text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md text-[9px] font-bold font-mono">DROP POINT</span>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Location Conditions</p>
+                <p className="text-[10px] text-theme-text-secondary font-bold uppercase tracking-wider font-mono">Location Conditions</p>
                 <div className="flex items-center gap-3 mt-2.5">
                   <div className="p-2.5 bg-sky-50 rounded-lg text-sky-600">
                     <Thermometer className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-slate-800">{weatherDrop?.temp}°C <span className="text-xs font-semibold text-rose-500">({weatherDrop?.weatherText})</span></h5>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Air Temperature</p>
+                    <h5 className="text-sm font-bold text-theme-text-primary">{weatherDrop?.temp}°C <span className="text-xs font-semibold text-rose-500">({weatherDrop?.weatherText})</span></h5>
+                    <p className="text-[10px] text-theme-text-secondary mt-0.5">Air Temperature</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200/50">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-theme-border/50">
                   <div className="flex items-center gap-1.5">
-                    <Droplets className="w-3.5 h-3.5 text-blue-500" />
+                    <Droplets className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                     <div>
-                      <span className="text-xs font-bold text-slate-700 block">{weatherDrop?.humidity}%</span>
-                      <span className="text-[9px] text-slate-400">Humidity</span>
+                      <span className="text-[11px] font-bold text-theme-text-primary block">{weatherDrop?.humidity}%</span>
+                      <span className="text-[9px] text-theme-text-secondary">Humidity</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Wind className="w-3.5 h-3.5 text-sky-500" />
+                    <Wind className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                     <div>
-                      <span className="text-xs font-bold text-slate-700 block">{weatherDrop?.windSpeed} km/h</span>
-                      <span className="text-[9px] text-slate-400">Wind Velocity</span>
+                      <span className="text-[11px] font-bold text-theme-text-primary block leading-tight">{weatherDrop?.windSpeed} km/h</span>
+                      <span className="text-[9px] text-theme-text-secondary">Wind</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CloudRain className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    <div>
+                      <span className="text-[11px] font-bold text-theme-text-primary block">{weatherDrop?.rainChance ?? 0}%</span>
+                      <span className="text-[9px] text-theme-text-secondary">Rain %</span>
                     </div>
                   </div>
                 </div>
@@ -1179,11 +1238,11 @@ function BookingViewInner({
           </div>
         )}
         {/* Dynamic pricing panel */}
-        <div className="bg-white border border-slate-200/85 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] shrink-0" id="fare-panel">
-          <div className="p-5 border-b border-slate-150 bg-slate-50/50 flex items-center justify-between">
+        <div className="bg-theme-card border border-theme-border/85 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] shrink-0" id="fare-panel">
+          <div className="p-5 border-b border-theme-border bg-theme-bg/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <IndianRupee className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span className="font-bold text-slate-800 text-sm">Dynamic Fare Calculator</span>
+              <span className="font-bold text-theme-text-primary text-sm">Dynamic Fare Calculator</span>
             </div>
             <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1 shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -1206,22 +1265,22 @@ function BookingViewInner({
                 </div>
               )}
 
-              <div className="space-y-2.5 text-xs text-slate-500 font-semibold border-b border-slate-100 pb-4">
-                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider text-slate-400">
+              <div className="space-y-2.5 text-xs text-theme-text-secondary font-semibold border-b border-theme-border pb-4">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider text-theme-text-secondary">
                   <span>Description Metric</span>
                   <span>Sub-Total</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Flag Down Block (Base)</span>
-                  <span className="font-mono text-slate-800">₹{currentFare.base.toFixed(2)}</span>
+                  <span className="font-mono text-theme-text-primary">₹{currentFare.base.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Calculated Route Distance ({calculatedDistance} km)</span>
-                  <span className="font-mono text-slate-800 font-bold">₹{currentFare.distFare.toFixed(2)}</span>
+                  <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.distFare.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Estimated Transit ETA ({calculatedDuration} mins)</span>
-                  <span className="font-mono text-slate-800 font-bold">₹{currentFare.timeFare.toFixed(2)}</span>
+                  <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.timeFare.toFixed(2)}</span>
                 </div>
                 {currentFare.weatherSurcharge > 0 && (
                   <div className="flex justify-between items-center">
@@ -1240,29 +1299,60 @@ function BookingViewInner({
               {/* Combined Final Toll */}
               <div className="flex items-center justify-between pt-1">
                 <div>
-                  <span className="text-sm font-semibold text-slate-800 block font-sans">Locked Ride Fare</span>
+                  <span className="text-sm font-semibold text-theme-text-primary block font-sans">Locked Ride Fare</span>
                   <span className="text-[10px] text-emerald-500 font-semibold tracking-wide">Live discount refund shield active</span>
                 </div>
                 <h2 className="text-3xl font-extrabold text-emerald-600 font-mono tracking-tight">₹{currentFare.total.toFixed(2)}</h2>
               </div>
 
-              <div className="text-[10px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+              <div className="text-[10px] text-theme-text-secondary leading-relaxed pt-2 border-t border-theme-border">
                 ℹ️ <strong>Refund Shield Commitment</strong>: Fares are fully locked upon booking. If your assigned driver breaches weather speed safety limits or performs harsh decelerations, instant dynamic discounts are computed and credited.
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center min-h-[300px]">
+            <div className="p-12 text-center text-theme-text-secondary flex flex-col items-center justify-center min-h-[300px]">
               <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
-              <p className="text-sm font-bold text-slate-700">Calculate Distance & Fare</p>
-              <p className="text-xs text-slate-400 max-w-[250px] mt-2 mb-4 leading-relaxed">
+              <p className="text-sm font-bold text-theme-text-primary">Calculate Distance & Fare</p>
+              <p className="text-xs text-theme-text-secondary max-w-[250px] mt-2 mb-4 leading-relaxed">
                 Provide your journey pick-up and destination points in the form block to query maps routing, coordinates, distance, and real-time open weather details.
               </p>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Dynamic Route Visualization Map block is removed from here since it's now in the background */}
-
+      {/* Main Full-Screen Live Map Container */}
+      <div className="w-full h-full relative z-0 bg-theme-bg" id="live-map-container">
+        {pickup || drop ? (
+          <LiveJourneyMap
+            apiKey={apiKey}
+            hasValidKey={hasValidKey}
+            pickupName={pickup}
+            dropName={drop}
+            pickupCoords={pickupCoords}
+            dropCoords={dropCoords}
+            distanceKm={calculatedDistance}
+            weatherAtPickup={weatherPickup ? `${weatherPickup.temp}°C ${weatherPickup.weatherText}` : undefined}
+            weatherAtDrop={weatherDrop ? `${weatherDrop.temp}°C ${weatherDrop.weatherText}` : undefined}
+            speedbreakers={speedbreakers}
+            heavyTrafficSegments={heavyTrafficPoints}
+            onRouteSelect={(dist, dur) => {
+              if (dist !== calculatedDistance || dur !== calculatedDuration) {
+                setCalculatedDistance(dist);
+                setCalculatedDuration(dur);
+              }
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-theme-text-secondary bg-slate-900/5 relative overflow-hidden">
+             <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:24px_24px] opacity-30 z-0"></div>
+             <div className="relative z-10 flex flex-col items-center justify-center p-8 bg-theme-card/60 backdrop-blur-md rounded-3xl border border-theme-border/50 shadow-sm max-w-sm text-center">
+                <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
+                <h3 className="text-lg font-bold text-theme-text-primary tracking-tight">Map Display</h3>
+                <p className="text-xs font-semibold text-theme-text-secondary mt-2">Enter your pickup and destination on the left to see live roads, weather, and real traffic mapping.</p>
+             </div>
+          </div>
+        )}
       </div>
 
     </div>
@@ -1271,17 +1361,13 @@ function BookingViewInner({
 
 // Master wrapper to correctly inject Google Maps API contexts dynamically
 export default function BookingView(props: BookingViewProps) {
-  // Read process.env.GOOGLE_MAPS_PLATFORM_KEY
-  const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || "";
-  const hasValidKey = Boolean(API_KEY) && API_KEY !== "YOUR_API_KEY" && API_KEY.trim().length > 5;
-
-  if (hasValidKey) {
-    return (
-      <APIProvider apiKey={API_KEY} version="weekly">
-        <BookingViewInner {...props} apiKey={API_KEY} hasValidKey={true} />
-      </APIProvider>
-    );
-  } else {
-    return <BookingViewInner {...props} apiKey="" hasValidKey={false} />;
-  }
+  const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || 
+                  ((import.meta as any).env && (import.meta as any).env.VITE_GOOGLE_MAPS_API_KEY) || 
+                  (process.env as any).VITE_GOOGLE_MAPS_API_KEY || 
+                  "";
+  return (
+    <APIProvider apiKey={API_KEY} version="weekly">
+      <BookingViewInner {...props} apiKey={API_KEY} hasValidKey={!!API_KEY} />
+    </APIProvider>
+  );
 }

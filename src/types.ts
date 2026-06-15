@@ -72,6 +72,13 @@ export interface Ride {
     description: string;
   };
   adjustmentStatus?: 'pending' | 'accepted' | 'disputed';
+  vehicleType?: 'Bike' | 'Auto' | 'Cab';
+  weatherCondition?: string;
+  temperature?: number;
+  humidity?: number;
+  windSpeed?: number;
+  weatherMultiplier?: number;
+  rainChance?: number;
 }
 
 export interface Dispute {

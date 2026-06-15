@@ -4,9 +4,15 @@ import path from 'path';
 export interface Driver {
   id: string;
   name: string;
+  phone: string;
   vehicle: string;
   rating: number;
   status: 'online' | 'offline' | 'busy';
+  location: { lat: number; lng: number };
+  vehicleType?: 'Bike' | 'Auto' | 'Cab';
+  vehicleNumber?: string;
+  baseCompletedRides?: number;
+  baseTodayEarnings?: number;
 }
 
 export interface Ride {
@@ -34,6 +40,12 @@ export interface Ride {
   driverName?: string;
   driverVehicle?: string;
   driverRating?: number;
+  driverPhone?: string;
+  driverVehicleType?: string;
+  riderName?: string;
+  riderPhone?: string;
+  riderLat?: number;
+  riderLng?: number;
   createdAt: string;
   completedAt?: string;
   rating?: number;
@@ -57,6 +69,13 @@ export interface Ride {
     description: string;
   };
   adjustmentStatus?: 'pending' | 'accepted' | 'disputed';
+  vehicleType?: 'Bike' | 'Auto' | 'Cab';
+  weatherCondition?: string;
+  temperature?: number;
+  humidity?: number;
+  windSpeed?: number;
+  weatherMultiplier?: number;
+  rainChance?: number;
 }
 
 export interface Dispute {
@@ -100,11 +119,7 @@ interface DatabaseSchema {
 const DB_FILE = path.join(process.cwd(), 'zipride_db.json');
 
 const INITIAL_DB: DatabaseSchema = {
-  drivers: [
-    { id: 'DRV001', name: 'Rajesh Kumar', vehicle: 'BIKE-MH12-AB-1234', rating: 4.8, status: 'online' },
-    { id: 'DRV002', name: 'Priya Sharma', vehicle: 'BIKE-MH12-CD-5678', rating: 4.9, status: 'online' },
-    { id: 'DRV003', name: 'Suresh Reddy', vehicle: 'BIKE-MH12-GH-3456', rating: 4.6, status: 'online' }
-  ],
+  drivers: [],
   rides: [],
   disputes: [],
   config: {
@@ -130,6 +145,27 @@ class FileDatabase {
         // Ensure standard templates
         if (!this.data.drivers || this.data.drivers.length === 0) {
           this.data.drivers = [...INITIAL_DB.drivers];
+        } else {
+          // Remove hardcoded seed profiles from existing db file
+          this.data.drivers = this.data.drivers.filter(d => !['DRV001', 'DRV002', 'DRV003'].includes(d.id));
+          this.data.drivers.forEach(d => {
+            if (!d.phone) d.phone = '+91 9876543210';
+            if (!d.vehicleType) d.vehicleType = 'Bike';
+            if (!d.location) d.location = { lat: 13.0827, lng: 80.2707 };
+          });
+        }
+        if (this.data.rides) {
+          this.data.rides.forEach(r => {
+            if (!r.riderName) {
+              r.riderName = 'Saran';
+            }
+            if (!r.driverName && r.driverId) {
+              const driver = this.data.drivers.find(d => d.id === r.driverId);
+              if (driver) {
+                r.driverName = driver.name;
+              }
+            }
+          });
         }
         if (!this.data.config) {
           this.data.config = { ...INITIAL_DB.config };
@@ -154,6 +190,25 @@ class FileDatabase {
     } catch (e) {
       console.error('Failed to save JSON database:', e);
     }
+  }
+
+  public reload() {
+    this.load();
+  }
+
+  public patchMissingRiderNames(defaultName: string = 'Saran') {
+    let patched = 0;
+    this.data.rides.forEach(r => {
+      if (!r.riderName) {
+        r.riderName = defaultName;
+        patched++;
+      }
+    });
+    if (patched > 0) {
+      this.save();
+      console.log(`[DB] Auto-patched ${patched} rides with riderName: '${defaultName}'`);
+    }
+    return patched;
   }
 
   public getDrivers(): Driver[] {

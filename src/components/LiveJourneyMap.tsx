@@ -14,6 +14,8 @@ import {
   Layers
 } from 'lucide-react';
 
+import { useToast } from './ToastNotification';
+
 interface Coords {
   lat: number;
   lng: number;
@@ -283,7 +285,7 @@ function GoogleMapInnerContent({
               className={`px-2 py-1 rounded-md text-[10px] font-bold font-mono border shadow-md transition-all duration-200 ${
                 isSelected 
                   ? 'bg-slate-900 border-indigo-500 text-[#00C896] scale-110 font-bold' 
-                  : 'bg-white border-slate-300 text-slate-700 hover:scale-105 hover:bg-slate-50'
+                  : 'bg-theme-card border-theme-border text-theme-text-primary hover:scale-105 hover:bg-theme-bg'
               }`}
             >
               {rt.durationMin} min
@@ -356,7 +358,6 @@ function GoogleMapWithDirections({
       <Map
         defaultCenter={mapCenter}
         defaultZoom={12}
-        mapId="DEMO_MAP_ID"
         mapTypeId={mapType}
         internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
         style={{ width: '100%', height: '100%' }}
@@ -405,6 +406,32 @@ export default function LiveJourneyMap({
   const [routes, setRoutes] = useState<RouteOption[]>([]);
   const [activeTravelMode, setActiveTravelMode] = useState<'motorcycle' | 'car' | 'bus' | 'walk'>('motorcycle');
   const [mapStyleVersion, setMapStyleVersion] = useState<'standard' | 'satellite'>('standard');
+
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    const handleAuthFailure = () => {
+      console.warn('[ZipRide Maps Auth Failure]: Google Maps authentication failed.');
+      showToast('⚠ Google Maps warning: Map service temporarily unavailable.', 'warning');
+    };
+    const handleWarning = (e: Event) => {
+      const msg = (e as CustomEvent).detail?.message || 'Google Maps warning';
+      console.warn('[ZipRide Maps Warning]:', msg);
+      showToast(`⚠ Google Maps warning: ${msg}`, 'warning');
+    };
+    window.addEventListener('google-maps-auth-failure', handleAuthFailure);
+    window.addEventListener('google-maps-warning', handleWarning);
+    
+    // If key is missing, show warning toast immediately
+    if (!hasValidKey) {
+      showToast('⚠ Google Maps warning: Map service temporarily unavailable (API key missing).', 'warning');
+    }
+
+    return () => {
+      window.removeEventListener('google-maps-auth-failure', handleAuthFailure);
+      window.removeEventListener('google-maps-warning', handleWarning);
+    };
+  }, [showToast, hasValidKey]);
 
   // Generate simulated route options in Sandbox Mode OR when coordinates calculate
   useEffect(() => {
@@ -473,9 +500,9 @@ export default function LiveJourneyMap({
 
   return (
     <div className="relative flex flex-col w-full h-full overflow-hidden bg-slate-900" id="google-route-integration-panel">
-      
+
       {/* ------------------------------------------------------------- */}
-      {/* BACKGROUND LAYER: Interactive Map Display (Google Map or Sandbox) */}
+      {/* BACKGROUND LAYER: Interactive Map Display (Google Map) */}
       {/* ------------------------------------------------------------- */}
       <div className="absolute inset-0 z-0 bg-slate-950 flex flex-col" id="gmp-map-shell">
         
@@ -484,167 +511,44 @@ export default function LiveJourneyMap({
           <button
             type="button"
             onClick={() => setMapStyleVersion(prev => prev === 'standard' ? 'satellite' : 'standard')}
-            className="flex items-center gap-1 bg-white/90 backdrop-blur hover:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-slate-700 shadow-md cursor-pointer transition-colors"
+            className="flex items-center gap-1 bg-theme-card/90 backdrop-blur hover:bg-theme-card border border-theme-border rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-theme-text-primary shadow-md cursor-pointer transition-colors"
           >
             <Layers className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             <span className="capitalize">{mapStyleVersion}</span>
           </button>
         </div>
 
-        {hasValidKey ? (
-          // REAL LIVE GOOGLE MAPS RENDERING
-          <div className="w-full h-full">
-            <GoogleMapWithDirections
-              pickupCoords={pickupCoords}
-              dropCoords={dropCoords}
-              distanceKm={distanceKm}
-              routes={routes}
-              setRoutes={setRoutes}
-              activeRouteIndex={activeRouteIndex}
-              setActiveRouteIndex={setActiveRouteIndex}
-              onRouteSelect={onRouteSelect}
-              weatherAtPickup={weatherAtPickup}
-              weatherAtDrop={weatherAtDrop}
-              speedbreakers={speedbreakers}
-              heavyTrafficSegments={heavyTrafficSegments}
-              mapStyle={mapStyleVersion}
-              handleSelectRoute={handleSelectRoute}
-            />
-          </div>
-        ) : (
-          // ELEGANT SANDBOX VECTOR EMBED SIMULATING COIMBATORE PATHWAY MAP
-          <div className="w-full h-full relative overflow-hidden flex flex-col justify-between p-4" id="sandbox-map-canvas">
-            {/* Grid background */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:18px_18px] opacity-20 z-0"></div>
-            
-            {/* Satellite effect overlay if toggled */}
-            {mapStyleVersion === 'satellite' && (
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#1e1b4b,#020617)] opacity-90 mix-blend-color-burn z-0"></div>
-            )}
-
-            {/* Sandbox overlay label */}
-            <div className="relative z-10 flex items-center justify-between select-none pt-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00C896] animate-pulse" />
-                <span className="text-[9px] font-mono font-bold text-slate-300 uppercase tracking-widest leading-tight">Sandbox GPS</span>
-              </div>
-            </div>
-
-            {/* Simulated Vector Polyline Routing */}
-            <div className="relative flex-1 flex items-center justify-center p-4 min-h-[250px]">
-              <div className="relative w-full h-full max-w-sm mx-auto flex items-center justify-center">
-                
-                {/* Simulated Street-path Bezier overlay SVG */}
-                <svg className="absolute inset-0 w-full h-full select-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-                  {routes.map((rt, idx) => {
-                    const isSelected = idx === activeRouteIndex;
-                    const strokeStyle = isSelected 
-                      ? "#6366f1" // Deep royal indigo
-                      : "rgba(148, 163, 184, 0.28)"; // Subtle light gray for alternate roads
-
-                    // Adjusted curve layouts to fit standard viewBox
-                    const pathD = idx === 0 
-                      ? "M 100 100 Q 200 200 300 150" 
-                      : idx === 1 
-                        ? "M 100 100 Q 200 50 300 150" 
-                        : "M 100 100 Q 200 300 300 150";
-
-                    return (
-                      <g key={`sim-group-${idx}`}>
-                        <path
-                          d={pathD}
-                          fill="none"
-                          stroke={strokeStyle}
-                          strokeWidth={isSelected ? "6" : "4"}
-                          className="cursor-pointer transition-all duration-350 hover:stroke-indigo-400"
-                          onClick={() => handleSelectRoute(idx)}
-                        />
-                        {isSelected && (
-                          <path
-                            d={pathD}
-                            fill="none"
-                            stroke="#10b981"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
-                            className="animate-[dash_10s_linear_infinite]"
-                          />
-                        )}
-                      </g>
-                    );
-                  })}
-                  
-                  <style>{`
-                    @keyframes dash {
-                      to {
-                        stroke-dashoffset: -100;
-                      }
-                    }
-                  `}</style>
-                </svg>
-
-                {/* Pickup node (Point A) */}
-                <div className="absolute left-[20%] top-[20%] flex flex-col items-center z-15">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500 flex items-center justify-center shadow shadow-emerald-500/20">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></div>
-                  </div>
-                  <span className="text-[9px] font-bold text-slate-300 truncate max-w-[80px] mt-1 text-center bg-slate-900/60 px-1 rounded">
-                    {pickupName.split(',')[0] || 'Pickup'}
-                  </span>
-                </div>
-
-                {/* Simulated Midpoint labels on Bezier curves */}
-                {routes.map((rt, idx) => {
-                  const isSelected = idx === activeRouteIndex;
-                  const labelStyle = idx === 0
-                    ? { left: '46%', top: '51%' }
-                    : idx === 1
-                      ? { left: '46%', top: '22%' }
-                      : { left: '46%', top: '65%' };
-
-                  return (
-                    <button
-                      key={`mock-label-${idx}`}
-                      type="button"
-                      onClick={() => handleSelectRoute(idx)}
-                      style={labelStyle}
-                      className={`absolute px-2 py-0.5 rounded-md text-[9px] font-mono font-bold border shadow transition-all duration-200 z-20 ${
-                        isSelected 
-                          ? 'bg-slate-900 border-[#00C896] text-[#00C896] scale-110 font-bold' 
-                          : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:scale-105'
-                      }`}
-                    >
-                      {rt.durationMin}m
-                    </button>
-                  );
-                })}
-
-                {/* Destination node (Point B) */}
-                <div className="absolute right-[20%] top-[35%] flex flex-col items-center z-15">
-                  <div className="w-7 h-7 rounded-full bg-rose-500/15 border border-rose-500 flex items-center justify-center shadow shadow-rose-500/20">
-                    <MapPin className="w-4.5 h-4.5 text-rose-500 shrink-0" />
-                  </div>
-                  <span className="text-[9px] font-bold text-slate-300 truncate max-w-[80px] mt-1 text-center bg-slate-900/60 px-1 rounded">
-                    {dropName.split(',')[0] || 'Drop'}
-                  </span>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="w-full h-full">
+          <GoogleMapWithDirections
+            pickupCoords={pickupCoords}
+            dropCoords={dropCoords}
+            distanceKm={distanceKm}
+            routes={routes}
+            setRoutes={setRoutes}
+            activeRouteIndex={activeRouteIndex}
+            setActiveRouteIndex={setActiveRouteIndex}
+            onRouteSelect={onRouteSelect}
+            weatherAtPickup={weatherAtPickup}
+            weatherAtDrop={weatherAtDrop}
+            speedbreakers={speedbreakers}
+            heavyTrafficSegments={heavyTrafficSegments}
+            mapStyle={mapStyleVersion}
+            handleSelectRoute={handleSelectRoute}
+          />
+        </div>
       </div>
 
       {/* ------------------------------------------------------------- */}
       {/* BOTTOM-RIGHT FLOATING CARD: Directions & Alternate Routes  */}
       {/* ------------------------------------------------------------- */}
-      <div className="absolute overflow-hidden bottom-4 left-4 right-4 lg:left-auto lg:bottom-6 lg:right-6 z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.15)] flex flex-col w-auto lg:w-full lg:max-w-[340px] max-h-[50%] lg:max-h-[70%] border border-slate-200/80">
+      <div className="absolute overflow-hidden bottom-4 left-4 right-4 lg:left-auto lg:bottom-6 lg:right-6 z-30 bg-theme-card/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.15)] flex flex-col w-auto lg:w-full lg:max-w-[340px] max-h-[50%] lg:max-h-[70%] border border-theme-border/80">
         
         {/* Pull Handle (Hidden on Desktop, keeping for structural size if needed or just padding) */}
         <div className="w-full h-2 shrink-0 bg-indigo-600/10"></div>
 
         <div className="p-4 overflow-y-auto space-y-4">
           
-          <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-150">
+          <div className="grid grid-cols-2 gap-2 bg-theme-bg p-1.5 rounded-xl border border-theme-border">
             {[
               { id: 'car', icon: Car, label: 'Taxi' },
               { id: 'motorcycle', icon: Bike, label: 'Bike' }
@@ -659,7 +563,7 @@ export default function LiveJourneyMap({
                   className={`flex items-center justify-center py-2.5 rounded-lg gap-1.5 transition ${
                     isSelected 
                       ? 'bg-indigo-600 text-white font-bold shadow-sm' 
-                      : 'hover:bg-slate-200/50 text-slate-600 font-semibold'
+                      : 'hover:bg-slate-200/50 text-theme-text-secondary font-semibold'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -670,14 +574,14 @@ export default function LiveJourneyMap({
           </div>
 
           {/* Source and Destination inputs overview */}
-          <div className="relative p-3 bg-slate-50/50 border border-slate-100 rounded-xl space-y-3">
-            <div className="absolute left-[21px] top-6 bottom-6 w-[2px] bg-slate-200 border-l border-dashed border-slate-300"></div>
+          <div className="relative p-3 bg-theme-bg/50 border border-theme-border rounded-xl space-y-3">
+            <div className="absolute left-[21px] top-6 bottom-6 w-[2px] bg-slate-200 border-l border-dashed border-theme-border"></div>
             
             {/* Source */}
             <div className="flex items-start gap-3 relative z-10">
               <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm"></div>
               <div className="space-y-0.5 flex-1 min-w-0">
-                <span className="text-[11px] font-semibold text-slate-800 truncate block">{pickupName || 'Gandhipuram Bus Stand'}</span>
+                <span className="text-[11px] font-semibold text-theme-text-primary truncate block">{pickupName || 'Gandhipuram Bus Stand'}</span>
               </div>
             </div>
 
@@ -685,7 +589,7 @@ export default function LiveJourneyMap({
             <div className="flex items-start gap-3 relative z-10">
               <div className="w-4 h-4 rounded-full bg-indigo-500 border-2 border-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm"></div>
               <div className="space-y-0.5 flex-1 min-w-0">
-                <span className="text-[11px] font-semibold text-slate-800 truncate block">{dropName || 'Ukkadam Bus Stand'}</span>
+                <span className="text-[11px] font-semibold text-theme-text-primary truncate block">{dropName || 'Ukkadam Bus Stand'}</span>
               </div>
             </div>
           </div>
@@ -701,17 +605,17 @@ export default function LiveJourneyMap({
                   className={`p-3 border rounded-xl cursor-pointer transition flex justify-between items-center ${
                     isSelected 
                       ? 'border-indigo-500 bg-indigo-50/30' 
-                      : 'border-slate-100 bg-white hover:bg-slate-50'
+                      : 'border-theme-border bg-theme-card hover:bg-theme-bg'
                   }`}
                 >
                   <div className="space-y-1 pr-2 flex-1">
-                    <h5 className="text-[11px] font-bold text-slate-800 block">{rt.name}</h5>
-                    <p className="text-[9px] text-slate-400 group-hover:text-slate-500 truncate">{rt.summaryText}</p>
+                    <h5 className="text-[11px] font-bold text-theme-text-primary block">{rt.name}</h5>
+                    <p className="text-[9px] text-theme-text-secondary group-hover:text-theme-text-secondary truncate">{rt.summaryText}</p>
                   </div>
 
                   <div className="text-right shrink-0">
                     <span className="text-sm font-extrabold text-indigo-600 block">{rt.durationMin} min</span>
-                    <span className="text-[10px] font-semibold text-slate-500">{rt.distanceKm} km</span>
+                    <span className="text-[10px] font-semibold text-theme-text-secondary">{rt.distanceKm} km</span>
                   </div>
                 </div>
               );

@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { db, Ride, Dispute, AlertLog } from './db.js';
 import { summarizeDispute, askGeminiAssist, queryGeographicCities } from './gemini.js';
+import { getWeatherData } from './weather.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -24,6 +25,20 @@ const haversineDistanceKm = (pLat: number, pLng: number, dLat: number, dLng: num
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Number((R * c).toFixed(2));
 };
+
+// GET WEATHER DATA FROM LIVE SERVICE
+apiRouter.get('/weather', asyncWrapper(async (req: Request, res: Response) => {
+  const lat = parseFloat(req.query.lat as string);
+  const lng = parseFloat(req.query.lng as string);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    res.status(400).json({ error: 'Valid lat and lng coordinates are required.' });
+    return;
+  }
+
+  const weather = await getWeatherData(lat, lng);
+  res.json(weather);
+}));
 
 // 1. GET SYSTEM STATE (WEATHER, TRAFFIC, GLOBAL COUNTS)
 apiRouter.get('/system-state', (req: Request, res: Response) => {
@@ -72,18 +87,187 @@ apiRouter.post('/system-state', (req: Request, res: Response) => {
   res.json({ success: true, config: db.getConfig() });
 });
 
+// ADMIN: Hot-patch rides missing riderName in-memory
+apiRouter.post('/admin/patch-rider-names', (req: Request, res: Response) => {
+  const defaultName = req.body.name || 'Saran';
+  const patched = db.patchMissingRiderNames(defaultName);
+  res.json({ success: true, patched, message: `Patched ${patched} rides with riderName: '${defaultName}'` });
+});
+
 // 3. GET DRIVERS
 apiRouter.get('/drivers', (req: Request, res: Response) => {
   res.json(db.getDrivers());
 });
 
+// 3.3 PATCH UPDATE OR REGISTER DRIVER
+apiRouter.patch('/drivers/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, phone, vehicle, vehicleType, status, location } = req.body;
+
+  let driver = db.getDrivers().find(d => d.id === id);
+  if (driver) {
+    if (name) driver.name = name;
+    if (phone) driver.phone = phone;
+    if (vehicle) driver.vehicle = vehicle;
+    if (vehicleType) driver.vehicleType = vehicleType;
+    if (status) driver.status = status;
+    if (location) driver.location = location;
+  } else {
+    driver = {
+      id,
+      name: name || 'Anonymous Driver',
+      phone: phone || '+91 9876543210',
+      vehicle: vehicle || 'BIKE-TN-09-XX-9999',
+      vehicleType: vehicleType || 'Bike',
+      rating: 5.0,
+      status: status || 'online',
+      location: location || { lat: 13.0827, lng: 80.2707 }
+    };
+    db.getDrivers().push(driver);
+  }
+  db.save();
+  res.json(driver);
+});
+
+// 3.4 POST REGISTER DRIVER
+apiRouter.post('/drivers/register', (req: Request, res: Response) => {
+  try {
+    const { name, phone, location, vehicleType, vehicleNumber } = req.body;
+
+    if (!name || !phone || !location || !vehicleType || !vehicleNumber) {
+      res.status(400).json({ error: 'Name, phone, location, vehicleType, and vehicleNumber are required.' });
+      return;
+    }
+
+    const driverId = `DRV-${Date.now().toString().slice(-6)}`;
+    const finalVehicle = `${vehicleType.toUpperCase()}-${vehicleNumber}`;
+
+    const latVal = typeof location.lat === 'string' ? parseFloat(location.lat) : Number(location.lat);
+    const lngVal = typeof location.lng === 'string' ? parseFloat(location.lng) : Number(location.lng);
+
+    if (isNaN(latVal) || isNaN(lngVal)) {
+      res.status(400).json({ error: 'Location coordinates must be valid numbers.' });
+      return;
+    }
+
+    const driver = {
+      id: driverId,
+      name,
+      phone,
+      vehicle: finalVehicle,
+      vehicleType: vehicleType as 'Bike' | 'Auto' | 'Cab',
+      vehicleNumber,
+      rating: 5.0,
+      status: 'online' as const,
+      location: { lat: latVal, lng: lngVal },
+      baseCompletedRides: 0,
+      baseTodayEarnings: 0
+    };
+
+    db.getDrivers().push(driver);
+    db.save();
+
+    res.json({
+      success: true,
+      driver
+    });
+  } catch (err) {
+    console.error('Driver Registration Error Stack Trace:', err);
+    res.status(500).json({ error: 'Internal server error during driver registration.' });
+  }
+});
+
+// 3.0 GET DRIVER ORDERS
+apiRouter.get('/driver/orders', (req: Request, res: Response) => {
+  const rides = db.getRides().filter(r => r.status === 'booked');
+  res.json(rides);
+});
+
+// 3.1 GET DRIVER PROFILE
+apiRouter.get('/driver/profile', (req: Request, res: Response) => {
+  const name = req.query.name as string;
+  if (!name) {
+    res.status(400).json({ error: 'Driver name is required.' });
+    return;
+  }
+
+  let driver = db.getDrivers().find(d => d.name.toLowerCase() === name.toLowerCase());
+
+  if (!driver) {
+    // Dynamically register a new driver
+    const id = `DRV-${Math.floor(1000 + Math.random() * 9000)}`;
+    const vehicleNumber = `TN37AB${Math.floor(1000 + Math.random() * 9000)}`;
+    const rating = Number((4.5 + Math.random() * 0.5).toFixed(1));
+    
+    driver = {
+      id,
+      name,
+      phone: '+91 9876543210',
+      vehicle: `BIKE-${vehicleNumber}`,
+      rating,
+      status: 'online',
+      location: { lat: 13.0827, lng: 80.2707 },
+      vehicleType: 'Bike',
+      vehicleNumber,
+      baseCompletedRides: 24,
+      baseTodayEarnings: 1250
+    };
+    
+    db.getDrivers().push(driver);
+    db.save();
+  }
+
+  const vehicleType = driver.vehicleType || 'Bike';
+  const vehicleNumber = driver.vehicleNumber || (driver.vehicle.includes('-') ? driver.vehicle.substring(driver.vehicle.indexOf('-') + 1) : driver.vehicle);
+
+  const driverRides = db.getRides().filter(r => r.driverName === driver!.name || r.driverId === driver!.id);
+  const completedRidesList = driverRides.filter(r => r.status === 'completed');
+  
+  const baseCompletedRides = driver.baseCompletedRides !== undefined ? driver.baseCompletedRides : 24;
+  const baseTodayEarnings = driver.baseTodayEarnings !== undefined ? driver.baseTodayEarnings : 1250;
+
+  const completedRides = baseCompletedRides + completedRidesList.length;
+  const todayEarnings = baseTodayEarnings + completedRidesList.reduce((sum, r) => sum + r.finalFare, 0);
+
+  res.json({
+    id: driver.id,
+    name: driver.name,
+    vehicleType,
+    vehicleNumber,
+    rating: driver.rating,
+    status: driver.status,
+    todayEarnings,
+    completedRides
+  });
+});
+
+// 3.2 POST UPDATE DRIVER STATUS
+apiRouter.post('/driver/status', (req: Request, res: Response) => {
+  const { name, status } = req.body;
+  if (!name || !status) {
+    res.status(400).json({ error: 'Name and status are required.' });
+    return;
+  }
+  
+  const driver = db.getDrivers().find(d => d.name.toLowerCase() === name.toLowerCase());
+  if (driver) {
+    driver.status = status;
+    db.save();
+    res.json({ success: true, status: driver.status });
+  } else {
+    res.status(404).json({ error: 'Driver not found.' });
+  }
+});
+
 // 4. GET ALL RIDES
 apiRouter.get('/rides', (req: Request, res: Response) => {
+  db.reload();
   res.json(db.getRides());
 });
 
 // 5. GET SINGLE RIDE
 apiRouter.get('/rides/:id', (req: Request, res: Response) => {
+  db.reload();
   const ride = db.getRides().find(r => r.id === req.params.id);
   if (!ride) {
     res.status(404).json({ error: 'Ride not found' });
@@ -93,18 +277,20 @@ apiRouter.get('/rides/:id', (req: Request, res: Response) => {
 });
 
 // 6. POST CREATE (BOOK) A RIDE WITH DYNAMIC PRICING ALGORITHM
-apiRouter.post('/rides', (req: Request, res: Response) => {
+apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
   const { 
     pickup, 
     drop, 
     paymentMethod,
+    riderName,
     distanceKm: clientDistance,
     durationMin: clientDuration,
     weatherType: clientWeather,
     trafficType: clientTraffic,
     initialFare: clientFare,
     gpsLat: clientLat,
-    gpsLng: clientLng
+    gpsLng: clientLng,
+    vehicleType
   } = req.body;
 
   if (!pickup || !drop || !paymentMethod) {
@@ -114,10 +300,40 @@ apiRouter.post('/rides', (req: Request, res: Response) => {
 
   const rideId = `ZR-${Math.floor(100000 + Math.random() * 900000)}`;
   
+  // Use coordinates if supplied, or default to center coordinates
+  const gpsLat = clientLat !== undefined ? clientLat : 19.0760;
+  const gpsLng = clientLng !== undefined ? clientLng : 72.8777;
+
   // Retrieve current weather and traffic from system configuration or client calculations
   const sysConfig = db.getConfig();
   const weather = clientWeather || sysConfig.weather;
   const traffic = clientTraffic || sysConfig.traffic;
+
+  // Retrieve weather from weather API
+  let liveWeather = {
+    temp: 28,
+    weatherText: weather,
+    windSpeed: 10,
+    humidity: 55,
+    weatherMultiplier: 1.0,
+    weatherFactor: 0,
+    rainChance: 0
+  };
+
+  try {
+    const fetched = await getWeatherData(gpsLat, gpsLng);
+    liveWeather = {
+      temp: fetched.temp,
+      weatherText: fetched.weatherText,
+      windSpeed: fetched.windSpeed,
+      humidity: fetched.humidity,
+      weatherMultiplier: fetched.weatherMultiplier,
+      weatherFactor: fetched.weatherFactor,
+      rainChance: fetched.rainChance
+    };
+  } catch (err) {
+    console.warn('[POST /rides] Weather fetch failed, falling back to simulated logic:', err);
+  }
 
   // Use client values if available, otherwise calculate using default estimations
   let distanceKm = clientDistance;
@@ -130,43 +346,64 @@ apiRouter.post('/rides', (req: Request, res: Response) => {
   let baseDuration = distanceKm * 3.0;
 
   // Surcharges and factors
-  let weatherSurcharge = 0;
-  if (weather === 'Overcast') weatherSurcharge = 10;
-  else if (weather === 'High Winds') weatherSurcharge = 20;
-  else if (weather === 'Heavy Rain') weatherSurcharge = 30;
-  else if (weather === 'Monsoon Storm') weatherSurcharge = 50;
+  const weatherSurcharge = liveWeather.weatherFactor;
+  const weatherMultiplier = liveWeather.weatherMultiplier;
+  
+  let speedLimit = 80;
+  let etaMultiplier = 1.0;
+
+  const wt = liveWeather.weatherText.toLowerCase();
+  if (wt.includes('overcast') || wt.includes('clouds') || wt.includes('mist') || wt.includes('haze') || wt.includes('fog')) {
+    speedLimit = 75;
+    etaMultiplier = 1.1;
+  } else if (wt.includes('rain') || wt.includes('drizzle')) {
+    speedLimit = 60;
+    etaMultiplier = 1.3;
+  } else if (wt.includes('storm') || wt.includes('thunderstorm') || wt.includes('snow') || wt.includes('extreme')) {
+    speedLimit = 50;
+    etaMultiplier = 1.5;
+  }
 
   let trafficMultiplier = 1.0;
-  let etaMultiplier = 1.0;
   if (traffic === 'Moderate') {
     trafficMultiplier = 1.1;
-    etaMultiplier = 1.3;
+    etaMultiplier *= 1.3;
   } else if (traffic === 'Heavy Congestion') {
     trafficMultiplier = 1.3;
-    etaMultiplier = 1.8;
+    etaMultiplier *= 1.8;
   } else if (traffic === 'Gridlock') {
     trafficMultiplier = 1.5;
-    etaMultiplier = 2.5;
+    etaMultiplier *= 2.5;
   }
 
   if (durationMin === undefined) {
     durationMin = Number((baseDuration * etaMultiplier).toFixed(1));
   }
 
-  const baseFare = 20.0;
-  const distanceFare = Number((distanceKm * 12.0).toFixed(2)); // ₹12 per km
-  const durationFare = Number((durationMin * 1.5).toFixed(2)); // ₹1.5 per minute
+  // Vehicle-specific Pricing
+  const vType = vehicleType || 'Bike';
+  let baseFare = 25.0;
+  let perKmRate = 8.0;
+  let perMinRate = 1.0;
 
+  if (vType === 'Auto') {
+    baseFare = 40.0;
+    perKmRate = 12.0;
+    perMinRate = 1.5;
+  } else if (vType === 'Cab') {
+    baseFare = 80.0;
+    perKmRate = 18.0;
+    perMinRate = 2.5;
+  }
+
+  const distanceFare = Number((distanceKm * perKmRate).toFixed(2));
+  const durationFare = Number((durationMin * perMinRate).toFixed(2));
   const environmentalTransitCharges = (distanceFare + durationFare) * (trafficMultiplier - 1.0);
   
   let initialFare = clientFare;
   if (initialFare === undefined) {
     initialFare = Number((baseFare + weatherSurcharge + distanceFare + durationFare + environmentalTransitCharges).toFixed(2));
   }
-
-  // Lat and Lng starting points
-  const gpsLat = clientLat !== undefined ? clientLat : 19.0760;
-  const gpsLng = clientLng !== undefined ? clientLng : 72.8777;
 
   const newRide: Ride = {
     id: rideId,
@@ -177,7 +414,7 @@ apiRouter.post('/rides', (req: Request, res: Response) => {
     baseFare,
     distanceFare,
     durationFare,
-    weatherType: weather,
+    weatherType: liveWeather.weatherText,
     weatherFactor: weatherSurcharge,
     trafficType: traffic,
     trafficFactor: trafficMultiplier,
@@ -199,7 +436,22 @@ apiRouter.post('/rides', (req: Request, res: Response) => {
     seat: 'empty',
     motion: 'stationary',
     nfc: 'inactive',
-    progress: 0
+    progress: 0,
+
+    // Rider Details
+    riderName: riderName || 'Saran',
+    riderPhone: '9876543210',
+    riderLat: gpsLat,
+    riderLng: gpsLng,
+
+    // Extended Vehicle & Weather details
+    vehicleType: vType,
+    weatherCondition: liveWeather.weatherText,
+    temperature: liveWeather.temp,
+    humidity: liveWeather.humidity,
+    windSpeed: liveWeather.windSpeed,
+    weatherMultiplier: weatherMultiplier,
+    rainChance: liveWeather.rainChance
   };
 
   db.addRide(newRide);
@@ -208,13 +460,13 @@ apiRouter.post('/rides', (req: Request, res: Response) => {
     id: `EVT-${Date.now()}`,
     rideId: rideId,
     type: 'info',
-    message: `Ride ${rideId} booked. Pickup: "${pickup}" -> Drop: "${drop}". Dynamic Fare calculated at ₹${initialFare} (Weather fee: +₹${weatherSurcharge}, Traffic Multiplier: ${trafficMultiplier}x, Dist: ${distanceKm} km).`,
+    message: `Ride ${rideId} booked (${vType}). Pickup: "${pickup}" -> Drop: "${drop}". Dynamic Fare calculated at ₹${initialFare} (Weather fee: +₹${weatherSurcharge}, Traffic Multiplier: ${trafficMultiplier}x, Dist: ${distanceKm} km).`,
     severity: 'info',
     timestamp: new Date().toISOString()
   });
 
   res.json(newRide);
-});
+}));
 
 // 7. POST ACCEPT RIDE (DRIVER TAKES RIDE)
 apiRouter.post('/rides/:id/accept', (req: Request, res: Response) => {
@@ -225,14 +477,23 @@ apiRouter.post('/rides/:id/accept', (req: Request, res: Response) => {
     return;
   }
 
-  // Grab the first online driver or fallback
-  const driver = db.getDrivers().find(d => d.status === 'online') || db.getDrivers()[0];
+  // Grab the driver name from body or fallback
+  const { driverName } = req.body;
+  let driver;
+  if (driverName) {
+    driver = db.getDrivers().find(d => d.name.toLowerCase() === driverName.toLowerCase());
+  }
+  if (!driver) {
+    driver = db.getDrivers().find(d => d.status === 'online') || db.getDrivers()[0];
+  }
 
   ride.status = 'assigned';
   ride.driverId = driver.id;
   ride.driverName = driver.name;
   ride.driverVehicle = driver.vehicle;
   ride.driverRating = driver.rating;
+  ride.driverPhone = (driver as any).phone || '9876543210';
+  ride.driverVehicleType = (driver as any).vehicleType || 'Bike';
   ride.progress = 0;
   ride.ignition = 'on';
   ride.seat = 'empty';
@@ -261,7 +522,7 @@ apiRouter.post('/rides/:id/telemetry', (req: Request, res: Response) => {
     return;
   }
 
-  const { gpsLat, gpsLng, speed, ignition, seat, motion, nfc, progress, triggerHarshBrake } = req.body;
+  const { gpsLat, gpsLng, speed, ignition, seat, motion, nfc, progress, triggerHarshBrake, status } = req.body;
 
   if (gpsLat !== undefined) ride.gpsLat = Number(gpsLat);
   if (gpsLng !== undefined) ride.gpsLng = Number(gpsLng);
@@ -270,6 +531,7 @@ apiRouter.post('/rides/:id/telemetry', (req: Request, res: Response) => {
   if (seat !== undefined) ride.seat = seat;
   if (motion !== undefined) ride.motion = motion;
   if (nfc !== undefined) ride.nfc = nfc;
+  if (status !== undefined) ride.status = status;
   if (progress !== undefined) {
     ride.progress = Number(progress);
     
@@ -336,10 +598,48 @@ apiRouter.post('/rides/:id/telemetry', (req: Request, res: Response) => {
     });
   }
 
-  // Compute final fare (subtract discounts, baseline floor is baseFare ₹20)
-  ride.finalFare = Number(Math.max(20.0, ride.initialFare - ride.behaviorDiscount).toFixed(2));
+  // Compute final fare (subtract discounts, baseline floor is ride.baseFare)
+  const floorFare = ride.baseFare !== undefined ? ride.baseFare : 20.0;
+  ride.finalFare = Number(Math.max(floorFare, ride.initialFare - ride.behaviorDiscount).toFixed(2));
 
   db.updateRide(ride);
+  res.json(ride);
+});
+
+// 8.5 POST CANCEL RIDE (passenger can cancel before driver picks up)
+apiRouter.post('/rides/:id/cancel', (req: Request, res: Response) => {
+  const rides = db.getRides();
+  const ride = rides.find(r => r.id === req.params.id);
+  if (!ride) {
+    res.status(404).json({ error: 'Ride not found' });
+    return;
+  }
+
+  // Only allow cancellation before ride has started moving
+  const cancellableStatuses = ['booked', 'assigned'];
+  if (!cancellableStatuses.includes(ride.status)) {
+    res.status(400).json({ error: `Ride cannot be cancelled when status is '${ride.status}'.` });
+    return;
+  }
+
+  ride.status = 'cancelled';
+  ride.paymentStatus = 'Pending';
+  ride.completedAt = new Date().toISOString();
+  ride.speed = 0;
+  ride.motion = 'stationary';
+  ride.ignition = 'off';
+
+  db.updateRide(ride);
+
+  db.addAlert({
+    id: `EVT-CAN-${Date.now()}`,
+    rideId: ride.id,
+    type: 'info',
+    message: `Ride ${ride.id} was cancelled by the passenger before pickup.`,
+    severity: 'medium',
+    timestamp: new Date().toISOString()
+  });
+
   res.json(ride);
 });
 
@@ -367,6 +667,34 @@ apiRouter.post('/rides/:id/complete', (req: Request, res: Response) => {
     rideId: ride.id,
     type: 'info',
     message: `Ride ${ride.id} successfully completed. Total Charged: ₹${ride.finalFare} (Deductions for behavior: -₹${ride.behaviorDiscount}). Final safety score: ${ride.safetyScore}%.`,
+    severity: 'info',
+    timestamp: new Date().toISOString()
+  });
+
+  res.json(ride);
+});
+
+// 9.5 POST RATE RIDE
+apiRouter.post('/rides/:id/rate', (req: Request, res: Response) => {
+  const rides = db.getRides();
+  const ride = rides.find(r => r.id === req.params.id);
+  if (!ride) {
+    res.status(404).json({ error: 'Ride not found' });
+    return;
+  }
+  const { rating } = req.body;
+  if (rating === undefined || rating < 1 || rating > 5) {
+    res.status(400).json({ error: 'Rating must be between 1 and 5 stars.' });
+    return;
+  }
+  ride.rating = Number(rating);
+  db.updateRide(ride);
+  
+  db.addAlert({
+    id: `EVT-RT-${Date.now()}`,
+    rideId: ride.id,
+    type: 'info',
+    message: `Rider rated ride ${ride.id} as ${rating} stars.`,
     severity: 'info',
     timestamp: new Date().toISOString()
   });

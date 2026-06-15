@@ -56,23 +56,23 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
       {/* Top Header Row with Profile Card (Screenshot 3 layout) */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Disputes</h2>
-          <p className="text-sm text-slate-500 mt-1">Review flagged rides with sensor context</p>
+          <h2 className="text-3xl font-bold text-theme-text-primary tracking-tight">Disputes</h2>
+          <p className="text-sm text-theme-text-secondary mt-1">Review flagged rides with sensor context</p>
         </div>
 
         {/* Profile Card (Screenshot 3 top-right) */}
-        <div className="flex items-center gap-3 bg-white border border-slate-100/90 rounded-2xl px-4 py-2.5 shadow-xs shrink-0 select-none">
+        <div className="flex items-center gap-3 bg-theme-card border border-theme-border/90 rounded-2xl px-4 py-2.5 shadow-xs shrink-0 select-none">
           <div className="w-10 h-10 rounded-full bg-[#00C896] text-white font-bold flex items-center justify-center text-sm shadow-sm">
-            AR
+            SA
           </div>
           <div className="text-left font-sans">
-            <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5 leading-none">
-              Arul
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <div className="font-bold text-theme-text-primary text-sm flex items-center gap-1.5 leading-none">
+              Saran
+              <ChevronDown className="w-3.5 h-3.5 text-theme-text-secondary" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
+            <div className="flex items-center gap-1 text-[11px] text-theme-text-secondary mt-1">
               <span className="text-amber-500">★</span> 
-              <span className="font-semibold text-slate-600">5.0</span>
+              <span className="font-semibold text-theme-text-secondary">5.0</span>
               <span className="text-slate-300">•</span>
               <span>0 rides</span>
             </div>
@@ -82,17 +82,17 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
 
       {/* Stats indicators grid (Screenshot 3 columns layout) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
-          <span className="block text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
+        <div className="bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs">
+          <span className="block text-[10px] font-mono font-bold tracking-wider text-theme-text-secondary uppercase">
             Total Disputes
           </span>
-          <span className="block text-2xl font-black text-slate-800 mt-1.5 font-sans leading-none">
+          <span className="block text-2xl font-black text-theme-text-primary mt-1.5 font-sans leading-none">
             {totalCount}
           </span>
         </div>
 
-        <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
-          <span className="block text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
+        <div className="bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs">
+          <span className="block text-[10px] font-mono font-bold tracking-wider text-theme-text-secondary uppercase">
             Cash Demand Reports
           </span>
           <span className="block text-2xl font-black text-rose-500 mt-1.5 font-sans leading-none">
@@ -100,8 +100,8 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
           </span>
         </div>
 
-        <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
-          <span className="block text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
+        <div className="bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs">
+          <span className="block text-[10px] font-mono font-bold tracking-wider text-theme-text-secondary uppercase">
             Fare Accuracy
           </span>
           <span className="block text-2xl font-black text-[#00C896] mt-1.5 font-sans leading-none">
@@ -123,14 +123,14 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
           disputes.map((item) => (
             <div 
               key={item.id} 
-              className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm flex flex-col gap-5 relative group transition-all"
+              className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-sm flex flex-col gap-5 relative group transition-all"
             >
               
               {/* Header Title & Pending badge row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-amber-600">
-                  <span className="text-base text-slate-400">📂</span>
-                  <span className="font-mono font-bold text-xs uppercase tracking-wide text-slate-600">
+                  <span className="text-base text-theme-text-secondary">📂</span>
+                  <span className="font-mono font-bold text-xs uppercase tracking-wide text-theme-text-secondary">
                     {item.id} — {item.rideId}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
                     ? 'bg-amber-100 text-amber-700 font-semibold' 
                     : item.status === 'resolved' 
                     ? 'bg-emerald-50 text-emerald-600' 
-                    : 'bg-slate-100 text-slate-500'
+                    : 'bg-theme-bg text-theme-text-secondary'
                 }`}>
                   {item.status === 'open' ? 'PENDING' : item.status.toUpperCase()}
                 </span>
@@ -149,7 +149,7 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
               {/* Transit coordinate pins layout */}
               <div className="space-y-2 pb-1 font-sans">
                 {/* Pickup pin */}
-                <div className="flex items-center gap-2 text-[14px] text-slate-700 font-medium">
+                <div className="flex items-center gap-2 text-[14px] text-theme-text-primary font-medium">
                   <span className="w-5 h-5 rounded-full border border-[#00C896] flex items-center justify-center text-[10px] text-[#00C896] shrink-0 font-bold bg-[#E6F9F4]/40">
                     ◎
                   </span>
@@ -157,7 +157,7 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
                 </div>
 
                 {/* Drop pin */}
-                <div className="flex items-center gap-2 text-[14px] text-slate-700 font-medium">
+                <div className="flex items-center gap-2 text-[14px] text-theme-text-primary font-medium">
                   <span className="w-5 h-5 rounded-full border border-rose-450 flex items-center justify-center text-[10px] text-rose-500 shrink-0 font-bold bg-rose-50/40">
                     ✺
                   </span>
@@ -166,29 +166,29 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
               </div>
 
               {/* Data Category row elements */}
-              <div className="grid grid-cols-3 gap-4 border-t border-b border-slate-100 py-3 font-sans text-xs">
+              <div className="grid grid-cols-3 gap-4 border-t border-b border-theme-border py-3 font-sans text-xs">
                 <div>
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase font-semibold">Category</span>
-                  <span className="font-medium text-slate-800 text-[13px]">{item.reason || "extra_cash"}</span>
+                  <span className="block text-[10px] font-mono text-theme-text-secondary uppercase font-semibold">Category</span>
+                  <span className="font-medium text-theme-text-primary text-[13px]">{item.reason || "extra_cash"}</span>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase font-semibold">Fare</span>
+                  <span className="block text-[10px] font-mono text-theme-text-secondary uppercase font-semibold">Fare</span>
                   <span className="font-bold text-[#00C896] text-[13px]">₹{item.finalFare.toFixed(2)}</span>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase font-semibold">Filed</span>
-                  <span className="font-medium text-slate-600 text-[13px]">"2026-06-1"</span>
+                  <span className="block text-[10px] font-mono text-theme-text-secondary uppercase font-semibold">Filed</span>
+                  <span className="font-medium text-theme-text-secondary text-[13px]">"2026-06-1"</span>
                 </div>
               </div>
 
               {/* Warm cream tinted summary & telemetry logs card (Screenshot 3 styled) */}
-              <div className="bg-[#FAF7EF] rounded-2xl p-5 border border-[#ECE0CE]/55 text-[12.5px] text-slate-700 leading-relaxed font-sans space-y-4">
+              <div className="bg-[#FAF7EF] rounded-2xl p-5 border border-[#ECE0CE]/55 text-[12.5px] text-theme-text-primary leading-relaxed font-sans space-y-4">
                 {/* Summary field */}
                 <div className="space-y-1.5">
                   <span className="block text-[10px] font-bold font-mono uppercase tracking-wider text-amber-700">Summary</span>
-                  <p className="font-medium text-slate-700">
+                  <p className="font-medium text-theme-text-primary">
                     Cash demand violation on ride at ₹{item.finalFare.toFixed(2)}. Context: Driver requested extra cash: Driver requested cash after arrival. Sensors: [dispute] Dispute {item.id} filed | [ops_alert] Dispute {item.id} filed: Dri
                   </p>
                 </div>
@@ -235,7 +235,7 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
               )}
 
               {item.status !== 'open' && (
-                <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl flex items-center gap-2 text-slate-500 text-xs">
+                <div className="bg-theme-bg p-4 border border-theme-border rounded-2xl flex items-center gap-2 text-theme-text-secondary text-xs">
                   <span className="text-base">✨</span>
                   <span>This ticket is closed and processed as <strong>{item.status === 'resolved' ? 'Approved Refund' : 'Rejected / Refused'}</strong>.</span>
                 </div>
@@ -244,10 +244,10 @@ export default function DisputesView({ disputes, onResolveDispute }: DisputesVie
             </div>
           ))
         ) : (
-          <div className="bg-white border border-slate-200 py-16 px-6 text-center rounded-2xl flex flex-col items-center">
+          <div className="bg-theme-card border border-theme-border py-16 px-6 text-center rounded-2xl flex flex-col items-center">
             <Check className="w-12 h-12 text-slate-200 mb-3" />
-            <h4 className="font-semibold text-slate-700 text-sm">Disputes Log is completely clear</h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">No outstanding payment or cash dispute tickets opened at this time.</p>
+            <h4 className="font-semibold text-theme-text-primary text-sm">Disputes Log is completely clear</h4>
+            <p className="text-xs text-theme-text-secondary mt-1 max-w-sm mx-auto">No outstanding payment or cash dispute tickets opened at this time.</p>
           </div>
         )}
       </div>
