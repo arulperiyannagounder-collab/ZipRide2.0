@@ -85,6 +85,13 @@ export interface Ride {
   // SOS Safety integration
   isSilentSOS?: boolean;
   hasActiveSOS?: boolean;
+
+  // Travel Safety Mode flags
+  isChildSafety?: boolean;
+  isWomenSafety?: boolean;
+  isFamilySafety?: boolean;
+  pickupCode?: string;
+  childArrivalConfirmed?: boolean;
 }
 
 export interface SOSAlert {

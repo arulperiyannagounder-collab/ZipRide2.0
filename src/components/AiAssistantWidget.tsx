@@ -1,6 +1,7 @@
 // src/components/AiAssistantWidget.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, X, Sparkles, Bot } from 'lucide-react';
+import { ZipRideRepository } from '../services/dbInterface';
 
 interface Message {
   role: 'user' | 'model';
@@ -19,6 +20,19 @@ export default function AiAssistantWidget({ currentUser, currentUserRole, curren
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const speakIfVisuallyImpaired = (text: string) => {
+    try {
+      const profile = ZipRideRepository.getProfile();
+      if (profile.accessibilityRequirements?.includes('Visually Impaired') && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/[*#_`~]/g, '');
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(cleanText));
+      }
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
+  };
 
   // Load chat history from sessionStorage on mount
   useEffect(() => {
@@ -79,12 +93,17 @@ export default function AiAssistantWidget({ currentUser, currentUserRole, curren
         const data = await res.json();
         const modelText = data.answer || "I'm having trouble responding right now.";
         saveMessages([...updatedMsgs, { role: 'model' as const, parts: [{ text: modelText }] }]);
+        speakIfVisuallyImpaired(modelText);
       } else {
-        saveMessages([...updatedMsgs, { role: 'model' as const, parts: [{ text: "Error connecting to AI service." }] }]);
+        const errorText = "Error connecting to AI service.";
+        saveMessages([...updatedMsgs, { role: 'model' as const, parts: [{ text: errorText }] }]);
+        speakIfVisuallyImpaired(errorText);
       }
     } catch (err) {
       console.error('AI Chat Error:', err);
-      saveMessages([...updatedMsgs, { role: 'model' as const, parts: [{ text: "Network connection lost." }] }]);
+      const offlineText = "Network connection lost.";
+      saveMessages([...updatedMsgs, { role: 'model' as const, parts: [{ text: offlineText }] }]);
+      speakIfVisuallyImpaired(offlineText);
     } finally {
       setIsTyping(false);
     }

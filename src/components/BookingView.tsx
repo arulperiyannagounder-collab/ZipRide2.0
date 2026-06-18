@@ -24,9 +24,15 @@ import {
   X,
   CloudRain
 } from 'lucide-react';
-import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Ride, SystemConfig } from '../types';
 import LiveJourneyMap from './LiveJourneyMap';
+import { FareEngine, VehicleType, VEHICLE_FARE_PROFILES } from '../services/FareEngine';
+import { WeatherIntelligenceService } from '../services/WeatherIntelligenceService';
+import RideMatePanel from './RideMatePanel';
+import { FamilySafetyModule } from '../services/FamilySafetyModule';
+import { ChildSafetyModule } from '../services/ChildSafetyModule';
+import { WomenSafetyModule } from '../services/WomenSafetyModule';
+import { ZipRideRepository } from '../services/dbInterface';
 
 
 // Props matching main app expectation
@@ -167,25 +173,29 @@ interface WeatherReport {
   humidity: number;
   rainChance?: number;
   weatherMultiplier?: number;
+  isDay?: boolean;
 }
 
-type VehicleType = 'Bike' | 'Auto' | 'Cab';
-
-interface FareProfile {
-  id: VehicleType;
+interface BookingRouteChoice {
+  id: string;
+  name: string;
   label: string;
-  description: string;
-  baseFare: number;
-  perKmRate: number;
-  perMinRate: number;
-  capacity: string;
+  badge: string;
+  distanceKm: number;
+  durationMin: number;
+  traffic: 'Light' | 'Moderate' | 'Heavy' | 'Severe';
+  fuelUsageLiters: number;
+  fuelCost: number;
+  tollCharges: number;
+  platformFee: number;
+  tax: number;
+  totalFare: number;
+  recommendation: string;
+  fareBreakdown?: any;
+  roadHealthScore: number;
+  weatherRiskScore: number;
 }
 
-const VEHICLE_FARE_PROFILES: FareProfile[] = [
-  { id: 'Bike', label: 'Bike', description: 'Fastest low-cost ride', baseFare: 25, perKmRate: 8, perMinRate: 1.0, capacity: '1 rider' },
-  { id: 'Auto', label: 'Auto', description: 'Balanced city commute', baseFare: 40, perKmRate: 12, perMinRate: 1.5, capacity: '2-3 riders' },
-  { id: 'Cab', label: 'Cab', description: 'Comfort ride', baseFare: 80, perKmRate: 18, perMinRate: 2.5, capacity: '4 riders' }
-];
 
 interface PlaceSuggestion {
   name: string;
@@ -362,13 +372,13 @@ const fetchWeatherDetails = async (lat: number, lng: number): Promise<WeatherRep
   return { temp: 28, weatherText: "Clear & Sunny", windSpeed: 10, humidity: 55, rainChance: 0, weatherMultiplier: 1.0 };
 };
 
-function BookingViewInner({
+export default function BookingView({
   systemConfig,
   onBookRide,
-  onSelectTab,
-  apiKey,
-  hasValidKey
-}: BookingViewProps & { apiKey: string; hasValidKey: boolean }) {
+  onSelectTab
+}: BookingViewProps) {
+  const apiKey = "";
+  const hasValidKey = false;
   
   const [pickup, setPickup] = useState('');
   const [drop, setDrop] = useState('');
@@ -378,7 +388,6 @@ function BookingViewInner({
   
   const pickupRef = React.useRef<HTMLInputElement>(null);
   const dropRef = React.useRef<HTMLInputElement>(null);
-  const placesLib = useMapsLibrary('places');
 
   const [isActiveField, setIsActiveField] = useState<'pickup' | 'drop' | null>(null);
   const [pickupSuggestions, setPickupSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -386,6 +395,20 @@ function BookingViewInner({
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFare, setShowFare] = useState(false);
+
+  // Safety modes states
+  const [familySafetyActive, setFamilySafetyActive] = useState(false);
+  const [childSafetyActive, setChildSafetyActive] = useState(false);
+  const [womenSafetyActive, setWomenSafetyActive] = useState(false);
+  const [accessibilityOverride, setAccessibilityOverride] = useState<string[]>([]);
+
+  // Load accessibility overrides from profile
+  useEffect(() => {
+    const prof = ZipRideRepository.getProfile();
+    if (prof.accessibilityRequirements) {
+      setAccessibilityOverride(prof.accessibilityRequirements);
+    }
+  }, []);
 
   // Verification states for inputs
   const [selectedPickup, setSelectedPickup] = useState('');
@@ -536,53 +559,62 @@ function BookingViewInner({
   const [calculatedDuration, setCalculatedDuration] = useState<number>(0);
   const [distanceExceeded, setDistanceExceeded] = useState<boolean>(false);
 
+  // Available routes list and selected index
+  const [availableRoutes, setAvailableRoutes] = useState<BookingRouteChoice[]>([]);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+
+  // Advanced Fare Calculation function
+  const calculateRouteFare = (
+    dist: number,
+    dur: number,
+    trafficLevel: 'Light' | 'Moderate' | 'Heavy' | 'Severe' | string,
+    toll: number,
+    vehicleId: VehicleType
+  ) => {
+    const weatherConditionText = weatherPickup?.weatherText || systemConfig.weather;
+    const humidity = weatherPickup?.humidity || 55;
+    const windSpeed = weatherPickup?.windSpeed || 10;
+    const rainChance = weatherPickup?.rainChance || 0;
+    const risk = WeatherIntelligenceService.calculateWeatherRisk(weatherConditionText, windSpeed, humidity, rainChance);
+
+    let demandFactor = 1.0;
+    if (trafficLevel.includes('Gridlock') || trafficLevel.includes('Severe')) demandFactor = 1.25;
+    else if (trafficLevel.includes('Heavy') || trafficLevel.includes('Congestion')) demandFactor = 1.15;
+    else if (trafficLevel.includes('Moderate')) demandFactor = 1.05;
+
+    const breakdown = FareEngine.calculateFare(
+      dist,
+      dur,
+      trafficLevel,
+      risk.score,
+      weatherConditionText,
+      demandFactor,
+      toll,
+      vehicleId
+    );
+
+    // Map the breakdown fields to what the component expects
+    return {
+      base: breakdown.base,
+      distFare: breakdown.distFare,
+      timeFare: breakdown.timeFare,
+      weatherSurcharge: breakdown.weatherImpact,
+      trafficSurgeAmt: breakdown.trafficImpact,
+      nightSurcharge: breakdown.nightSurcharge,
+      fuelUsage: breakdown.fuelImpact / 40.0, // estimate usage from impact
+      fuelCost: breakdown.fuelImpact / 0.4,   // reconstruct fuel cost from driver subsidy
+      fuelAdjustment: breakdown.fuelImpact,
+      toll: breakdown.toll,
+      platformFee: breakdown.platformFee,
+      tax: breakdown.tax,
+      total: breakdown.total,
+      farebreakdown: breakdown // attach full object for fairness meter
+    };
+  };
+
   // Speed breakers & traffic nodes
   const [speedbreakers, setSpeedbreakers] = useState<Array<{ id: string; name: string; position: Coords }>>([]);
   const [heavyTrafficPoints, setHeavyTrafficPoints] = useState<Array<{ id: string; position: Coords }>>([]);
-
-  // Integrated Google Places native Autocomplete
-  useEffect(() => {
-    if (!placesLib || !pickupRef.current || !dropRef.current || !hasValidKey) return;
-
-    const pickupAutocomplete = new placesLib.Autocomplete(pickupRef.current, {
-      componentRestrictions: { country: 'in' },
-      fields: ['formatted_address', 'geometry', 'name', 'place_id', 'types']
-    });
-
-    const dropAutocomplete = new placesLib.Autocomplete(dropRef.current, {
-      componentRestrictions: { country: 'in' },
-      fields: ['formatted_address', 'geometry', 'name', 'place_id', 'types']
-    });
-
-    const pickupListener = pickupAutocomplete.addListener('place_changed', () => {
-      const place = pickupAutocomplete.getPlace();
-      if (place.geometry?.location && (place.formatted_address || place.name)) {
-        const val = place.formatted_address || place.name || '';
-        setPickup(val);
-        setSelectedPickup(val);
-        setPickupCoords({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
-        setIsPickupVerified(true);
-        setPickupSuggestions([]);
-      }
-    });
-
-    const dropListener = dropAutocomplete.addListener('place_changed', () => {
-      const place = dropAutocomplete.getPlace();
-      if (place.geometry?.location && (place.formatted_address || place.name)) {
-        const val = place.formatted_address || place.name || '';
-        setDrop(val);
-        setSelectedDrop(val);
-        setDropCoords({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
-        setIsDropVerified(true);
-        setDropSuggestions([]);
-      }
-    });
-
-    return () => {
-      google.maps.event.removeListener(pickupListener);
-      google.maps.event.removeListener(dropListener);
-    };
-  }, [placesLib, hasValidKey]);
 
   // Reset output when source or destination values are changed
   useEffect(() => {
@@ -628,27 +660,6 @@ function BookingViewInner({
       }
     }
 
-    if (hasValidKey && window.google) {
-      try {
-        const geocoder = new google.maps.Geocoder();
-        const result: google.maps.GeocoderResult[] = await new Promise((resolve, reject) => {
-          geocoder.geocode({ address, componentRestrictions: { country: 'IN' } }, (results, status) => {
-            if (status === 'OK' && results) resolve(results);
-            else reject(new Error('Geocoding status not OK'));
-          });
-        });
-        
-        if (result?.[0]?.geometry?.location) {
-          const loc = result[0].geometry.location;
-          const coords = { lat: loc.lat(), lng: loc.lng() };
-          if (isPickup) setPickupCoords(coords);
-          else setDropCoords(coords);
-          return coords;
-        }
-      } catch (err) {
-        console.warn("Google Maps geocoder failed, returning fallback coordinates:", err);
-      }
-    }
     const fallbackCoords = getFallbackIndianCoords(address);
     if (isPickup) setPickupCoords(fallbackCoords);
     else setDropCoords(fallbackCoords);
@@ -684,34 +695,6 @@ function BookingViewInner({
         distance = matchedRoute.distance;
         duration = matchedRoute.duration;
       } else {
-        // Prefer Google Directions when configured so distance and ETA follow real roads.
-        if (hasValidKey && window.google) {
-          try {
-            const directionsService = new google.maps.DirectionsService();
-            const routeResult: google.maps.DirectionsResult = await new Promise((resolve, reject) => {
-              directionsService.route({
-                origin: pCoords,
-                destination: dCoords,
-                travelMode: google.maps.TravelMode.DRIVING
-              }, (response, status) => {
-                if (status === 'OK' && response) resolve(response);
-                else reject(new Error(`Directions API status: ${status}`));
-              });
-            });
-
-            if (routeResult.routes?.[0]?.legs?.[0]) {
-              const leg = routeResult.routes[0].legs[0];
-              if (leg.distance?.value) {
-                distance = Number((leg.distance.value / 1000).toFixed(2));
-              }
-              if (leg.duration?.value) {
-                duration = Number((leg.duration.value / 60).toFixed(1));
-              }
-            }
-          } catch (directionsErr) {
-            console.warn("Google Directions failed, trying server route metrics:", directionsErr);
-          }
-        }
 
         if (distance === 0 || duration === 0) {
           try {
@@ -769,7 +752,108 @@ function BookingViewInner({
       const finalDuration = Number((duration * speedFactor).toFixed(1));
       setCalculatedDuration(finalDuration);
 
-      // 6. Generate dynamic Speedbreakers & Traffic Obstacles along the route segment
+      // 6. Generate 4 routes choices (Fastest, Safest, Eco, Best Road Quality)
+      const baseDistance = distance;
+      const baseDuration = finalDuration;
+
+      const weatherConditionText = weatherP?.weatherText || systemConfig.weather;
+      const humidityVal = weatherP?.humidity || 55;
+      const windSpeedVal = weatherP?.windSpeed || 10;
+      const rainChanceVal = weatherP?.rainChance || 0;
+      const risk = WeatherIntelligenceService.calculateWeatherRisk(weatherConditionText, windSpeedVal, humidityVal, rainChanceVal);
+
+      const routesData: BookingRouteChoice[] = [
+        {
+          id: 'route-1',
+          name: 'Route 1',
+          label: 'Fastest Route',
+          badge: 'Fastest',
+          distanceKm: baseDistance,
+          durationMin: Math.round(baseDuration),
+          traffic: (systemConfig.traffic === 'Heavy Congestion' || systemConfig.traffic === 'Gridlock') ? 'Heavy' : systemConfig.traffic as any,
+          fuelUsageLiters: 0,
+          fuelCost: 0,
+          tollCharges: baseDistance > 15 ? 50 : 0,
+          platformFee: 7.00,
+          tax: 0,
+          totalFare: 0,
+          recommendation: 'Fastest route due to highway speed limits',
+          roadHealthScore: 85,
+          weatherRiskScore: risk.score
+        },
+        {
+          id: 'route-2',
+          name: 'Route 2',
+          label: 'Safest Route',
+          badge: 'Safest',
+          distanceKm: Number((baseDistance * 1.15).toFixed(2)),
+          durationMin: Math.round(baseDuration * 1.05),
+          traffic: 'Light',
+          fuelUsageLiters: 0,
+          fuelCost: 0,
+          tollCharges: baseDistance > 15 ? 80 : 0, // Bypass toll highway
+          platformFee: 7.00,
+          tax: 0,
+          totalFare: 0,
+          recommendation: 'Lowest traffic & weather risks, bypasses highways',
+          roadHealthScore: 95,
+          weatherRiskScore: Math.max(0, risk.score - 15)
+        },
+        {
+          id: 'route-3',
+          name: 'Route 3',
+          label: 'Eco Route',
+          badge: 'Eco Choice',
+          distanceKm: Number((baseDistance * 1.05).toFixed(2)),
+          durationMin: Math.round(baseDuration * 1.10),
+          traffic: 'Moderate',
+          fuelUsageLiters: 0,
+          fuelCost: 0,
+          tollCharges: 0,
+          platformFee: 7.00,
+          tax: 0,
+          totalFare: 0,
+          recommendation: 'Constant speed optimized for lowest fuel emissions',
+          roadHealthScore: 88,
+          weatherRiskScore: risk.score
+        },
+        {
+          id: 'route-4',
+          name: 'Route 4',
+          label: 'Best Road Quality Route',
+          badge: 'Best Road',
+          distanceKm: Number((baseDistance * 1.10).toFixed(2)),
+          durationMin: Math.round(baseDuration),
+          traffic: 'Light',
+          fuelUsageLiters: 0,
+          fuelCost: 0,
+          tollCharges: 0,
+          platformFee: 7.00,
+          tax: 0,
+          totalFare: 0,
+          recommendation: 'Avoids potholes, bumps, and construction blockades',
+          roadHealthScore: 98,
+          weatherRiskScore: risk.score
+        }
+      ];
+
+      // Compute breakdowns for each
+      const finalRoutes = routesData.map(r => {
+        const breakdown = calculateRouteFare(r.distanceKm, r.durationMin, r.traffic, r.tollCharges, selectedVehicle);
+        return {
+          ...r,
+          fuelUsageLiters: breakdown.fuelUsage,
+          fuelCost: breakdown.fuelCost,
+          tax: breakdown.tax,
+          totalFare: breakdown.total,
+          fareBreakdown: breakdown.farebreakdown || breakdown
+        };
+      });
+
+      setAvailableRoutes(finalRoutes);
+      setSelectedRouteIndex(0);
+
+      // 7. Generate speedbreakers
       const numSB = Math.min(6, Math.max(1, Math.round(distance / 8)));
       const sbList = [];
       for (let i = 1; i <= numSB; i++) {
@@ -805,46 +889,39 @@ function BookingViewInner({
     }
   };
 
+  // Recompute route fares and fuel stats when selectedVehicle changes
+  useEffect(() => {
+    if (availableRoutes.length === 0) return;
+    const updated = availableRoutes.map(r => {
+      const breakdown = calculateRouteFare(r.distanceKm, r.durationMin, r.traffic, r.tollCharges, selectedVehicle);
+      return {
+        ...r,
+        fuelUsageLiters: breakdown.fuelUsage,
+        fuelCost: breakdown.fuelCost,
+        tax: breakdown.tax,
+        totalFare: breakdown.total,
+        fareBreakdown: breakdown.farebreakdown || breakdown
+      };
+    });
+    setAvailableRoutes(updated);
+  }, [selectedVehicle]);
+
+  // Sync calculatedDistance and duration with selectedRoute
+  useEffect(() => {
+    if (availableRoutes[selectedRouteIndex]) {
+      const r = availableRoutes[selectedRouteIndex];
+      setCalculatedDistance(r.distanceKm);
+      setCalculatedDuration(r.durationMin);
+    }
+  }, [selectedRouteIndex, availableRoutes]);
+
   // Pricing Calculation algorithm structure
   const getDynamicFareValues = (vehicleId: VehicleType = selectedVehicle) => {
-    const profile = VEHICLE_FARE_PROFILES.find(p => p.id === vehicleId) || VEHICLE_FARE_PROFILES[0];
-    const base = profile.baseFare;
-    const distFare = Number((calculatedDistance * profile.perKmRate).toFixed(2));
-    const timeFare = Number((calculatedDuration * profile.perMinRate).toFixed(2));
-
-    // Weather surcharge from real-time climate checks or system config
-    let weatherSurcharge = 0;
-    const peakPickupWeather = weatherPickup?.weatherText || systemConfig.weather;
-    const wt = peakPickupWeather.toLowerCase();
-    
-    if (wt.includes('overcast') || wt.includes('clouds') || wt.includes('mist') || wt.includes('haze') || wt.includes('fog')) {
-      weatherSurcharge = 10;
-    } else if (wt.includes('rain') || wt.includes('drizzle')) {
-      weatherSurcharge = 30;
-    } else if (wt.includes('storm') || wt.includes('thunderstorm') || wt.includes('snow') || wt.includes('extreme')) {
-      weatherSurcharge = 50;
-    }
-
-    // Traffic surcharge multiplier factors
-    let trafficMultiplier = 1.0;
-    if (systemConfig.traffic === 'Moderate') trafficMultiplier = 1.1;
-    else if (systemConfig.traffic === 'Heavy Congestion') trafficMultiplier = 1.3;
-    else if (systemConfig.traffic === 'Gridlock') trafficMultiplier = 1.5;
-
-    const environmentalTransitSurcharges = (distFare + timeFare) * (trafficMultiplier - 1.0);
-    const total = Number((base + weatherSurcharge + distFare + timeFare + environmentalTransitSurcharges).toFixed(2));
-
-    return {
-      base,
-      distFare,
-      timeFare,
-      weatherSurcharge,
-      trafficSurgeAmt: environmentalTransitSurcharges,
-      total
-    };
+    const breakdown = calculateRouteFare(calculatedDistance, calculatedDuration, systemConfig.traffic, 0, vehicleId);
+    return breakdown.farebreakdown || breakdown;
   };
 
-  const currentFare = getDynamicFareValues(selectedVehicle);
+  const currentFare = availableRoutes[selectedRouteIndex]?.fareBreakdown || getDynamicFareValues(selectedVehicle);
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -861,9 +938,24 @@ function BookingViewInner({
         initialFare: currentFare.total,
         gpsLat: pickupCoords.lat,
         gpsLng: pickupCoords.lng,
-        vehicleType: selectedVehicle
+        vehicleType: selectedVehicle,
+        isChildSafety: childSafetyActive,
+        isWomenSafety: womenSafetyActive,
+        isFamilySafety: familySafetyActive
       });
       console.log("Created Ride:", createdRide);
+
+      // Trigger safety SMS if any safety mode is active
+      if (familySafetyActive || childSafetyActive || womenSafetyActive) {
+        const profile = ZipRideRepository.getProfile();
+        FamilySafetyModule.sendGuardianAlert('ride_started', {
+          rideId: createdRide.id,
+          riderName: profile.fullName,
+          pickup,
+          drop
+        });
+      }
+
       onSelectTab('tracker');
     } catch (err) {
       console.error('Booking submission failed:', err);
@@ -935,7 +1027,7 @@ function BookingViewInner({
             <Compass className="w-5 h-5 text-indigo-600 animate-spin-slow" />
             <span>Set Up Your Journey</span>
           </h3>
-          <p className="text-xs text-theme-text-secondary mt-1 mb-6">Enter real-time pickup and drop locations in India with Google Maps validation.</p>
+          <p className="text-xs text-theme-text-secondary mt-1 mb-6">Enter real-time pickup and drop locations in India with smart address suggestions.</p>
 
           <form onSubmit={handleBooking} className="space-y-4">
             {/* Pickup Input Field */}
@@ -971,7 +1063,7 @@ function BookingViewInner({
                 ) : (
                   <div className="flex items-center gap-1 mt-2 text-amber-600 bg-amber-50/50 px-2.5 py-1 rounded-lg text-[11px] font-semibold w-fit border border-amber-200/50 animate-pulse">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Please select from Google Maps dropdown</span>
+                    <span>Please select from suggestions dropdown</span>
                   </div>
                 )
               )}
@@ -1010,7 +1102,7 @@ function BookingViewInner({
                 ) : (
                   <div className="flex items-center gap-1 mt-2 text-amber-600 bg-amber-50/50 px-2.5 py-1 rounded-lg text-[11px] font-semibold w-fit border border-amber-200/50 animate-pulse">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Please select from Google Maps dropdown</span>
+                    <span>Please select from suggestions dropdown</span>
                   </div>
                 )
               )}
@@ -1087,6 +1179,68 @@ function BookingViewInner({
                 </div>
               </div>
             )}
+
+            {/* Travel Safety & Protection Modes */}
+            <div className="space-y-2.5">
+              <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary">TRAVEL SAFETY & PROTECTION MODES</label>
+              <div className="grid grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFamilySafetyActive(!familySafetyActive);
+                    localStorage.setItem('zipride_family_safety_active', (!familySafetyActive).toString());
+                  }}
+                  className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl gap-1.5 transition duration-200 cursor-pointer ${
+                    familySafetyActive 
+                      ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold' 
+                      : 'border-theme-border bg-theme-card hover:border-theme-border text-theme-text-secondary'
+                  }`}
+                >
+                  <span className="text-lg">👨‍👩‍👧</span>
+                  <span className="text-[10px] font-bold">Family Safe</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChildSafetyActive(!childSafetyActive);
+                    localStorage.setItem('zipride_child_safety_active', (!childSafetyActive).toString());
+                  }}
+                  className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl gap-1.5 transition duration-200 cursor-pointer ${
+                    childSafetyActive 
+                      ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold' 
+                      : 'border-theme-border bg-theme-card hover:border-theme-border text-theme-text-secondary'
+                  }`}
+                >
+                  <span className="text-lg">👶</span>
+                  <span className="text-[10px] font-bold">Child Safe</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWomenSafetyActive(!womenSafetyActive);
+                    localStorage.setItem('zipride_women_safety_active', (!womenSafetyActive).toString());
+                  }}
+                  className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl gap-1.5 transition duration-200 cursor-pointer ${
+                    womenSafetyActive 
+                      ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold' 
+                      : 'border-theme-border bg-theme-card hover:border-theme-border text-theme-text-secondary'
+                  }`}
+                >
+                  <span className="text-lg">👩</span>
+                  <span className="text-[10px] font-bold">Women Safe</span>
+                </button>
+              </div>
+              
+              {/* Accessibility Overrides Indicator */}
+              {accessibilityOverride.length > 0 && (
+                <div className="mt-2.5 p-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-2 text-[10px] text-violet-400 font-bold">
+                  <span>♿</span>
+                  <span>Accessibility Override: {accessibilityOverride.join(', ')} assist enabled.</span>
+                </div>
+              )}
+            </div>
 
             {/* Payment Mode Selector */}
             <div>
@@ -1237,12 +1391,24 @@ function BookingViewInner({
             </div>
           </div>
         )}
-        {/* Dynamic pricing panel */}
+
+        {/* RideMate AI Companion Panel */}
+        {showFare && (
+          <RideMatePanel 
+            weatherCondition={weatherPickup?.weatherText || systemConfig.weather}
+            weatherRiskScore={availableRoutes[selectedRouteIndex]?.weatherRiskScore || 0}
+            trafficLevel={availableRoutes[selectedRouteIndex]?.traffic || systemConfig.traffic}
+            routes={availableRoutes}
+            selectedRouteIndex={selectedRouteIndex}
+          />
+        )}
+
+        {/* Dynamic pricing and routing panel */}
         <div className="bg-theme-card border border-theme-border/85 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] shrink-0" id="fare-panel">
           <div className="p-5 border-b border-theme-border bg-theme-bg/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <IndianRupee className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span className="font-bold text-theme-text-primary text-sm">Dynamic Fare Calculator</span>
+              <span className="font-bold text-theme-text-primary text-sm">Routes & Dynamic Fare Engine</span>
             </div>
             <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1 shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -1250,76 +1416,263 @@ function BookingViewInner({
             </span>
           </div>
 
-          {pickup && drop && pickup !== drop && showFare ? (
-            <div className="p-6 space-y-4">
+          {pickup && drop && pickup !== drop && showFare && isPickupVerified && isDropVerified && availableRoutes.length > 0 ? (
+            <div className="p-6 space-y-5">
               
-              {/* Dynamic Surcharges Warning Banner if active */}
-              {(weatherPickup?.weatherText && !weatherPickup.weatherText.toLowerCase().includes("clear") && !weatherPickup.weatherText.toLowerCase().includes("sunny")) && (
-                <div className="p-3 bg-sky-50 border border-sky-100 text-[11px] text-sky-700 rounded-xl leading-relaxed font-semibold">
-                  ⛈️ Real-time Weather surcharge active parent for <strong>"{weatherPickup.weatherText}"</strong>: Climate fees apply to vehicle safety adjustments.
-                </div>
-              )}
-              {systemConfig.traffic !== 'Light' && (
-                <div className="p-3 bg-amber-50/50 border border-amber-200/50 text-[11px] text-amber-700 rounded-xl leading-relaxed font-semibold">
-                  🚗 Traffic Index surge active: <strong>"{systemConfig.traffic}"</strong> applying multipliers to variable km/min travel costs.
-                </div>
-              )}
+              {/* Route Options Selection List */}
+              <div className="space-y-3">
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary">SELECT ROUTE CHOICE</label>
+                <div className="grid grid-cols-1 gap-3">
+                  {availableRoutes.map((route, idx) => {
+                    const isSelected = selectedRouteIndex === idx;
+                    return (
+                      <button
+                        key={route.id}
+                        type="button"
+                        onClick={() => setSelectedRouteIndex(idx)}
+                        className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col gap-3 ${
+                          isSelected
+                            ? 'border-indigo-650 bg-indigo-50/10 dark:bg-indigo-950/20 ring-2 ring-indigo-650/10'
+                            : 'border-theme-border bg-theme-card hover:bg-theme-bg text-theme-text-secondary'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start w-full">
+                          <div>
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide mb-2 ${
+                              route.badge === 'Fastest' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' :
+                              route.badge === 'Safest' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' :
+                              route.badge === 'Eco Choice' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' :
+                              'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                            }`}>
+                              {route.badge}
+                            </span>
+                            <h5 className="text-xs font-bold text-theme-text-primary">{route.name} → {route.label}</h5>
+                            <p className="text-[10px] text-theme-text-secondary mt-0.5">{route.recommendation}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400 block font-mono">{route.durationMin} min</span>
+                            <span className="text-[10px] font-bold text-theme-text-secondary block mt-0.5">{route.distanceKm} km</span>
+                          </div>
+                        </div>
 
-              <div className="space-y-2.5 text-xs text-theme-text-secondary font-semibold border-b border-theme-border pb-4">
-                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider text-theme-text-secondary">
-                  <span>Description Metric</span>
-                  <span>Sub-Total</span>
+                        {/* Fuel and Traffic metrics */}
+                        <div className="grid grid-cols-5 gap-2 pt-2 border-t border-theme-border/50 text-[9px] font-semibold text-theme-text-secondary">
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Traffic</span>
+                            <span className={`font-bold ${
+                              route.traffic === 'Light' ? 'text-emerald-600' :
+                              route.traffic === 'Moderate' ? 'text-amber-500' :
+                              'text-rose-500'
+                            }`}>{route.traffic}</span>
+                          </div>
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Est. Fuel</span>
+                            <span className="text-theme-text-primary font-mono">{route.fuelUsageLiters.toFixed(2)} L</span>
+                          </div>
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Fuel Cost</span>
+                            <span className="text-theme-text-primary font-mono">₹{route.fuelCost.toFixed(0)}</span>
+                          </div>
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Road Health</span>
+                            <span className={`font-bold ${
+                              route.roadHealthScore >= 90 ? 'text-emerald-500' :
+                              route.roadHealthScore >= 75 ? 'text-amber-500' :
+                              'text-rose-500'
+                            }`}>{route.roadHealthScore}%</span>
+                          </div>
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Weather Risk</span>
+                            <span className={`font-bold ${
+                              route.weatherRiskScore <= 20 ? 'text-emerald-550' :
+                              route.weatherRiskScore <= 50 ? 'text-amber-500' :
+                              'text-rose-550'
+                            }`}>{route.weatherRiskScore}/100</span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Flag Down Block (Base)</span>
-                  <span className="font-mono text-theme-text-primary">₹{currentFare.base.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Calculated Route Distance ({calculatedDistance} km)</span>
-                  <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.distFare.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Estimated Transit ETA ({calculatedDuration} mins)</span>
-                  <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.timeFare.toFixed(2)}</span>
-                </div>
-                {currentFare.weatherSurcharge > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span>Live Weather Safety Factor</span>
-                    <span className="font-mono text-sky-600">+₹{currentFare.weatherSurcharge.toFixed(2)}</span>
-                  </div>
-                )}
-                {currentFare.trafficSurgeAmt > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span>Traffic Surge Surcharge</span>
-                    <span className="font-mono text-amber-500">+₹{currentFare.trafficSurgeAmt.toFixed(2)}</span>
-                  </div>
-                )}
               </div>
 
-              {/* Combined Final Toll */}
-              <div className="flex items-center justify-between pt-1">
-                <div>
-                  <span className="text-sm font-semibold text-theme-text-primary block font-sans">Locked Ride Fare</span>
-                  <span className="text-[10px] text-emerald-500 font-semibold tracking-wide">Live discount refund shield active</span>
+              {/* Fare Breakdown Title */}
+              <div className="border-t border-theme-border/60 pt-4">
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-3">ITEMIZED FARE BREAKDOWN</label>
+                
+                {/* Surcharges Explanations */}
+                <div className="space-y-2 mb-4">
+                  {currentFare.weatherSurcharge > 0 && (
+                    <div className="p-3 bg-sky-50 border border-sky-100 text-[10px] text-sky-700 rounded-xl leading-relaxed font-semibold">
+                      ⛈️ <strong>Weather Surcharge (+₹{currentFare.weatherSurcharge.toFixed(2)})</strong>: Applied because pickup weather is "{weatherPickup?.weatherText}". Climate conditions dictate slower speeds and safety buffers.
+                    </div>
+                  )}
+                  {currentFare.trafficSurgeAmt > 0 && (
+                    <div className="p-3 bg-amber-50/50 border border-amber-200/50 text-[10px] text-amber-700 rounded-xl leading-relaxed font-semibold">
+                      🚗 <strong>Traffic Surcharge (+₹{currentFare.trafficSurgeAmt.toFixed(2)})</strong>: Applied because traffic is "{availableRoutes[selectedRouteIndex]?.traffic}". Slower roads demand higher operating compensations.
+                    </div>
+                  )}
+                  {currentFare.nightSurcharge > 0 && (
+                    <div className="p-3 bg-purple-50 border border-purple-100 text-[10px] text-purple-700 rounded-xl leading-relaxed font-semibold">
+                      🌙 <strong>Night Duty Surcharge (+₹{currentFare.nightSurcharge.toFixed(2)})</strong>: Applied for nighttime operations (10 PM - 6 AM) to support pilots working irregular shifts.
+                    </div>
+                  )}
+                  {currentFare.fuelAdjustment > 0 && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-100 text-[10px] text-emerald-700 rounded-xl leading-relaxed font-semibold">
+                      ⛽ <strong>Fuel Cost Adjustment (+₹{currentFare.fuelAdjustment.toFixed(2)})</strong>: Added to subsidize estimated fuel usage of {currentFare.fuelUsage.toFixed(2)} L (petrol rate ₹102.50/L) due to route distance and idle traffic times.
+                    </div>
+                  )}
+                  {currentFare.toll > 0 && (
+                    <div className="p-3 bg-orange-50 border border-orange-100 text-[10px] text-orange-700 rounded-xl leading-relaxed font-semibold">
+                      🛣️ <strong>Highway Toll Fee (+₹{currentFare.toll.toFixed(2)})</strong>: Settle NH highway checkpoint fees applied to outer link roads.
+                    </div>
+                  )}
                 </div>
-                <h2 className="text-3xl font-extrabold text-emerald-600 font-mono tracking-tight">₹{currentFare.total.toFixed(2)}</h2>
-              </div>
 
-              <div className="text-[10px] text-theme-text-secondary leading-relaxed pt-2 border-t border-theme-border">
-                ℹ️ <strong>Refund Shield Commitment</strong>: Fares are fully locked upon booking. If your assigned driver breaches weather speed safety limits or performs harsh decelerations, instant dynamic discounts are computed and credited.
+                {/* Pricing values table */}
+                <div className="space-y-2.5 text-xs text-theme-text-secondary font-semibold border-b border-theme-border pb-4">
+                  <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-wider text-theme-text-secondary">
+                    <span>Component Description</span>
+                    <span>Amount</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Base Flag Down Fare</span>
+                    <span className="font-mono text-theme-text-primary">₹{currentFare.base.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Distance Charge ({calculatedDistance} km)</span>
+                    <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.distFare.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Time Duration Charge ({calculatedDuration} min)</span>
+                    <span className="font-mono text-theme-text-primary font-bold">₹{currentFare.timeFare.toFixed(2)}</span>
+                  </div>
+                  {currentFare.weatherSurcharge > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span>Live Weather surcharge</span>
+                      <span className="font-mono text-sky-600">+₹{currentFare.weatherSurcharge.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {currentFare.trafficSurgeAmt > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span>Traffic Index surge</span>
+                      <span className="font-mono text-amber-500">+₹{currentFare.trafficSurgeAmt.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {currentFare.nightSurcharge > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span>Night commute fee</span>
+                      <span className="font-mono text-purple-650">+₹{currentFare.nightSurcharge.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {currentFare.fuelAdjustment > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span>Fuel adjustment surcharge</span>
+                      <span className="font-mono text-emerald-600">+₹{currentFare.fuelAdjustment.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {currentFare.toll > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span>Tolls & Gateways</span>
+                      <span className="font-mono text-orange-600">+₹{currentFare.toll.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span>Platform Booking Fee</span>
+                    <span className="font-mono text-theme-text-primary">₹{currentFare.platformFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>GST Tax (18%)</span>
+                    <span className="font-mono text-theme-text-primary">₹{currentFare.tax.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Final Locked Total */}
+                <div className="flex items-center justify-between pt-4">
+                  <div>
+                    <span className="text-sm font-semibold text-theme-text-primary block font-sans">Locked Ride Fare</span>
+                    <span className="text-[10px] text-emerald-500 font-semibold tracking-wide">Live discount refund shield active</span>
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-emerald-600 font-mono tracking-tight">₹{currentFare.total.toFixed(2)}</h2>
+                </div>
+
+                {/* Fare Fairness Meter */}
+                {currentFare.fareBreakdown && (
+                  <div className="mt-5 p-4 rounded-2xl bg-indigo-50/5 dark:bg-indigo-950/20 border border-indigo-500/20 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                        ⚖️ Fare Fairness Meter
+                      </span>
+                      <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30 font-bold">
+                        Score: {currentFare.fareBreakdown.fairnessScore || 95}/100
+                      </span>
+                    </div>
+
+                    {/* Surge Cap Level Meter */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-semibold text-slate-400">
+                        <span>Surge Cap Level: <strong className="text-indigo-400">{currentFare.fareBreakdown.capLevel || 'Normal'}</strong> (Max {currentFare.fareBreakdown.maxCapPercent || 10}%)</span>
+                        <span>{currentFare.fareBreakdown.actualSurchargePercent || 0}% surge</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden relative">
+                        <div 
+                          className={`h-full ${
+                            currentFare.fareBreakdown.capLevel === 'Extreme' ? 'bg-rose-500' :
+                            currentFare.fareBreakdown.capLevel === 'Moderate' ? 'bg-amber-500' :
+                            'bg-emerald-500'
+                          }`}
+                          style={{ width: `${Math.min(100, ((currentFare.fareBreakdown.actualSurchargePercent || 1) / 25) * 100)}%` }}
+                        />
+                      </div>
+                      {currentFare.fareBreakdown.isCapped && (
+                        <p className="text-[9px] text-emerald-400 font-bold leading-normal">
+                          🛡️ Regulatory Price Cap Engaged: Surcharges are capped at {currentFare.fareBreakdown.maxCapPercent}% to prevent price gouging.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Fairness Breakdown Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-[10px] border-t border-slate-800/80 pt-2.5 text-slate-400 font-semibold">
+                      <div className="flex justify-between">
+                        <span>Base Cost:</span>
+                        <span className="font-mono text-white">₹{(currentFare.fareBreakdown.base + currentFare.fareBreakdown.distFare + currentFare.fareBreakdown.timeFare).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Traffic Impact:</span>
+                        <span className="font-mono text-white">₹{currentFare.fareBreakdown.trafficImpact.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Weather Impact:</span>
+                        <span className="font-mono text-white">₹{currentFare.fareBreakdown.weatherImpact.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Fuel Impact:</span>
+                        <span className="font-mono text-white">₹{currentFare.fareBreakdown.fuelImpact.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between col-span-2 border-t border-slate-800/80 pt-1.5 font-bold text-emerald-400">
+                        <span>Final Fare (Subtotal):</span>
+                        <span className="font-mono">₹{currentFare.fareBreakdown.subtotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-[10px] text-theme-text-secondary leading-relaxed pt-3 mt-3 border-t border-theme-border">
+                  ℹ️ <strong>Refund Shield Commitment</strong>: Fares are fully locked upon booking. If your assigned driver breaches weather speed safety limits or performs harsh decelerations, instant dynamic discounts are computed and credited.
+                </div>
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center text-theme-text-secondary flex flex-col items-center justify-center min-h-[300px]">
+            <div className="p-12 text-center text-theme-text-secondary flex flex-col items-center justify-center min-h-[300px]" id="select-locations-placeholder">
               <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
-              <p className="text-sm font-bold text-theme-text-primary">Calculate Distance & Fare</p>
-              <p className="text-xs text-theme-text-secondary max-w-[250px] mt-2 mb-4 leading-relaxed">
-                Provide your journey pick-up and destination points in the form block to query maps routing, coordinates, distance, and real-time open weather details.
+              <p className="text-xs text-theme-text-secondary max-w-[250px] leading-relaxed font-semibold">
+                Select pickup and destination to view available routes.
               </p>
             </div>
           )}
         </div>
       </div>
+
 
       {/* Main Full-Screen Live Map Container */}
       <div className="w-full h-full relative z-0 bg-theme-bg" id="live-map-container">
@@ -1356,18 +1709,5 @@ function BookingViewInner({
       </div>
 
     </div>
-  );
-}
-
-// Master wrapper to correctly inject Google Maps API contexts dynamically
-export default function BookingView(props: BookingViewProps) {
-  const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || 
-                  ((import.meta as any).env && (import.meta as any).env.VITE_GOOGLE_MAPS_API_KEY) || 
-                  (process.env as any).VITE_GOOGLE_MAPS_API_KEY || 
-                  "";
-  return (
-    <APIProvider apiKey={API_KEY} version="weekly">
-      <BookingViewInner {...props} apiKey={API_KEY} hasValidKey={!!API_KEY} />
-    </APIProvider>
   );
 }

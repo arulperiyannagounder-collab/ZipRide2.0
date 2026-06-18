@@ -23,16 +23,18 @@ import RideHistoryView from './components/RideHistoryView';
 import ErrorBoundary from './components/ErrorBoundary';
 import AiAssistantView from './components/AiAssistantView';
 import AiAssistantWidget from './components/AiAssistantWidget';
+import { RoadIntelligenceView } from './components/RoadIntelligenceView';
 import { SystemState, Ride, Dispute, SystemConfig, Driver } from './types';
 import { useTheme } from './components/ThemeContext';
 import { useToast } from './components/ToastNotification';
+import { ZipRideRepository } from './services/dbInterface';
 
 export default function App() {
   // Path Router Configuration matching precisely /login, /, /booking, etc.
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  
   // Administrative login session state
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     const saved = localStorage.getItem('zipride_logged');
@@ -49,6 +51,24 @@ export default function App() {
     const isLogged = savedLogged !== null ? savedLogged === 'true' : false;
     return isLogged ? (localStorage.getItem('zipride_role') as any || 'passenger') : null;
   });
+
+  const [profile, setProfile] = useState(() => ZipRideRepository.getProfile());
+
+  useEffect(() => {
+    const handleSyncProfile = () => {
+      setProfile(ZipRideRepository.getProfile());
+    };
+    window.addEventListener('storage', handleSyncProfile);
+    window.addEventListener('zipride_profile_updated', handleSyncProfile);
+    return () => {
+      window.removeEventListener('storage', handleSyncProfile);
+      window.removeEventListener('zipride_profile_updated', handleSyncProfile);
+    };
+  }, []);
+
+  useEffect(() => {
+    setProfile(ZipRideRepository.getProfile());
+  }, [currentPath, isLoggedIn]);
 
   // Global Theme Context Hook
   const { theme, setTheme } = useTheme();
@@ -78,16 +98,27 @@ export default function App() {
       const prevStatus = prevRideStatuses[ride.id];
       if (prevStatus && prevStatus !== ride.status) {
         // Status transitioned!
+        let msg = '';
         if (ride.status === 'assigned') {
-          showToast(`Driver ${ride.driverName || 'assigned'} is on their way!`, 'success');
+          msg = `Driver ${ride.driverName || 'assigned'} is on their way!`;
+          showToast(msg, 'success');
         } else if (ride.status === 'pickup') {
-          showToast(`Driver has arrived at your pickup location.`, 'info');
+          msg = `Driver has arrived at your pickup location.`;
+          showToast(msg, 'info');
         } else if (ride.status === 'en_route') {
-          showToast(`Ride started. Driving safely to destination.`, 'info');
+          msg = `Ride started. Driving safely to destination.`;
+          showToast(msg, 'info');
         } else if (ride.status === 'completed') {
-          showToast(`Commute complete. Final Fare: ₹${ride.finalFare.toFixed(0)}`, 'success');
+          msg = `Commute complete. Final Fare: Rupees ${ride.finalFare.toFixed(0)}`;
+          showToast(msg, 'success');
         } else if (ride.status === 'cancelled') {
-          showToast(`Ride was cancelled.`, 'warning');
+          msg = `Ride was cancelled.`;
+          showToast(msg, 'warning');
+        }
+
+        if (msg && profile.accessibilityRequirements?.includes('Visually Impaired') && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
         }
       }
     });
@@ -98,7 +129,19 @@ export default function App() {
       newStatuses[r.id] = r.status;
     });
     setPrevRideStatuses(newStatuses);
-  }, [allRides, prevRideStatuses, showToast]);
+  }, [allRides, prevRideStatuses, showToast, profile.accessibilityRequirements]);
+
+  // Announce page changes for Visually Impaired
+  useEffect(() => {
+    if (profile.accessibilityRequirements?.includes('Visually Impaired')) {
+      const label = getTabLabel();
+      const speakText = `Navigated to ${label}`;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(speakText));
+      }
+    }
+  }, [currentPath, profile.accessibilityRequirements]);
 
   // Derived states
   const activeRide = allRides.find(r => {
@@ -184,12 +227,12 @@ export default function App() {
 
     // 3. Role-based route authorization
     if (currentUserRole === 'passenger') {
-      const allowedPaths = ['/', '/booking', '/tracker', '/fares', '/history', '/settings', '/ai-assistant'];
+      const allowedPaths = ['/', '/booking', '/tracker', '/road-intel', '/fares', '/history', '/settings', '/ai-assistant'];
       if (!allowedPaths.includes(currentPath)) {
         selectTab('/');
       }
     } else if (currentUserRole === 'driver') {
-      const allowedPaths = ['/driver', '/settings', '/ai-assistant'];
+      const allowedPaths = ['/driver', '/road-intel', '/settings', '/ai-assistant'];
       if (!allowedPaths.includes(currentPath)) {
         selectTab('/driver');
       }
@@ -444,6 +487,7 @@ export default function App() {
       case '/booking': return 'Book a Ride';
       case '/driver': return 'Driver Navigation Hub';
       case '/tracker': return 'Ride Safety Tracker';
+      case '/road-intel': return 'Community Road Intelligence';
       case '/disputes': return 'Disputes & Resolutions';
       case '/fares': return 'Fare Policy & Multipliers';
       case '/history': return 'Ride History';
@@ -456,7 +500,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex bg-theme-bg min-h-screen text-theme-text-primary font-sans antialiased transition-colors duration-150">
+      <div className={`flex bg-theme-bg min-h-screen text-theme-text-primary font-sans antialiased transition-colors duration-150 ${profile.accessibilityRequirements?.includes('Senior Citizen') ? 'accessibility-senior' : ''}`}>
       
       {/* Sidebar Core Element (Hidden on mobile) */}
       <Sidebar 
@@ -623,6 +667,12 @@ export default function App() {
             />
           )}
 
+          {currentPath === '/road-intel' && (
+            <div className="max-w-2xl mx-auto">
+              <RoadIntelligenceView />
+            </div>
+          )}
+
           {currentPath === '/fares' && (
             <FarePolicyView />
           )}
@@ -669,7 +719,7 @@ export default function App() {
           )}
 
           {/* Fallback client-side matching for non-registered paths */}
-          {!['/', '/booking', '/driver', '/tracker', '/disputes', '/fares', '/login', '/404', '/history', '/settings', '/ai-assistant'].includes(currentPath) && (
+          {!['/', '/booking', '/driver', '/tracker', '/road-intel', '/disputes', '/fares', '/login', '/404', '/history', '/settings', '/ai-assistant'].includes(currentPath) && (
             <NotFoundView 
               onGoHome={() => selectTab('/')}
               currentPath={currentPath}

@@ -290,7 +290,10 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
     initialFare: clientFare,
     gpsLat: clientLat,
     gpsLng: clientLng,
-    vehicleType
+    vehicleType,
+    isChildSafety,
+    isWomenSafety,
+    isFamilySafety
   } = req.body;
 
   if (!pickup || !drop || !paymentMethod) {
@@ -385,27 +388,77 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
   let baseFare = 25.0;
   let perKmRate = 8.0;
   let perMinRate = 1.0;
+  let fuelPerKm = 0.02; // Bike liters/km
+  let idleConsumption = 0.005; // Bike liters/min
 
   if (vType === 'Auto') {
     baseFare = 40.0;
     perKmRate = 12.0;
     perMinRate = 1.5;
-  } else if (vType === 'Cab') {
-    baseFare = 80.0;
+    fuelPerKm = 0.04;
+    idleConsumption = 0.01;
+  } else if (vType === 'Cab' || vType === 'Mini Cab' || vType === 'Mini') {
+    baseFare = 70.0;
+    perKmRate = 15.0;
+    perMinRate = 2.0;
+    fuelPerKm = 0.06;
+    idleConsumption = 0.015;
+  } else if (vType === 'Sedan') {
+    baseFare = 90.0;
     perKmRate = 18.0;
     perMinRate = 2.5;
+    fuelPerKm = 0.08;
+    idleConsumption = 0.02;
+  } else if (vType === 'SUV') {
+    baseFare = 120.0;
+    perKmRate = 24.0;
+    perMinRate = 3.5;
+    fuelPerKm = 0.10;
+    idleConsumption = 0.03;
   }
 
   const distanceFare = Number((distanceKm * perKmRate).toFixed(2));
   const durationFare = Number((durationMin * perMinRate).toFixed(2));
-  const environmentalTransitCharges = (distanceFare + durationFare) * (trafficMultiplier - 1.0);
+  
+  // Day/Night surcharge (10 PM to 6 AM)
+  const currentHour = new Date().getHours();
+  const isNight = currentHour >= 22 || currentHour < 6;
+  const nightSurcharge = isNight ? 30.00 : 0.00;
+
+  // Traffic surcharge
+  const trafficSurgeAmt = (distanceFare + durationFare) * (trafficMultiplier - 1.0);
+
+  // Fuel Adjustment Surcharge (Liters * price * subsidy factor)
+  const fuelUsage = (fuelPerKm * distanceKm) + (idleConsumption * Math.max(0, durationMin - (distanceKm / 40 * 60)));
+  const fuelCost = fuelUsage * 102.50;
+  const fuelAdjustment = Number((fuelCost * 0.4).toFixed(2));
+
+  // Toll Surcharge
+  const tollCharges = distanceKm > 15.0 ? 50.00 : 0.00;
+
+  // Platform fee
+  const platformFee = 7.00;
+
+  // Subtotal before tax
+  const subtotal = baseFare + distanceFare + durationFare + weatherSurcharge + trafficSurgeAmt + nightSurcharge + fuelAdjustment + tollCharges + platformFee;
+  
+  // Taxes (18% GST)
+  const tax = Number((subtotal * 0.18).toFixed(2));
   
   let initialFare = clientFare;
   if (initialFare === undefined) {
-    initialFare = Number((baseFare + weatherSurcharge + distanceFare + durationFare + environmentalTransitCharges).toFixed(2));
+    initialFare = Number((subtotal + tax).toFixed(2));
   }
 
-  const newRide: Ride = {
+  const newRide: Ride & {
+    nightSurcharge?: number;
+    fuelUsage?: number;
+    fuelCost?: number;
+    fuelAdjustment?: number;
+    tollCharges?: number;
+    platformFee?: number;
+    tax?: number;
+  } = {
     id: rideId,
     pickup,
     drop,
@@ -428,6 +481,15 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
     paymentStatus: 'pending',
     status: 'booked',
     createdAt: new Date().toISOString(),
+    
+    // Detailed Breakdown Surcharges
+    nightSurcharge,
+    fuelUsage: Number(fuelUsage.toFixed(3)),
+    fuelCost: Number(fuelCost.toFixed(2)),
+    fuelAdjustment,
+    tollCharges,
+    platformFee,
+    tax,
     
     // Coordinates
     gpsLat,
@@ -452,7 +514,14 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
     humidity: liveWeather.humidity,
     windSpeed: liveWeather.windSpeed,
     weatherMultiplier: weatherMultiplier,
-    rainChance: liveWeather.rainChance
+    rainChance: liveWeather.rainChance,
+
+    // Safety Toggles
+    isChildSafety: !!isChildSafety,
+    isWomenSafety: !!isWomenSafety,
+    isFamilySafety: !!isFamilySafety,
+    pickupCode: isChildSafety ? Math.floor(1000 + Math.random() * 9000).toString() : undefined,
+    childArrivalConfirmed: false
   };
 
   db.addRide(newRide);

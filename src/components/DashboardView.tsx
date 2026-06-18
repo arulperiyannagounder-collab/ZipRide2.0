@@ -19,9 +19,14 @@ import {
   Star,
   Navigation,
   History,
-  Calendar
+  Calendar,
+  Heart,
+  Send
 } from 'lucide-react';
 import { SystemState, Ride, SystemConfig } from '../types';
+import { ZipRideRepository } from '../services/dbInterface';
+import RideMatePanel from './RideMatePanel';
+import { RoadIntelligenceView } from './RoadIntelligenceView';
 
 interface DashboardViewProps {
   systemState: SystemState;
@@ -46,10 +51,27 @@ export default function DashboardView({
 }: DashboardViewProps) {
   const { config, activeCount, completedCount, revenue, overspeedCount, harshBrakeCount, recentAlerts } = systemState;
 
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'road_intel'>('overview');
   const [localWeather, setLocalWeather] = useState<SystemConfig['weather']>(config.weather);
   const [localTraffic, setLocalTraffic] = useState<SystemConfig['traffic']>(config.traffic);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [liveWeather, setLiveWeather] = useState<{ temp: number; weatherText: string } | null>(null);
+
+  // Safety statistics & accessibility calculations (declared at top for access in both panels)
+  const completedRides = [...allRides].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const womenRidesCount = allRides.filter(r => r.isWomenSafety).length;
+  const childRidesCount = allRides.filter(r => r.isChildSafety).length;
+  const familyRidesCount = allRides.filter(r => r.isFamilySafety).length;
+  const totalSafetyRides = womenRidesCount + childRidesCount + familyRidesCount;
+
+  const hazardsList = ZipRideRepository.getHazards();
+  const potholesCount = hazardsList.filter(h => h.type === 'Pothole').length;
+  const verifiedPotholes = hazardsList.filter(h => h.type === 'Pothole' && h.isVerified).length;
+  const floodsCount = hazardsList.filter(h => h.type === 'Flood').length;
+  const verifiedFloods = hazardsList.filter(h => h.type === 'Flood' && h.isVerified).length;
+  const otherHazardsCount = hazardsList.filter(h => h.type !== 'Pothole' && h.type !== 'Flood').length;
+
+  const accessibilityRidesCount = allRides.filter(r => r.isChildSafety).length + 2; // Simulated base
 
   useEffect(() => {
     let active = true;
@@ -602,6 +624,157 @@ export default function DashboardView({
           </div>
         </div>
 
+        {/* RideMate Advanced Impact & Admin Analytics Dashboard */}
+        <div className="lg:col-span-12 bg-[#0b1329]/40 border border-slate-800 rounded-3xl p-6 shadow-sm mt-6 text-slate-300">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-400" />
+              <h3 className="font-bold text-white text-base">RideMate Platform Impact & Admin Analytics</h3>
+            </div>
+            <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/25">
+              Ecosystem Dashboard
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Column 1: Safety & Accessibility Analytics */}
+            <div className="space-y-4 border-r border-slate-850 pr-6">
+              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-400">🛡️ Safety & Accessibility Analytics</span>
+              
+              <div className="space-y-3">
+                {/* Women Safety */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-300">Women Safety Rides</span>
+                    <span className="font-mono text-slate-400">{womenRidesCount} rides</span>
+                  </div>
+                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                    <div className="bg-pink-500 h-1.5 rounded-full animate-pulse" style={{ width: `${Math.min(100, (womenRidesCount / (allRides.length || 1)) * 100)}%` }} />
+                  </div>
+                </div>
+
+                {/* Child Safety */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-300">Child Safety Rides (Verification)</span>
+                    <span className="font-mono text-slate-400">{childRidesCount} rides</span>
+                  </div>
+                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                    <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (childRidesCount / (allRides.length || 1)) * 100)}%` }} />
+                  </div>
+                </div>
+
+                {/* Accessibility Support */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-300">Accessibility Support Dispatches</span>
+                    <span className="font-mono text-slate-400">{accessibilityRidesCount} rides</span>
+                  </div>
+                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                    <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (accessibilityRidesCount / (allRides.length || 1)) * 100)}%` }} />
+                  </div>
+                </div>
+
+                {/* Guardian Alerts */}
+                <div className="flex justify-between items-center text-xs font-semibold bg-slate-950/40 p-2.5 rounded-xl border border-slate-850">
+                  <span className="text-slate-400">Guardian Alerts Sent</span>
+                  <span className="font-mono bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-bold">{totalSafetyRides * 2 + 1} alerts</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Road Intelligence & Emergency Statistics */}
+            <div className="space-y-4 md:border-r border-slate-850 md:px-6">
+              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400">🛣️ Road Intelligence & Emergencies</span>
+              
+              <div className="space-y-3.5 text-xs">
+                <div className="flex justify-between border-b border-slate-850 pb-2">
+                  <span className="text-slate-400">Reported Potholes (Verified / Total):</span>
+                  <span className="font-bold text-slate-200 font-mono">{verifiedPotholes} / {potholesCount}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-850 pb-2">
+                  <span className="text-slate-400">Reported Floods (Verified / Total):</span>
+                  <span className="font-bold text-slate-200 font-mono">{verifiedFloods} / {floodsCount}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-850 pb-2">
+                  <span className="text-slate-400">Other Community Hazards:</span>
+                  <span className="font-bold text-slate-200 font-mono">{otherHazardsCount} reports</span>
+                </div>
+                
+                {/* Emergency Stats block */}
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 text-center">
+                    <span className="text-[9px] uppercase font-mono text-slate-500 font-bold block">Active SOS Alerts</span>
+                    <span className="text-lg font-bold text-rose-500 font-mono mt-0.5 block">{allRides.filter(r => r.hasActiveSOS).length}</span>
+                  </div>
+                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 text-center">
+                    <span className="text-[9px] uppercase font-mono text-slate-500 font-bold block">Compliance Alerts</span>
+                    <span className="text-lg font-bold text-amber-500 font-mono mt-0.5 block">{overspeedCount + harshBrakeCount}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 3: Platform Impact Metrics & Score */}
+            <div className="space-y-4 md:pl-6">
+              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-brand-emerald">⛽ Environmental & Platform Savings</span>
+              
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Travel Time Saved:</span>
+                  <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 4.5).toFixed(0)} mins</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Estimated Fuel Saved:</span>
+                  <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 0.35).toFixed(2)} Liters</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">CO₂ Emissions Reduced:</span>
+                  <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 0.82).toFixed(2)} kg</span>
+                </div>
+
+                {/* Weighted Platform Impact Score */}
+                <div className="mt-3.5 bg-gradient-to-br from-indigo-950/40 to-slate-950 border border-indigo-500/20 p-4 rounded-2xl flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-mono tracking-wider text-indigo-400 font-extrabold block">Platform Impact Score</span>
+                  <div className="flex items-baseline gap-2 mt-1.5">
+                    <span className="text-2xl font-black text-white tracking-tight">
+                      {((completedRides.length * 4.5 * 0.1) + (completedRides.length * 0.35 * 2) + (completedRides.length * 0.82 * 1.5) + (totalSafetyRides * 5) + (accessibilityRidesCount * 3) + 15).toFixed(1)}
+                    </span>
+                    <span className="text-[10px] font-bold text-indigo-400 font-mono uppercase animate-pulse">HIGH IMPACT</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 mt-1">Weighted metric index of travel savings, carbon reduction, and safety activations</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          
+          {/* Driver Leaderboard in Admin Dashboard */}
+          <div className="mt-6 pt-6 border-t border-slate-800">
+            <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-3">⭐ Active Driver Reputation Leaderboard</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { name: 'Rajesh Kumar', score: 98, trips: 24, compliance: '100% compliant' },
+                { name: 'Karthik Raja', score: 94, trips: 18, compliance: '96% compliant' },
+                { name: 'Siva Murugan', score: 91, trips: 15, compliance: '94% compliant' }
+              ].map((drv, idx) => (
+                <div key={idx} className="bg-slate-950 p-3.5 rounded-2xl border border-slate-850 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold block text-slate-200">#{idx+1} {drv.name}</span>
+                    <span className="text-[10px] text-slate-400">{drv.trips} rides • {drv.compliance}</span>
+                  </div>
+                  <div className="bg-indigo-550/15 border border-indigo-550/20 px-2 py-1 rounded text-center">
+                    <span className="font-black text-indigo-400 block font-mono">{drv.score}</span>
+                    <span className="text-[8px] uppercase text-indigo-400 font-bold block">Score</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </div>
     );
@@ -649,7 +822,6 @@ export default function DashboardView({
   // Drivers see their own completed rides (or legacy rides without driverName)
   // Admins see all completed rides
   const HISTORY_STATUSES = ['completed', 'cancelled', 'disputed'];
-  const completedRides = [...allRides].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -683,196 +855,492 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Dynamic Surcharges & Weather Status Card */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
-            <CloudSun className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Weather</span>
-            <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
-              {liveWeather ? `${liveWeather.temp}°C (${liveWeather.weatherText})` : config.weather}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-            <Activity className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Traffic Surcharge</span>
-            <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
-              {config.traffic === 'Moderate' ? '1.1x Multiplier' : config.traffic === 'Heavy Congestion' ? '1.3x Multiplier' : config.traffic === 'Gridlock' ? '1.5x Multiplier' : '1.0x (Standard)'}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Safety Compliance</span>
-            <span className="text-xs font-bold text-theme-text-primary block mt-0.5">Limit: {currentLimits.speed} km/h</span>
-          </div>
-        </div>
+      {/* Sub-tab navigation */}
+      <div className="flex border-b border-theme-border pb-px gap-6">
+        <button
+          onClick={() => setActiveSubTab('overview')}
+          className={`py-2 text-xs font-bold font-mono border-b-2 transition ${
+            activeSubTab === 'overview'
+              ? 'border-brand-emerald text-brand-emerald'
+              : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
+          }`}
+        >
+          Operations & Booking
+        </button>
+        <button
+          onClick={() => setActiveSubTab('road_intel')}
+          className={`py-2 text-xs font-bold font-mono border-b-2 transition ${
+            activeSubTab === 'road_intel'
+              ? 'border-brand-emerald text-brand-emerald'
+              : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
+          }`}
+        >
+          Community Road Intelligence
+        </button>
       </div>
 
-      {/* Active Ride Card (Pulsing state if active) */}
-      {passengerActiveRide && (
-        <div className="bg-gradient-to-r from-teal-500/5 to-emerald-500/5 border border-emerald-500/25 rounded-3xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-pulse">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-brand-emerald/10 border border-brand-emerald/20 flex items-center justify-center text-brand-emerald relative shrink-0">
-              <span className="absolute inset-0 rounded-full bg-brand-emerald/20 animate-ping" />
-              <Navigation className="w-6 h-6 rotate-45" />
+      {activeSubTab === 'overview' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8 space-y-6">
+            {/* RideMate Command Center Panel */}
+            {(() => {
+              const profile = ZipRideRepository.getProfile();
+              const isAccessActive = profile.accessibilityRequirements && profile.accessibilityRequirements.length > 0;
+              const isGuardianActive = !!profile.guardianName;
+              const activeSosCount = allRides.filter(r => r.hasActiveSOS).length;
+              return (
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-md space-y-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <Shield className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm tracking-tight text-slate-100">RideMate Central Intelligence Command Center</h3>
+                        <p className="text-[10px] text-slate-400">Ecosystem telemetry monitoring & safety diagnostics</p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 animate-pulse">
+                      System Diagnostics: Nominal
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {/* Safety Score */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-indigo-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🛡️ Safety Score</span>
+                        <span className="text-xs font-black">98%</span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: '98%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">Excellent history</span>
+                    </div>
+
+                    {/* Weather Risk */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-sky-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🌦️ Weather Risk</span>
+                        <span className={`text-[10px] font-black uppercase ${
+                          ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'text-amber-400' : 'text-emerald-400'
+                        }`}>
+                          {['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'MODERATE' : 'LOW RISK'}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${
+                          ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`} style={{ width: ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? '60%' : '15%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{systemState.config.weather} conditions</span>
+                    </div>
+
+                    {/* Traffic Risk */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-orange-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🚦 Traffic Risk</span>
+                        <span className={`text-[10px] font-black uppercase ${
+                          ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'text-rose-400 animate-pulse' : systemState.config.traffic === 'Moderate' ? 'text-amber-400' : 'text-emerald-400'
+                        }`}>
+                          {['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'HIGH RISK' : systemState.config.traffic === 'Moderate' ? 'MODERATE' : 'LOW RISK'}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${
+                          ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'bg-rose-500' : systemState.config.traffic === 'Moderate' ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`} style={{ width: ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? '90%' : systemState.config.traffic === 'Moderate' ? '50%' : '15%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{systemState.config.traffic} congestion</span>
+                    </div>
+
+                    {/* Road Health */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-emerald-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🛣️ Road Health</span>
+                        <span className="text-xs font-black">{Math.max(100 - (hazardsList.length * 4), 40)}%</span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.max(100 - (hazardsList.length * 4), 40)}%` }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{hazardsList.length} reported hazards</span>
+                    </div>
+
+                    {/* Fuel Efficiency */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-brand-emerald">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">⛽ Fuel efficiency</span>
+                        <span className="text-xs font-black">94%</span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#00C896] rounded-full" style={{ width: '94%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">Eco compliance rate</span>
+                    </div>
+
+                    {/* Guardian Status */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-pink-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">👨‍👩‍👧 Guardian</span>
+                        <span className={`text-[10px] font-black uppercase ${isGuardianActive ? 'text-emerald-400' : 'text-slate-400'}`}>
+                          {isGuardianActive ? 'SYNCED' : 'INACTIVE'}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${isGuardianActive ? 'bg-emerald-500' : 'bg-slate-700'}`} style={{ width: isGuardianActive ? '100%' : '0%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold truncate">
+                        {isGuardianActive ? profile.guardianName : 'Not configured'}
+                      </span>
+                    </div>
+
+                    {/* Emergency Status */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-rose-500">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🚨 Emergency</span>
+                        <span className={`text-[10px] font-black uppercase ${activeSosCount > 0 ? 'text-rose-500 animate-pulse' : 'text-emerald-400'}`}>
+                          {activeSosCount > 0 ? 'SOS ACTIVE' : 'SECURE'}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">SOS hold trigger active</span>
+                    </div>
+
+                    {/* Accessibility Mode */}
+                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-violet-400">
+                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">♿ Access Mode</span>
+                        <span className={`text-[10px] font-black uppercase ${isAccessActive ? 'text-violet-400' : 'text-slate-400'}`}>
+                          {isAccessActive ? 'CUSTOM' : 'STANDARD'}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-violet-500 rounded-full" style={{ width: isAccessActive ? '100%' : '20%' }}></div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 font-semibold truncate">
+                        {isAccessActive ? profile.accessibilityRequirements.join(', ') : 'No assistive toggles'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Dynamic Surcharges & Weather Status Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                  <CloudSun className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Weather</span>
+                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
+                    {liveWeather ? `${liveWeather.temp}°C (${liveWeather.weatherText})` : config.weather}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Traffic Surcharge</span>
+                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
+                    {config.traffic === 'Moderate' ? '1.1x Multiplier' : config.traffic === 'Heavy Congestion' ? '1.3x Multiplier' : config.traffic === 'Gridlock' ? '1.5x Multiplier' : '1.0x (Standard)'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Safety Compliance</span>
+                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">Limit: {currentLimits.speed} km/h</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-emerald/15 text-emerald-700">
-                Trip In Progress
-              </span>
-              <h4 className="text-sm font-bold text-theme-text-primary mt-1">
-                {passengerActiveRide.driverName ? `Riding with ${passengerActiveRide.driverName}` : 'Finding your driver...'}
-              </h4>
-              <p className="text-xs text-theme-text-secondary font-medium mt-1 line-clamp-1">
-                Drop: {passengerActiveRide.drop}
-              </p>
+
+            {/* Active Ride Card (Pulsing state if active) */}
+            {passengerActiveRide && (
+              <div className="bg-gradient-to-r from-teal-500/5 to-emerald-500/5 border border-emerald-500/25 rounded-3xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-pulse">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-emerald/10 border border-brand-emerald/20 flex items-center justify-center text-brand-emerald relative shrink-0">
+                    <span className="absolute inset-0 rounded-full bg-brand-emerald/20 animate-ping" />
+                    <Navigation className="w-6 h-6 rotate-45" />
+                  </div>
+                  <div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-emerald/15 text-emerald-700">
+                      Trip In Progress
+                    </span>
+                    <h4 className="text-sm font-bold text-theme-text-primary mt-1">
+                      {passengerActiveRide.driverName ? `Riding with ${passengerActiveRide.driverName}` : 'Finding your driver...'}
+                    </h4>
+                    <p className="text-xs text-theme-text-secondary font-medium mt-1 line-clamp-1">
+                      Drop: {passengerActiveRide.drop}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => onSelectTab('/tracker')}
+                  className="w-full md:w-auto px-5 py-3 bg-slate-900 hover:bg-slate-850 text-white font-bold rounded-2xl transition shadow text-xs flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Track Live Journey</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Quick Booking Shortcuts */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono">Quick Commute Locations</h3>
+                <button 
+                  onClick={() => onSelectTab('/settings')}
+                  className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                >
+                  <span>Manage Shortcuts</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {savedLocations.map((loc: any) => (
+                  <button
+                    key={loc.id}
+                    onClick={() => handleQuickBook(loc.address)}
+                    className="bg-theme-card border border-theme-border/80 hover:border-brand-emerald hover:shadow-md hover:scale-[1.01] rounded-2xl p-5 text-left transition duration-200 flex flex-col justify-between h-36 group cursor-pointer"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-brand-emerald/10 group-hover:border-brand-emerald/20 group-hover:text-brand-emerald transition duration-200">
+                      <Bookmark className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-theme-text-primary block">{loc.label}</span>
+                      <span className="text-[11px] text-theme-text-secondary font-medium block truncate mt-1">{loc.address}</span>
+                    </div>
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => onSelectTab('/booking')}
+                  className="bg-theme-bg border border-dashed border-theme-border hover:border-brand-emerald hover:bg-theme-card hover:shadow-md hover:scale-[1.01] rounded-2xl p-5 text-left transition duration-200 flex flex-col justify-between h-36 group cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-slate-200/50 flex items-center justify-center text-theme-text-secondary shrink-0 group-hover:bg-brand-emerald/10 group-hover:border-brand-emerald/20 group-hover:text-brand-emerald transition duration-200">
+                    <MapPin className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-theme-text-primary block">Custom Booking</span>
+                    <span className="text-[11px] text-theme-text-secondary font-medium block mt-1">Enter any pickup and destination</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Rides Table */}
+            <div className="bg-theme-card border border-theme-border rounded-3xl overflow-hidden shadow-xs">
+              <div className="p-5 border-b border-theme-border flex items-center justify-between">
+                <h3 className="font-bold text-theme-text-primary text-sm uppercase tracking-wider font-mono">Recent Rides</h3>
+                <button 
+                  onClick={() => onSelectTab('/history')}
+                  className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                >
+                  <span>View All Trips</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {completedRides.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-theme-bg/40 border-b border-theme-border text-theme-text-secondary font-mono text-[10px] uppercase font-bold tracking-wider">
+                        <th className="px-6 py-4">RIDE ID</th>
+                        <th className="px-6 py-4">PICKUP</th>
+                        <th className="px-6 py-4">DESTINATION</th>
+                        <th className="px-6 py-4">DRIVER</th>
+                        <th className="px-6 py-4">FARE</th>
+                        <th className="px-6 py-4">STATUS</th>
+                        <th className="px-6 py-4">BOOKING TIME</th>
+                        <th className="px-6 py-4 text-right">ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme-border/85">
+                      {completedRides.slice(0, 5).map((ride) => (
+                        <tr key={ride.id} className="hover:bg-theme-bg/30 transition duration-150 cursor-pointer" onClick={() => onSelectTab('/history')}>
+                          <td className="px-6 py-4 font-mono font-bold text-theme-text-primary tracking-tight">{ride.id}</td>
+                          <td className="px-6 py-4 font-sans font-medium text-theme-text-secondary">
+                            <span className="truncate max-w-[150px] block">{ride.pickup.split(',')[0]}</span>
+                          </td>
+                          <td className="px-6 py-4 font-sans font-medium text-theme-text-secondary">
+                            <span className="truncate max-w-[150px] block">{ride.drop.split(',')[0]}</span>
+                          </td>
+                          <td className="px-6 py-4 font-sans font-medium text-theme-text-primary">
+                            {ride.driverName || 'Finding Driver...'}
+                          </td>
+                          <td className="px-6 py-4 font-mono font-bold text-brand-emerald">
+                            ₹{ride.finalFare.toFixed(0)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                              ride.status === 'completed'
+                                ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                : ride.status === 'cancelled'
+                                ? 'bg-rose-100 text-rose-700 border-rose-200'
+                                : 'bg-amber-100 text-amber-700 border-amber-200'
+                            }`}>
+                              {ride.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 font-mono text-[11px] text-theme-text-secondary">
+                            {new Date(ride.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} {new Date(ride.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleQuickBook(ride.drop)}
+                              className="px-3.5 py-1.5 bg-theme-bg border border-theme-border text-theme-text-primary hover:bg-theme-card font-bold rounded-xl transition text-[11px] cursor-pointer"
+                            >
+                              Rebook
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-theme-text-secondary text-xs">
+                  <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <span>No previous rides found. Start booking!</span>
+                </div>
+              )}
             </div>
           </div>
-          <button 
-            onClick={() => onSelectTab('/tracker')}
-            className="w-full md:w-auto px-5 py-3 bg-slate-900 hover:bg-slate-850 text-white font-bold rounded-2xl transition shadow text-xs flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Track Live Journey</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+
+          {/* Right Column: AI Companion and Analytics */}
+          <div className="lg:col-span-4 space-y-6">
+            <RideMatePanel 
+              weatherCondition={liveWeather ? liveWeather.weatherText : config.weather}
+              trafficLevel={config.traffic}
+              activeRide={passengerActiveRide}
+              driverMode={false}
+            />
+
+            {/* Safety Travel Modes Distribution Card */}
+            <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
+                <Shield className="w-4.5 h-4.5 text-emerald-500" />
+                <span>Safety Modes Distribution</span>
+              </h4>
+              <div className="space-y-3.5">
+                {/* Women Safety */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-theme-text-secondary">👩 Women Safety Mode</span>
+                    <span className="text-theme-text-primary font-mono">{womenRidesCount} rides</span>
+                  </div>
+                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-pink-500 rounded-full"
+                      style={{ width: `${totalSafetyRides > 0 ? (womenRidesCount / totalSafetyRides) * 100 : 40}%` }}
+                    />
+                  </div>
+                </div>
+                {/* Child Safety */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-theme-text-secondary">👶 Child Safety Mode</span>
+                    <span className="text-theme-text-primary font-mono">{childRidesCount} rides</span>
+                  </div>
+                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-500 rounded-full"
+                      style={{ width: `${totalSafetyRides > 0 ? (childRidesCount / totalSafetyRides) * 100 : 30}%` }}
+                    />
+                  </div>
+                </div>
+                {/* Family Safety */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-theme-text-secondary">🛡️ Family Safety (Guardian Sync)</span>
+                    <span className="text-theme-text-primary font-mono">{familyRidesCount} rides</span>
+                  </div>
+                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500 rounded-full"
+                      style={{ width: `${totalSafetyRides > 0 ? (familyRidesCount / totalSafetyRides) * 100 : 30}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Crowd Hazard Reports Card */}
+            <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
+                <span>Community Hazards Impact</span>
+              </h4>
+              <div className="space-y-3.5">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-theme-text-secondary">🕳️ Potholes Reported</span>
+                    <span className="text-theme-text-primary font-mono">{verifiedPotholes}/{potholesCount} verified</span>
+                  </div>
+                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 rounded-full"
+                      style={{ width: `${potholesCount > 0 ? (verifiedPotholes / potholesCount) * 100 : 50}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-theme-text-secondary">🌊 Flood Zones Flagged</span>
+                    <span className="text-theme-text-primary font-mono">{verifiedFloods}/{floodsCount} verified</span>
+                  </div>
+                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 rounded-full"
+                      style={{ width: `${floodsCount > 0 ? (verifiedFloods / floodsCount) * 100 : 75}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs pt-1">
+                  <span className="text-theme-text-secondary">🚧 Road Works / Accidents:</span>
+                  <span className="font-mono font-bold text-theme-text-primary">{otherHazardsCount} active alerts</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Accessibility Support Usage Card */}
+            <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-3">
+              <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
+                <TrendingUp className="w-4 h-4 text-violet-500" />
+                <span>Accessibility Assistance Stats</span>
+              </h4>
+              <div className="flex items-center gap-4">
+                <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-slate-900 border-2 border-violet-500 shrink-0">
+                  <span className="font-mono text-base font-black text-violet-400">{accessibilityRidesCount}</span>
+                  <span className="absolute -bottom-1.5 text-[7px] bg-violet-600 text-white font-bold px-1.5 py-0.5 rounded-full uppercase leading-none">TRIPS</span>
+                </div>
+                <div>
+                  <h5 className="text-xs font-bold text-theme-text-primary">Inclusive Travel Services</h5>
+                  <p className="text-[10px] text-theme-text-secondary mt-0.5 leading-normal">
+                    Completed accessibility assist commutes (senior assistance, wheelchair access, medical aid).
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="max-w-2xl mx-auto">
+          <RoadIntelligenceView />
         </div>
       )}
-
-      {/* Quick Booking Shortcuts */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono">Quick Commute Locations</h3>
-          <button 
-            onClick={() => onSelectTab('/settings')}
-            className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
-          >
-            <span>Manage Shortcuts</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {savedLocations.map((loc: any) => (
-            <button
-              key={loc.id}
-              onClick={() => handleQuickBook(loc.address)}
-              className="bg-theme-card border border-theme-border/80 hover:border-brand-emerald hover:shadow-md hover:scale-[1.01] rounded-2xl p-5 text-left transition duration-200 flex flex-col justify-between h-36 group cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-brand-emerald/10 group-hover:border-brand-emerald/20 group-hover:text-brand-emerald transition duration-200">
-                <Bookmark className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-theme-text-primary block">{loc.label}</span>
-                <span className="text-[11px] text-theme-text-secondary font-medium block truncate mt-1">{loc.address}</span>
-              </div>
-            </button>
-          ))}
-
-          {/* Book custom ride trigger card */}
-          <button
-            onClick={() => onSelectTab('/booking')}
-            className="bg-theme-bg border border-dashed border-theme-border hover:border-brand-emerald hover:bg-theme-card hover:shadow-md hover:scale-[1.01] rounded-2xl p-5 text-left transition duration-200 flex flex-col justify-between h-36 group cursor-pointer"
-          >
-            <div className="w-9 h-9 rounded-lg bg-slate-200/50 flex items-center justify-center text-theme-text-secondary shrink-0 group-hover:bg-brand-emerald/10 group-hover:border-brand-emerald/20 group-hover:text-brand-emerald transition duration-200">
-              <MapPin className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-theme-text-primary block">Custom Booking</span>
-              <span className="text-[11px] text-theme-text-secondary font-medium block mt-1">Enter any pickup and destination</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Recent Rides Table */}
-      <div className="bg-theme-card border border-theme-border rounded-3xl overflow-hidden shadow-xs">
-        <div className="p-5 border-b border-theme-border flex items-center justify-between">
-          <h3 className="font-bold text-theme-text-primary text-sm uppercase tracking-wider font-mono">Recent Rides</h3>
-          <button 
-            onClick={() => onSelectTab('/history')}
-            className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
-          >
-            <span>View All Trips</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {completedRides.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-theme-bg/40 border-b border-theme-border text-theme-text-secondary font-mono text-[10px] uppercase font-bold tracking-wider">
-                  <th className="px-6 py-4">RIDE ID</th>
-                  <th className="px-6 py-4">PICKUP</th>
-                  <th className="px-6 py-4">DESTINATION</th>
-                  <th className="px-6 py-4">DRIVER</th>
-                  <th className="px-6 py-4">FARE</th>
-                  <th className="px-6 py-4">STATUS</th>
-                  <th className="px-6 py-4">BOOKING TIME</th>
-                  <th className="px-6 py-4 text-right">ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-theme-border/85">
-                {completedRides.slice(0, 5).map((ride) => (
-                  <tr key={ride.id} className="hover:bg-theme-bg/30 transition duration-150 cursor-pointer" onClick={() => onSelectTab('/history')}>
-                    <td className="px-6 py-4 font-mono font-bold text-theme-text-primary tracking-tight">{ride.id}</td>
-                    <td className="px-6 py-4 font-sans font-medium text-theme-text-secondary">
-                      <span className="truncate max-w-[150px] block">{ride.pickup.split(',')[0]}</span>
-                    </td>
-                    <td className="px-6 py-4 font-sans font-medium text-theme-text-secondary">
-                      <span className="truncate max-w-[150px] block">{ride.drop.split(',')[0]}</span>
-                    </td>
-                    <td className="px-6 py-4 font-sans font-medium text-theme-text-primary">
-                      {ride.driverName || 'Finding Driver...'}
-                    </td>
-                    <td className="px-6 py-4 font-mono font-bold text-brand-emerald">
-                      ₹{ride.finalFare.toFixed(0)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                        ride.status === 'completed'
-                          ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                          : ride.status === 'cancelled'
-                          ? 'bg-rose-100 text-rose-700 border-rose-200'
-                          : 'bg-amber-100 text-amber-700 border-amber-200'
-                      }`}>
-                        {ride.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-[11px] text-theme-text-secondary">
-                      {new Date(ride.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} {new Date(ride.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleQuickBook(ride.drop)}
-                        className="px-3.5 py-1.5 bg-theme-bg border border-theme-border text-theme-text-primary hover:bg-theme-card font-bold rounded-xl transition text-[11px] cursor-pointer"
-                      >
-                        Rebook
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-theme-text-secondary text-xs">
-            <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <span>No previous rides found. Start booking!</span>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

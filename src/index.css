@@ -116,6 +116,7 @@ input:focus, textarea:focus, select:focus {
 .gm-err-content,
 .gm-err-icon,
 .gm-style .gm-style-moc,
+.gm-style-pbc,
 .gm-style iframe + div,
 div[style*="opacity: 0.6"],
 div[class*="gm-err"],
@@ -125,6 +126,13 @@ div[class*="gm-style"] > div:first-child + div {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
+}
+
+/* Clear grayscale/dimmed filters Google Maps imposes on failure */
+.gm-style > div:first-child,
+.gm-style > div:first-child * {
+  filter: none !important;
+  background-color: transparent !important;
 }
 
 @keyframes slide-in-right {
@@ -140,4 +148,43 @@ div[class*="gm-style"] > div:first-child + div {
 
 .animate-slide-in-right {
   animation: slide-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: Senior Citizen overrides */
+.accessibility-senior {
+  font-size: 1.15rem !important;
+}
+.accessibility-senior h1 { font-size: 2.25rem !important; }
+.accessibility-senior h2 { font-size: 1.85rem !important; }
+.accessibility-senior h3 { font-size: 1.5rem !important; }
+.accessibility-senior p, 
+.accessibility-senior span, 
+.accessibility-senior input, 
+.accessibility-senior button, 
+.accessibility-senior select, 
+.accessibility-senior label,
+.accessibility-senior div {
+  font-size: 1.05rem;
+}
+
+/* High Contrast mode for Senior Citizen */
+.accessibility-senior {
+  --background: #000000 !important;
+  --card-background: #0b1329 !important;
+  --border-color: #ffffff !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #cbd5e1 !important;
+  --input-bg: #000000 !important;
+  --input-border: #ffffff !important;
+}
+.accessibility-senior * {
+  border-color: #ffffff !important;
+}
+.accessibility-senior .text-slate-400,
+.accessibility-senior .text-slate-500,
+.accessibility-senior .text-slate-600 {
+  color: #f1f5f9 !important;
+}
+.accessibility-senior button {
+  border: 2px solid #ffffff !important;
 }

@@ -18,6 +18,12 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { Ride, Driver } from '../types';
+import { ZipRideRepository } from '../services/dbInterface';
+import { DriverReputationEngine } from '../services/DriverReputationEngine';
+import { ChildSafetyModule } from '../services/ChildSafetyModule';
+import { FamilySafetyModule } from '../services/FamilySafetyModule';
+import RideMatePanel from './RideMatePanel';
+import { Award, Shield, CheckCircle, AlertOctagon, Trophy, Medal, Lock } from 'lucide-react';
 
 interface DriverConsoleViewProps {
   activeRide: Ride | null;
@@ -68,6 +74,48 @@ export default function DriverConsoleView({
   const [motion, setMotion] = useState<'stationary' | 'moving' | 'riding' | 'braking'>('stationary');
 
   const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Driver Hazard Alert
+  const [currentHazardAlert, setCurrentHazardAlert] = useState<string | null>(null);
+
+  // Reputation metrics state
+  const [reputationMetrics, setReputationMetrics] = useState<any>(null);
+
+  // Sync hazard alerts based on progress telemetry
+  useEffect(() => {
+    if (activeRide && isAutoSimulating) {
+      if (simulationProgress >= 15 && simulationProgress <= 35) {
+        const dist = Math.max(20, 200 - (simulationProgress - 15) * 10);
+        setCurrentHazardAlert(`🕳️ Pothole Ahead - ${dist}m away! Slow down to maintain Safety Score.`);
+      } else if (simulationProgress >= 55 && simulationProgress <= 75) {
+        const dist = Math.max(20, 300 - (simulationProgress - 55) * 15);
+        setCurrentHazardAlert(`🌊 Flood Alert - ${dist}m away! Dynamic route compliance monitoring active.`);
+      } else {
+        setCurrentHazardAlert(null);
+      }
+    } else {
+      setCurrentHazardAlert(null);
+    }
+  }, [simulationProgress, activeRide, isAutoSimulating]);
+
+  // Load reputation metrics
+  useEffect(() => {
+    if (currentUser) {
+      const currentDrv = drivers.find(d => d.name === currentUser);
+      const rating = currentDrv?.rating || 4.8;
+      const metrics = DriverReputationEngine.calculateReputation(
+        currentDrv?.id || 'drv-001',
+        currentUser,
+        rating,
+        activeRide?.overspeedEvents || 0,
+        activeRide?.harshBrakeEvents || 0,
+        allRides.filter(r => r.driverName === currentUser).length,
+        allRides.filter(r => r.driverName === currentUser && r.isChildSafety).length,
+        0
+      );
+      setReputationMetrics(metrics);
+    }
+  }, [currentUser, drivers, activeRide?.overspeedEvents, activeRide?.harshBrakeEvents, allRides]);
 
   // Poll GET /api/driver/orders
   useEffect(() => {
@@ -440,6 +488,56 @@ export default function DriverConsoleView({
                 </div>
               </div>
             </div>
+
+            {/* Reputation metrics in idle console */}
+            {reputationMetrics && (
+              <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-xs space-y-4">
+                <h4 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
+                  <Trophy className="w-4.5 h-4.5 text-yellow-500" />
+                  <span>Reputation Dashboard</span>
+                </h4>
+                
+                <div className="flex items-center gap-4">
+                  <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-slate-900 border-2 border-brand-emerald/30 shrink-0">
+                    <span className="font-mono text-base font-black text-theme-text-primary">{reputationMetrics.overallReputationScore}</span>
+                    <span className="absolute -bottom-1 text-[7px] bg-brand-emerald text-slate-950 font-bold px-1 py-0.5 rounded-full uppercase leading-none">SCORE</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-violet-400" />
+                      <span className="text-[10px] font-bold text-violet-400 uppercase font-mono tracking-wider">{reputationMetrics.reputationBadge}</span>
+                    </div>
+                    <p className="text-[10px] text-theme-text-secondary mt-0.5">Leaderboard Rank: <strong className="text-theme-text-primary">#2</strong> in Hub</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                  <div className="bg-theme-bg/60 p-2.5 rounded-xl border border-theme-border/60">
+                    <span className="text-[8px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono block">Safety</span>
+                    <span className="font-bold font-mono text-xs text-theme-text-primary mt-0.5 block">{reputationMetrics.safetyScore}%</span>
+                  </div>
+                  <div className="bg-theme-bg/60 p-2.5 rounded-xl border border-theme-border/60">
+                    <span className="text-[8px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono block">Accessibility</span>
+                    <span className="font-bold font-mono text-xs text-theme-text-primary mt-0.5 block">{reputationMetrics.accessibilityPoints} pts</span>
+                  </div>
+                  <div className="bg-theme-bg/60 p-2.5 rounded-xl border border-theme-border/60">
+                    <span className="text-[8px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono block">Compliance</span>
+                    <span className="font-bold font-mono text-xs text-theme-text-primary mt-0.5 block">{reputationMetrics.routeCompliance}%</span>
+                  </div>
+                  <div className="bg-theme-bg/60 p-2.5 rounded-xl border border-theme-border/60">
+                    <span className="text-[8px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono block">Satisfaction</span>
+                    <span className="font-bold font-mono text-xs text-theme-text-primary mt-0.5 block">{reputationMetrics.customerSatisfaction}%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* RideMate AI in idle console */}
+            <RideMatePanel 
+              weatherCondition={systemConfig.weather}
+              trafficLevel={systemConfig.traffic}
+              driverMode={true}
+            />
           </div>
         </div>
       ) : null}
@@ -447,6 +545,17 @@ export default function DriverConsoleView({
       {/* ACTIVE JOB PRESENT */}
       {isOnline && activeRide && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Flashing Hazard Warnings block */}
+          {currentHazardAlert && (
+            <div className="lg:col-span-12 bg-rose-950/60 border-2 border-rose-500 text-rose-200 px-5 py-4 rounded-2xl flex items-center gap-3 animate-pulse shadow-lg mb-2">
+              <AlertOctagon className="w-6 h-6 text-rose-500 animate-bounce shrink-0" />
+              <div>
+                <h4 className="font-bold text-xs uppercase tracking-wider text-rose-400 font-mono">CRITICAL HAZARD DETECTED</h4>
+                <p className="text-sm font-semibold mt-0.5">{currentHazardAlert}</p>
+              </div>
+            </div>
+          )}
           
           {/* Job Dispatch Info / Navigation Controller */}
           <div className="lg:col-span-4 bg-theme-card border border-theme-border rounded-2xl p-6 shadow-xs space-y-5">
@@ -611,6 +720,40 @@ export default function DriverConsoleView({
                     <span>Complete Ride & Lock Fare</span>
                   </button>
                 )}
+                {/* Reputation & RideMate Panel inside Active Job side-column */}
+                <div className="pt-4 border-t border-theme-border space-y-4">
+                  {reputationMetrics && (
+                    <div className="bg-theme-bg/40 border border-theme-border rounded-2xl p-4 space-y-3">
+                      <h5 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Trophy className="w-4 h-4 text-yellow-500" />
+                        <span>Driver Reputation</span>
+                      </h5>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-theme-text-secondary">Overall Score:</span>
+                        <span className="font-mono font-bold text-theme-text-primary">{reputationMetrics.overallReputationScore}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-theme-text-secondary">Badge:</span>
+                        <span className="font-bold text-violet-400">{reputationMetrics.reputationBadge}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-theme-text-secondary">Safety Compliance:</span>
+                        <span className="font-mono font-bold text-theme-text-primary">{reputationMetrics.safetyScore}%</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-theme-text-secondary">Rank in Hub:</span>
+                        <span className="font-bold text-theme-text-primary">#2</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <RideMatePanel 
+                    weatherCondition={systemConfig.weather}
+                    trafficLevel={systemConfig.traffic}
+                    driverMode={true}
+                    activeRide={activeRide}
+                  />
+                </div>
               </div>
             )}
           </div>

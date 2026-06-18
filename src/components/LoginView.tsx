@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Shield, Bike, Scale, Send, Check, MapPin, Navigation, ArrowRight, Smartphone, Mail } from 'lucide-react';
+import { Shield, Bike, Scale, Send, Check, MapPin, Navigation, ArrowRight, Smartphone, Mail, Heart, Accessibility, ShieldAlert, User } from 'lucide-react';
 import { Driver } from '../types';
+import { ZipRideRepository } from '../services/dbInterface';
 
 interface LoginViewProps {
   onLoginSuccess: (emailOrName: string, role: 'rider' | 'driver', phone: string) => void;
@@ -34,6 +35,22 @@ export default function LoginView({
   const [isDetecting, setIsDetecting] = useState(false);
   const [errorText, setErrorText] = useState('');
   const [loginMethod, setLoginMethod] = useState<'email' | 'mobile' | 'google'>('mobile');
+
+  // Profile wizard states
+  const [showingProfileWizard, setShowingProfileWizard] = useState(false);
+  const [age, setAge] = useState(26);
+  const [gender, setGender] = useState('Male');
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianRelationship, setGuardianRelationship] = useState('Parent');
+  const [guardianPhone, setGuardianPhone] = useState('');
+  const [guardianEmail, setGuardianEmail] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('O+');
+  const [allergies, setAllergies] = useState('None');
+  const [asthma, setAsthma] = useState(false);
+  const [diabetes, setDiabetes] = useState(false);
+  const [medications, setMedications] = useState('None');
+  const [preferredHospital, setPreferredHospital] = useState('');
+  const [accessibilityRequirements, setAccessibilityRequirements] = useState<string[]>([]);
 
   const setPreset = (lat: string, lng: string) => {
     setLatitude(lat);
@@ -99,10 +116,40 @@ export default function LoginView({
     if (role === 'driver') {
       setShowingLocationSetup(true);
     } else {
-      const finalPhone = loginMethod === 'mobile' ? phoneNumber : '9876543210';
-      const formattedPhone = finalPhone.startsWith('+91') ? finalPhone : `+91 ${finalPhone}`;
-      onLoginSuccess(fullName, 'rider', formattedPhone);
+      setShowingProfileWizard(true);
     }
+  };
+
+  const handleFinishWizard = () => {
+    const finalPhone = loginMethod === 'mobile' ? phoneNumber : '9876543210';
+    const formattedPhone = finalPhone.startsWith('+91') ? finalPhone : `+91 ${finalPhone}`;
+
+    const profileData = {
+      fullName,
+      age,
+      gender,
+      phone: formattedPhone,
+      email: loginMethod === 'email' ? emailAddress : `${fullName.toLowerCase().replace(/\s+/g, '')}@zipride.com`,
+      address: 'Indiranagar, Bengaluru, Karnataka',
+      emergencyContactName: guardianName || 'Police Control Room',
+      emergencyContactPhone: guardianPhone || '112',
+      guardianName,
+      guardianRelationship,
+      guardianPhone,
+      guardianEmail,
+      bloodGroup,
+      allergies,
+      asthma,
+      diabetes,
+      medicalConditions: [asthma ? 'Asthma' : '', diabetes ? 'Diabetes' : ''].filter(Boolean),
+      medications,
+      preferredHospital,
+      accessibilityRequirements
+    };
+
+    ZipRideRepository.saveProfile(profileData);
+    setShowingProfileWizard(false);
+    onLoginSuccess(fullName, 'rider', formattedPhone);
   };
 
   const detectLocation = () => {
@@ -214,7 +261,7 @@ export default function LoginView({
 
         {/* Footer */}
         <div className="relative z-10 pt-8 mt-12 border-t border-slate-800/60 text-xs text-slate-400 font-medium tracking-wide">
-          Built on Google Maps & Gemini AI
+          Built on OpenStreetMap & Gemini AI
         </div>
       </div>
 
@@ -449,8 +496,191 @@ export default function LoginView({
             </div>
           )}
 
+          {/* RIDER PROFILE WIZARD VIEW */}
+          {!isLoggedIn && showingProfileWizard && !showingAgreement && !showingOTP && !showingLocationSetup && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-md space-y-6 max-h-[85vh] overflow-y-auto">
+              <div className="text-center space-y-2">
+                <div className="mx-auto w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100">
+                  <User className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight">Rider Safety & Preferences Wizard</h3>
+                <p className="text-xs text-slate-500">Configure safety modes and medical details for emergency pre-arrival alerts</p>
+              </div>
+
+              <div className="space-y-4 text-xs text-slate-600">
+                {/* Age & Gender */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Age</label>
+                    <input 
+                      type="number" 
+                      value={age} 
+                      onChange={(e) => setAge(parseInt(e.target.value) || 26)}
+                      className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Gender</label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Guardian Details */}
+                <div className="border-t border-slate-100 pt-3 space-y-3">
+                  <span className="font-bold block text-[10px] uppercase font-mono tracking-wider text-indigo-600 flex items-center gap-1">
+                    <ShieldAlert className="w-3.5 h-3.5 text-indigo-500" /> Guardian / Emergency Contact
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Guardian Name</label>
+                      <input 
+                        type="text" 
+                        value={guardianName} 
+                        onChange={(e) => setGuardianName(e.target.value)}
+                        placeholder="Name"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Guardian Relationship</label>
+                      <input 
+                        type="text" 
+                        value={guardianRelationship} 
+                        onChange={(e) => setGuardianRelationship(e.target.value)}
+                        placeholder="e.g. Spouse, Parent"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Guardian Phone</label>
+                      <input 
+                        type="text" 
+                        value={guardianPhone} 
+                        onChange={(e) => setGuardianPhone(e.target.value)}
+                        placeholder="+91 9444102938"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1 font-mono" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medical Details */}
+                <div className="border-t border-slate-100 pt-3 space-y-3">
+                  <span className="font-bold block text-[10px] uppercase font-mono tracking-wider text-rose-500 flex items-center gap-1">
+                    <Heart className="w-3.5 h-3.5 text-rose-500" /> Emergency Medical Card
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Blood Group</label>
+                      <input 
+                        type="text" 
+                        value={bloodGroup} 
+                        onChange={(e) => setBloodGroup(e.target.value)}
+                        placeholder="O+"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Preferred Hospital</label>
+                      <input 
+                        type="text" 
+                        value={preferredHospital} 
+                        onChange={(e) => setPreferredHospital(e.target.value)}
+                        placeholder="Apollo City Hospital"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Allergies</label>
+                      <input 
+                        type="text" 
+                        value={allergies} 
+                        onChange={(e) => setAllergies(e.target.value)}
+                        placeholder="None, or Penicillin, Nuts"
+                        className="w-full bg-slate-50 border border-slate-250 px-3 py-2 rounded-xl text-slate-800 outline-none focus:border-indigo-500 font-semibold mt-1" 
+                      />
+                    </div>
+                    <div className="col-span-2 flex items-center gap-4 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={asthma}
+                          onChange={(e) => setAsthma(e.target.checked)}
+                          className="rounded text-rose-500 focus:ring-rose-500 bg-white border-slate-300 w-4 h-4"
+                        />
+                        <span className="font-semibold text-slate-700">Asthma</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={diabetes}
+                          onChange={(e) => setDiabetes(e.target.checked)}
+                          className="rounded text-rose-500 focus:ring-rose-500 bg-white border-slate-300 w-4 h-4"
+                        />
+                        <span className="font-semibold text-slate-700">Diabetes</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accessibility Preferences */}
+                <div className="border-t border-slate-100 pt-3 space-y-3">
+                  <span className="font-bold block text-[10px] uppercase font-mono tracking-wider text-violet-600 flex items-center gap-1">
+                    <Accessibility className="w-3.5 h-3.5 text-violet-500" /> Accessibility Support
+                  </span>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { id: 'Senior Citizen', label: 'Senior Citizen (Large text & high contrast UI)' },
+                      { id: 'Child', label: 'Child Mode (Guardian monitoring & pickup code)' },
+                      { id: 'Wheelchair User', label: 'Wheelchair User (Prioritize accessible vehicles)' },
+                      { id: 'Visually Impaired', label: 'Visually Impaired (Voice guidance & synthesis)' },
+                      { id: 'Hearing Impaired', label: 'Hearing Impaired (Visual alerts & flashing notifications)' },
+                      { id: 'Mobility Assistance Required', label: 'Mobility Assistance Required' },
+                      { id: 'Autism Spectrum', label: 'Autism Spectrum Support' },
+                      { id: 'ADHD', label: 'ADHD Support' },
+                      { id: 'Cognitive Assistance Required', label: 'Cognitive Assistance Required' }
+                    ].map(option => {
+                      const isChecked = accessibilityRequirements.includes(option.id);
+                      return (
+                        <label key={option.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200/50">
+                          <input 
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setAccessibilityRequirements(prev => 
+                                prev.includes(option.id) ? prev.filter(x => x !== option.id) : [...prev, option.id]
+                              );
+                            }}
+                            className="rounded text-indigo-650 focus:ring-indigo-500 bg-white border-slate-300 w-3.5 h-3.5"
+                          />
+                          <span className="text-[11px] font-semibold text-slate-700">{option.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleFinishWizard}
+                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-[14px] flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+              >
+                <Check className="w-4.5 h-4.5" strokeWidth={3} />
+                <span>Complete Secure Setup</span>
+              </button>
+            </div>
+          )}
+
           {/* MAIN LOGIN VIEW */}
-          {!isLoggedIn && !showingOTP && !showingAgreement && !showingLocationSetup && (
+          {!isLoggedIn && !showingOTP && !showingAgreement && !showingLocationSetup && !showingProfileWizard && (
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h2>

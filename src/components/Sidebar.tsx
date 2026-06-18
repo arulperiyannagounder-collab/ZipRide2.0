@@ -9,7 +9,8 @@ import {
   History,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldAlert
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -39,6 +40,7 @@ export default function Sidebar({ activeTab, onSelectTab, userRole }: SidebarPro
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/booking', label: 'Book Ride', icon: MapPin },
         { path: '/tracker', label: 'Ride Tracker', icon: Navigation },
+        { path: '/road-intel', label: 'Road Intelligence', icon: ShieldAlert },
         { path: '/fares', label: 'Fare Policy', icon: IndianRupee },
         { path: '/history', label: 'Ride History', icon: History },
         { path: '/settings', label: 'Settings', icon: Settings },
@@ -46,6 +48,7 @@ export default function Sidebar({ activeTab, onSelectTab, userRole }: SidebarPro
     } else if (userRole === 'driver') {
       return [
         { path: '/driver', label: 'Driver Console', icon: Bike },
+        { path: '/road-intel', label: 'Road Intelligence', icon: ShieldAlert },
         { path: '/settings', label: 'Settings', icon: Settings },
       ];
     } else { // admin
@@ -55,6 +58,7 @@ export default function Sidebar({ activeTab, onSelectTab, userRole }: SidebarPro
         { path: '/tracker', label: 'Ride Tracker', icon: Navigation },
         { path: '/driver', label: 'Driver Console', icon: Bike },
         { path: '/disputes', label: 'Disputes', icon: Flag },
+        { path: '/road-intel', label: 'Road Intelligence', icon: ShieldAlert },
         { path: '/fares', label: 'Fare Policy', icon: IndianRupee },
         { path: '/history', label: 'Ride History', icon: History },
         { path: '/settings', label: 'Settings', icon: Settings },
