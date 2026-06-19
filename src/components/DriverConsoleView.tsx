@@ -23,6 +23,7 @@ import { DriverReputationEngine } from '../services/DriverReputationEngine';
 import { ChildSafetyModule } from '../services/ChildSafetyModule';
 import { FamilySafetyModule } from '../services/FamilySafetyModule';
 import RideMatePanel from './RideMatePanel';
+import LiveJourneyMap from './LiveJourneyMap';
 import { Award, Shield, CheckCircle, AlertOctagon, Trophy, Medal, Lock } from 'lucide-react';
 
 interface DriverConsoleViewProps {
@@ -768,6 +769,24 @@ export default function DriverConsoleView({
                   <h4 className="font-bold text-theme-text-primary text-sm">Hardware Sensor Telemetry Board</h4>
                 </div>
                 <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">STREAMING ACTIVE</span>
+              </div>
+
+              {/* Telemetry Real-time Route Map */}
+              <div className="relative bg-slate-950 border border-slate-900 rounded-2xl h-[300px] overflow-hidden flex items-center justify-center z-0">
+                <LiveJourneyMap
+                  apiKey=""
+                  hasValidKey={false}
+                  pickupName={activeRide.pickup}
+                  dropName={activeRide.drop}
+                  pickupCoords={activeRide.routePath && activeRide.routePath.length > 0 ? activeRide.routePath[0] : { lat: activeRide.riderLat || activeRide.gpsLat || 13.0827, lng: activeRide.riderLng || activeRide.gpsLng || 80.2707 }}
+                  dropCoords={activeRide.routePath && activeRide.routePath.length > 0 ? activeRide.routePath[activeRide.routePath.length - 1] : { lat: activeRide.gpsLat || 13.0827, lng: activeRide.gpsLng || 80.2707 }}
+                  distanceKm={activeRide.distanceKm}
+                  isTrackingMode={true}
+                  rideProgressPct={activeRide.progress}
+                  rideSpeedKmH={activeRide.speed}
+                  rideStatus={activeRide.status}
+                  routePathOverride={activeRide.routePath}
+                />
               </div>
 
               {/* Behavior parameters sliders */}

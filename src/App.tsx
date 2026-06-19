@@ -271,6 +271,11 @@ export default function App() {
       gpsLat?: number;
       gpsLng?: number;
       vehicleType?: string;
+      isChildSafety?: boolean;
+      isWomenSafety?: boolean;
+      isFamilySafety?: boolean;
+      selectedRouteIndex?: number;
+      routePath?: Array<{ lat: number; lng: number }>;
     }
   ) => {
     const res = await fetch('/api/rides', {

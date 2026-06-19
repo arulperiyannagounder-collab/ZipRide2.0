@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Ride, Driver } from '../types';
 import { SosButton } from './SosButton';
+import LiveJourneyMap from './LiveJourneyMap';
 
 interface RideTrackerViewProps {
   activeRide: Ride | null;
@@ -279,73 +280,24 @@ export default function RideTrackerView({
           {/* MAP VISUALIZATION & SPEED FEED (LG Col 8) */}
           <div className="lg:col-span-8 space-y-6">
             
-            {/* Elegant Custom SVG Animated Map */}
-            <div className="relative bg-slate-950 border border-slate-900 rounded-2xl h-[340px] overflow-hidden flex items-center justify-center p-4">
-              
-              {/* Dynamic Overlay labels */}
-              <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-full text-[10px] font-mono tracking-wider flex items-center gap-2 text-brand-emerald font-semibold select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-emerald animate-ping" />
-                <span>REAL-TIME SENSOR TRAJECTORY MAP</span>
-              </div>
-
-              {/* Grid Background */}
-              <div 
-                className="absolute inset-0 opacity-[0.06] select-none pointer-events-none"
-                style={{
-                  backgroundImage: `radial-gradient(ellipse at center, #00C896 1px, transparent 1px)`,
-                  backgroundSize: '24px 24px'
-                }}
+            {/* Real-time OpenStreetMap Leaflet Map */}
+            <div className="relative bg-slate-950 border border-slate-900 rounded-2xl h-[340px] overflow-hidden flex items-center justify-center z-0">
+              <LiveJourneyMap
+                apiKey=""
+                hasValidKey={false}
+                pickupName={activeRide.pickup}
+                dropName={activeRide.drop}
+                pickupCoords={activeRide.routePath && activeRide.routePath.length > 0 ? activeRide.routePath[0] : { lat: activeRide.riderLat || activeRide.gpsLat || 13.0827, lng: activeRide.riderLng || activeRide.gpsLng || 80.2707 }}
+                dropCoords={activeRide.routePath && activeRide.routePath.length > 0 ? activeRide.routePath[activeRide.routePath.length - 1] : { lat: activeRide.gpsLat || 13.0827, lng: activeRide.gpsLng || 80.2707 }}
+                distanceKm={activeRide.distanceKm}
+                isTrackingMode={true}
+                rideProgressPct={activeRide.progress}
+                rideSpeedKmH={activeRide.speed}
+                rideStatus={activeRide.status}
+                routePathOverride={activeRide.routePath}
               />
 
-              {/* Simulated SVG Path */}
-              <svg className="w-full h-full absolute inset-0 text-brand-emerald pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path
-                  d="M 10,70 Q 50,25 90,70"
-                  fill="none"
-                  stroke="rgba(0, 200, 150, 0.2)"
-                  strokeWidth="0.8"
-                  strokeDasharray="2 2"
-                />
-                <path
-                  d="M 10,70 Q 50,25 90,70"
-                  fill="none"
-                  stroke="#00C896"
-                  strokeWidth="0.4"
-                  strokeDasharray="1 1"
-                  className="stroke-[0.3]"
-                />
-              </svg>
-
-              {/* Pickup Pin */}
-              <div className="absolute flex flex-col items-center shrink-0" style={{ left: '10%', top: '70%', transform: 'translate(-50%, -100%)' }}>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Pickup</span>
-                <CircleDot className="w-5 h-5 text-brand-emerald bg-slate-950 rounded-full" />
-              </div>
-
-              {/* Active Marker Bike Pin */}
-              <div 
-                className="absolute flex flex-col items-center transition-all duration-700 ease-out shrink-0" 
-                style={{ left: `${bikeXPct}%`, top: `${bikeYPct}%`, transform: 'translate(-50%, -100%)' }}
-              >
-                <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-md mb-1 whitespace-nowrap shadow-sm ${
-                  activeRide.speed > 80 ? 'bg-rose-500 text-white animate-bounce' : 'bg-brand-emerald text-slate-950'
-                }`}>
-                  {activeRide.speed} km/h
-                </span>
-                <div className={`w-9 h-9 rounded-full bg-slate-900 border flex items-center justify-center transition ${
-                  activeRide.speed > 80 ? 'border-rose-500 animate-pulse text-rose-500' : 'border-brand-emerald text-brand-emerald'
-                }`}>
-                  <Gauge className="w-5 h-5 shrink-0" />
-                </div>
-              </div>
-
-              {/* Drop Pin */}
-              <div className="absolute flex flex-col items-center shrink-0" style={{ left: '90%', top: '70%', transform: 'translate(-50%, -100%)' }}>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded-md mb-1 whitespace-nowrap">Drop</span>
-                <MapPin className="w-5 h-5 text-rose-500" />
-              </div>
-
-              {activeRide && ['booked', 'accepted', 'in_progress', 'assigned', 'pickup', 'en_route', 'arrived', 'anomaly'].includes(activeRide.status) && (
+              {activeRide && ['booked', 'accepted', 'in_progress', 'assigned', 'pickup', 'en_route', 'arrived', 'anomaly', 'completed'].includes(activeRide.status) && (
                 <SosButton rideId={activeRide.id} onClick={onRefresh} />
               )}
             </div>
@@ -528,9 +480,9 @@ export default function RideTrackerView({
 
               {/* Distance Info */}
               <div className="bg-theme-card border border-theme-border/80 rounded-2xl p-4 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">TRANSIT ESTIMATION</span>
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary font-bold block">REMAINING DISTANCE</span>
                 <h3 className="text-2xl font-black font-mono text-theme-text-primary tracking-tight mt-1.5">
-                  {activeRide.distanceKm} km
+                  {(activeRide.distanceKm * (1 - activeRide.progress / 100)).toFixed(2)} km
                 </h3>
               </div>
 

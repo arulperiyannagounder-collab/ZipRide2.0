@@ -562,6 +562,8 @@ export default function BookingView({
   // Available routes list and selected index
   const [availableRoutes, setAvailableRoutes] = useState<BookingRouteChoice[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+  const [hoveredRouteIndex, setHoveredRouteIndex] = useState<number | null>(null);
+  const [activeRoutePath, setActiveRoutePath] = useState<Coords[]>([]);
 
   // Advanced Fare Calculation function
   const calculateRouteFare = (
@@ -840,13 +842,16 @@ export default function BookingView({
       // Compute breakdowns for each
       const finalRoutes = routesData.map(r => {
         const breakdown = calculateRouteFare(r.distanceKm, r.durationMin, r.traffic, r.tollCharges, selectedVehicle);
+        const trafficOffset = r.traffic === 'Light' ? 20 : r.traffic === 'Moderate' ? 10 : 0;
+        const reliabilityScore = Math.round(r.roadHealthScore * 0.6 + (100 - r.weatherRiskScore) * 0.2 + trafficOffset);
         return {
           ...r,
           fuelUsageLiters: breakdown.fuelUsage,
           fuelCost: breakdown.fuelCost,
           tax: breakdown.tax,
           totalFare: breakdown.total,
-          fareBreakdown: breakdown.farebreakdown || breakdown
+          fareBreakdown: breakdown.farebreakdown || breakdown,
+          reliabilityScore
         };
       });
 
@@ -941,7 +946,9 @@ export default function BookingView({
         vehicleType: selectedVehicle,
         isChildSafety: childSafetyActive,
         isWomenSafety: womenSafetyActive,
-        isFamilySafety: familySafetyActive
+        isFamilySafety: familySafetyActive,
+        selectedRouteIndex: selectedRouteIndex,
+        routePath: activeRoutePath
       });
       console.log("Created Ride:", createdRide);
 
@@ -1430,6 +1437,8 @@ export default function BookingView({
                         key={route.id}
                         type="button"
                         onClick={() => setSelectedRouteIndex(idx)}
+                        onMouseEnter={() => setHoveredRouteIndex(idx)}
+                        onMouseLeave={() => setHoveredRouteIndex(null)}
                         className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col gap-3 ${
                           isSelected
                             ? 'border-indigo-650 bg-indigo-50/10 dark:bg-indigo-950/20 ring-2 ring-indigo-650/10'
@@ -1456,7 +1465,7 @@ export default function BookingView({
                         </div>
 
                         {/* Fuel and Traffic metrics */}
-                        <div className="grid grid-cols-5 gap-2 pt-2 border-t border-theme-border/50 text-[9px] font-semibold text-theme-text-secondary">
+                        <div className="grid grid-cols-6 gap-1 pt-2 border-t border-theme-border/50 text-[9px] font-semibold text-theme-text-secondary">
                           <div>
                             <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Traffic</span>
                             <span className={`font-bold ${
@@ -1488,6 +1497,14 @@ export default function BookingView({
                               route.weatherRiskScore <= 50 ? 'text-amber-500' :
                               'text-rose-550'
                             }`}>{route.weatherRiskScore}/100</span>
+                          </div>
+                          <div>
+                            <span className="block font-mono text-[7px] uppercase tracking-wider text-theme-text-secondary">Reliability</span>
+                            <span className={`font-bold ${
+                              (route as any).reliabilityScore >= 85 ? 'text-emerald-600' :
+                              (route as any).reliabilityScore >= 70 ? 'text-amber-500' :
+                              'text-rose-500'
+                            }`}>{(route as any).reliabilityScore}%</span>
                           </div>
                         </div>
                       </button>
@@ -1666,7 +1683,7 @@ export default function BookingView({
             <div className="p-12 text-center text-theme-text-secondary flex flex-col items-center justify-center min-h-[300px]" id="select-locations-placeholder">
               <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
               <p className="text-xs text-theme-text-secondary max-w-[250px] leading-relaxed font-semibold">
-                Select pickup and destination to view available routes.
+                Select pickup and destination to calculate intelligent routes.
               </p>
             </div>
           )}
@@ -1689,11 +1706,18 @@ export default function BookingView({
             weatherAtDrop={weatherDrop ? `${weatherDrop.temp}°C ${weatherDrop.weatherText}` : undefined}
             speedbreakers={speedbreakers}
             heavyTrafficSegments={heavyTrafficPoints}
-            onRouteSelect={(dist, dur) => {
+            hoveredRouteIndex={hoveredRouteIndex}
+            selectedRouteIndex={selectedRouteIndex}
+            isAccessibilityActive={accessibilityOverride.length > 0}
+            onRouteSelect={(dist, dur, path, idx) => {
               if (dist !== calculatedDistance || dur !== calculatedDuration) {
                 setCalculatedDistance(dist);
                 setCalculatedDuration(dur);
               }
+              if (idx !== selectedRouteIndex) {
+                setSelectedRouteIndex(idx);
+              }
+              setActiveRoutePath(path);
             }}
           />
         ) : (
@@ -1702,7 +1726,7 @@ export default function BookingView({
              <div className="relative z-10 flex flex-col items-center justify-center p-8 bg-theme-card/60 backdrop-blur-md rounded-3xl border border-theme-border/50 shadow-sm max-w-sm text-center">
                 <Compass className="w-12 h-12 text-indigo-400 mb-4 animate-bounce" />
                 <h3 className="text-lg font-bold text-theme-text-primary tracking-tight">Map Display</h3>
-                <p className="text-xs font-semibold text-theme-text-secondary mt-2">Enter your pickup and destination on the left to see live roads, weather, and real traffic mapping.</p>
+                <p className="text-xs font-semibold text-theme-text-secondary mt-2">Select pickup and destination to calculate intelligent routes.</p>
              </div>
           </div>
         )}

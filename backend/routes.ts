@@ -293,7 +293,9 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
     vehicleType,
     isChildSafety,
     isWomenSafety,
-    isFamilySafety
+    isFamilySafety,
+    selectedRouteIndex,
+    routePath
   } = req.body;
 
   if (!pickup || !drop || !paymentMethod) {
@@ -500,6 +502,8 @@ apiRouter.post('/rides', asyncWrapper(async (req: Request, res: Response) => {
     motion: 'stationary',
     nfc: 'inactive',
     progress: 0,
+    selectedRouteIndex: selectedRouteIndex !== undefined ? Number(selectedRouteIndex) : undefined,
+    routePath: Array.isArray(routePath) ? routePath : undefined,
 
     // Rider Details
     riderName: riderName || 'Saran',

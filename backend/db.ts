@@ -92,6 +92,8 @@ export interface Ride {
   isFamilySafety?: boolean;
   pickupCode?: string;
   childArrivalConfirmed?: boolean;
+  selectedRouteIndex?: number;
+  routePath?: Array<{ lat: number; lng: number }>;
 }
 
 export interface SOSAlert {

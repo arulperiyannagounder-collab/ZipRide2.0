@@ -287,6 +287,22 @@
       },
       "baseCompletedRides": 0,
       "baseTodayEarnings": 0
+    },
+    {
+      "id": "DRV-978620",
+      "name": "Arul",
+      "phone": "+91 9876543210",
+      "vehicle": "BIKE-TN-09-XX-8822",
+      "vehicleType": "Bike",
+      "vehicleNumber": "TN-09-XX-8822",
+      "rating": 5,
+      "status": "online",
+      "location": {
+        "lat": 13.0827,
+        "lng": 80.2707
+      },
+      "baseCompletedRides": 0,
+      "baseTodayEarnings": 0
     }
   ],
   "rides": [

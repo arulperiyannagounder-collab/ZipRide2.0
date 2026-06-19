@@ -71,6 +71,8 @@ export interface Ride {
   motion: 'stationary' | 'moving' | 'riding' | 'braking';
   nfc: 'active' | 'inactive';
   progress: number;
+  selectedRouteIndex?: number;
+  routePath?: Array<{ lat: number; lng: number }>;
   // Post-Lock Fare Adjustment (Addition 6)
   adjustmentTrigger?: 'weather' | 'diversion' | 'rider_stop' | 'traffic' | 'force_majeure';
   adjustmentAmount?: number;
