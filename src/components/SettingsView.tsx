@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { User, Sun, Moon, Laptop, MapPin, Plus, Trash2, LogOut, ShieldAlert, Heart, Accessibility, ShieldCheck } from 'lucide-react';
+import { User, Sun, Moon, Laptop, MapPin, Plus, Trash2, LogOut, ShieldAlert, Heart, Accessibility, ShieldCheck, RefreshCw, Flame } from 'lucide-react';
 import { useToast } from './ToastNotification';
 import { ZipRideRepository, UserProfile } from '../services/dbInterface';
+import { SessionResetService } from '../services/SessionResetService';
 
 interface SavedLocation {
   id: string;
@@ -92,6 +93,38 @@ export default function SettingsView({ currentUser, currentUserRole, onLogout, t
     }
     
     showToast(`Accessibility preference updated.`, 'info');
+  };
+
+  const handleClearChat = () => {
+    SessionResetService.resetChatHistory();
+    showToast('AI Chat History cleared successfully!', 'success');
+  };
+
+  const handleResetLocalSession = () => {
+    SessionResetService.resetLocalData();
+    showToast('Local session resetting...', 'info');
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  };
+
+  const handleFullDemoReset = async () => {
+    try {
+      const res = await fetch('/api/admin/reset-demo', { method: 'POST' });
+      if (res.ok) {
+        SessionResetService.resetLocalData();
+        showToast('Full demo database reset completed! Redirecting...', 'success');
+        setTimeout(() => {
+          onLogout();
+          window.location.reload();
+        }, 1200);
+      } else {
+        showToast('Failed to reset backend demo database.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server connection error during database reset.', 'error');
+    }
   };
 
   const accessibilityOptions = [
@@ -238,6 +271,48 @@ export default function SettingsView({ currentUser, currentUserRole, onLogout, t
               <LogOut className="w-4 h-4" />
               <span>Log Out & Lock Session</span>
             </button>
+          </div>
+
+          {/* Demo Control Center */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 font-mono">Demo Control Center</h4>
+            <div className="grid grid-cols-1 gap-2.5">
+              <button
+                type="button"
+                onClick={handleClearChat}
+                className="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Clear Chat History</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={onLogout}
+                className="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleResetLocalSession}
+                className="w-full py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Reset Local Session</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleFullDemoReset}
+                className="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Full Demo Reset</span>
+              </button>
+            </div>
           </div>
         </div>
 

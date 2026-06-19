@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Bike, Scale, Send, Check, MapPin, Navigation, ArrowRight, Smartphone, Mail, Heart, Accessibility, ShieldAlert, User } from 'lucide-react';
 import { Driver } from '../types';
 import { ZipRideRepository } from '../services/dbInterface';
+import { SessionResetService } from '../services/SessionResetService';
 
 interface LoginViewProps {
   onLoginSuccess: (emailOrName: string, role: 'rider' | 'driver', phone: string) => void;
@@ -873,6 +874,24 @@ export default function LoginView({
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
+
+              <div className="pt-4 border-t border-slate-100/80 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/admin/reset-demo', { method: 'POST' });
+                    } catch (e) {
+                      console.error("Database reset failed:", e);
+                    }
+                    SessionResetService.resetLocalData();
+                    window.location.reload();
+                  }}
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer border border-slate-200"
+                >
+                  <span>Start Fresh Demo</span>
+                </button>
+              </div>
 
               <div className="flex items-center justify-center gap-2 text-xs text-slate-400 pt-5 mt-5 border-t border-slate-100/80 font-sans">
                 <Shield className="w-4 h-4 text-[#00C896]" />

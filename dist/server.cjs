@@ -665,6 +665,50 @@ var getWeatherData = async (lat, lng) => {
   }
 };
 
+// backend/AdminResetService.ts
+var DEFAULT_SEED_DRIVERS = [
+  {
+    id: "DRV-4581",
+    name: "Saran",
+    vehicle: "BIKE-TN37AB3286",
+    rating: 4.7,
+    status: "online",
+    vehicleType: "Bike",
+    vehicleNumber: "TN37AB3286",
+    baseCompletedRides: 24,
+    baseTodayEarnings: 1250,
+    phone: "+91 9876543210",
+    location: { lat: 11.0168, lng: 76.9558 }
+    // Coimbatore Gandhipuram Center
+  },
+  {
+    id: "DRV-2038",
+    name: "Arul",
+    vehicle: "BIKE-TN37AB6609",
+    rating: 4.9,
+    status: "online",
+    vehicleType: "Bike",
+    vehicleNumber: "TN37AB6609",
+    baseCompletedRides: 24,
+    baseTodayEarnings: 1250,
+    phone: "+91 9876543210",
+    location: { lat: 11.0168, lng: 76.9558 }
+    // Coimbatore Gandhipuram Center
+  }
+];
+var AdminResetService = class {
+  static resetDemoDatabase() {
+    db.clearAll();
+    const drivers = db.getDrivers();
+    drivers.length = 0;
+    DEFAULT_SEED_DRIVERS.forEach((drv) => {
+      drivers.push({ ...drv });
+    });
+    db.save();
+    console.log("[DB Reset] Demo database successfully seeded with initial profiles");
+  }
+};
+
 // backend/routes.ts
 var import_fs3 = __toESM(require("fs"), 1);
 var import_path3 = __toESM(require("path"), 1);
@@ -731,6 +775,13 @@ apiRouter.post("/admin/patch-rider-names", (req, res) => {
   const defaultName = req.body.name || "Saran";
   const patched = db.patchMissingRiderNames(defaultName);
   res.json({ success: true, patched, message: `Patched ${patched} rides with riderName: '${defaultName}'` });
+});
+apiRouter.post("/admin/reset-demo", (req, res) => {
+  AdminResetService.resetDemoDatabase();
+  res.json({
+    success: true,
+    message: "Demo database reset successfully"
+  });
 });
 apiRouter.get("/drivers", (req, res) => {
   res.json(db.getDrivers());

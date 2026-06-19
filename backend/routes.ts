@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { db, Ride, Dispute, AlertLog } from './db.js';
 import { summarizeDispute, askGeminiAssist, queryGeographicCities } from './gemini.js';
 import { getWeatherData } from './weather.js';
+import { AdminResetService } from './AdminResetService.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -92,6 +93,15 @@ apiRouter.post('/admin/patch-rider-names', (req: Request, res: Response) => {
   const defaultName = req.body.name || 'Saran';
   const patched = db.patchMissingRiderNames(defaultName);
   res.json({ success: true, patched, message: `Patched ${patched} rides with riderName: '${defaultName}'` });
+});
+
+// ADMIN: Reset demo data back to fresh seeded defaults
+apiRouter.post('/admin/reset-demo', (req: Request, res: Response) => {
+  AdminResetService.resetDemoDatabase();
+  res.json({
+    success: true,
+    message: "Demo database reset successfully"
+  });
 });
 
 // 3. GET DRIVERS
