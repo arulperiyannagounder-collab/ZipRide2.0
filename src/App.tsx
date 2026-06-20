@@ -28,6 +28,7 @@ import { SystemState, Ride, Dispute, SystemConfig, Driver } from './types';
 import { useTheme } from './components/ThemeContext';
 import { useToast } from './components/ToastNotification';
 import { ZipRideRepository } from './services/dbInterface';
+import { SessionResetService } from './services/SessionResetService';
 
 export default function App() {
   // Path Router Configuration matching precisely /login, /, /booking, etc.
@@ -92,6 +93,7 @@ export default function App() {
   
   // Track status transitions to show toasts
   const [prevRideStatuses, setPrevRideStatuses] = useState<Record<string, string>>({});
+  const [driverFoundRide, setDriverFoundRide] = useState<Ride | null>(null);
 
   useEffect(() => {
     allRides.forEach(ride => {
@@ -102,6 +104,16 @@ export default function App() {
         if (ride.status === 'assigned') {
           msg = `Driver ${ride.driverName || 'assigned'} is on their way!`;
           showToast(msg, 'success');
+          if (currentUserRole === 'passenger' && ride.riderName === currentUser) {
+            const redirectKey = `zipride_auto_redirect_${ride.id}`;
+            if (localStorage.getItem(redirectKey) !== 'true') {
+              localStorage.setItem(redirectKey, 'true');
+              setDriverFoundRide(ride);
+              setTimeout(() => {
+                selectTab('/tracker');
+              }, 4000); // Navigate automatically to tracker after delay
+            }
+          }
         } else if (ride.status === 'pickup') {
           msg = `Driver has arrived at your pickup location.`;
           showToast(msg, 'info');
@@ -111,6 +123,7 @@ export default function App() {
         } else if (ride.status === 'completed') {
           msg = `Commute complete. Final Fare: Rupees ${ride.finalFare.toFixed(0)}`;
           showToast(msg, 'success');
+          SessionResetService.clearBookingState();
         } else if (ride.status === 'cancelled') {
           msg = `Ride was cancelled.`;
           showToast(msg, 'warning');
@@ -129,7 +142,7 @@ export default function App() {
       newStatuses[r.id] = r.status;
     });
     setPrevRideStatuses(newStatuses);
-  }, [allRides, prevRideStatuses, showToast, profile.accessibilityRequirements]);
+  }, [allRides, prevRideStatuses, showToast, profile.accessibilityRequirements, currentUser, currentUserRole]);
 
   // Announce page changes for Visually Impaired
   useEffect(() => {
@@ -147,6 +160,7 @@ export default function App() {
   const activeRide = allRides.find(r => {
     const activeStatuses = ['booked', 'accepted', 'assigned', 'pickup', 'en_route', 'arrived', 'anomaly', 'in_progress'];
     const isDismissedByDriver = localStorage.getItem(`zipride_dismissed_driver_ride_${r.id}`) === 'true';
+    const isDismissedByPassenger = localStorage.getItem(`zipride_dismissed_passenger_ride_${r.id}`) === 'true';
     const isCompletedAndUnpaid = r.status === 'completed' && r.paymentStatus !== 'paid';
     const isCompletedAndPendingDriverSettle = r.status === 'completed' && !isDismissedByDriver;
     
@@ -154,9 +168,9 @@ export default function App() {
       return r.driverName === currentUser && (activeStatuses.includes(r.status) || isCompletedAndPendingDriverSettle);
     }
     if (currentUserRole === 'passenger') {
-      return r.riderName === currentUser && (activeStatuses.includes(r.status) || r.status === 'completed' || r.status === 'cancelled');
+      return r.riderName === currentUser && !isDismissedByPassenger && (activeStatuses.includes(r.status) || r.status === 'completed' || r.status === 'cancelled');
     }
-    return activeStatuses.includes(r.status) || r.status === 'completed' || r.status === 'cancelled';
+    return !isDismissedByPassenger && (activeStatuses.includes(r.status) || r.status === 'completed' || r.status === 'cancelled');
   }) || null;
 
   console.log("Current Rides:", allRides);
@@ -204,6 +218,41 @@ export default function App() {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Listen for custom global navigation and SOS triggers from the AI RideMate Companion
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const path = (e as CustomEvent).detail;
+      if (path) selectTab(path);
+    };
+    const handleTriggerSos = async () => {
+      if (activeRide) {
+        try {
+          await fetch('/api/emergency/trigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              rideId: activeRide.id,
+              reason: 'Feeling Unsafe',
+              isSilentSOS: false
+            })
+          });
+          showToast("Emergency SOS triggered! Responders are notified.", "error");
+          fetchAllData(true);
+        } catch (e) {
+          console.error("SOS activation failed:", e);
+        }
+      } else {
+        showToast("No active ride to trigger SOS for.", "warning");
+      }
+    };
+    window.addEventListener('zipride_navigate', handleNavigate);
+    window.addEventListener('zipride_trigger_sos', handleTriggerSos);
+    return () => {
+      window.removeEventListener('zipride_navigate', handleNavigate);
+      window.removeEventListener('zipride_trigger_sos', handleTriggerSos);
+    };
+  }, [activeRide]);
 
   // Enforce Protected Routing
   useEffect(() => {
@@ -278,6 +327,8 @@ export default function App() {
       routePath?: Array<{ lat: number; lng: number }>;
     }
   ) => {
+    console.log("New Ride Created");
+    SessionResetService.resetRideSession();
     const res = await fetch('/api/rides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -508,58 +559,62 @@ export default function App() {
       <div className={`flex bg-theme-bg min-h-screen text-theme-text-primary font-sans antialiased transition-colors duration-150 ${profile.accessibilityRequirements?.includes('Senior Citizen') ? 'accessibility-senior' : ''}`}>
       
       {/* Sidebar Core Element (Hidden on mobile) */}
-      <Sidebar 
-        activeTab={currentPath} 
-        onSelectTab={selectTab} 
-        systemConfig={systemState.config} 
-        userRole={currentUserRole}
-      />
+      {currentPath !== '/login' && (
+        <Sidebar 
+          activeTab={currentPath} 
+          onSelectTab={selectTab} 
+          systemConfig={systemState.config} 
+          userRole={currentUserRole}
+        />
+      )}
 
       {/* Main Container Wrapper */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         
         {/* Top Floating Responsive TaskBar */}
-        <header className="bg-theme-header-bg border-b border-theme-header-border text-theme-header-text px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-xs transition-colors duration-155 duration-150">
-          
-          {/* Mobile responsive drawer toggle */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-theme-text-secondary hover:text-theme-text-primary focus:outline-none shrink-0"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+        {currentPath !== '/login' && (
+          <header className="bg-theme-header-bg border-b border-theme-header-border text-theme-header-text px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-xs transition-colors duration-155 duration-150">
             
-            <div className="flex items-center gap-2">
-              <span className="md:hidden w-7 h-7 bg-brand-emerald/10 text-brand-emerald rounded flex items-center justify-center shrink-0">
-                <Bike className="w-4.5 h-4.5" />
-              </span>
-              <h2 className="text-sm font-bold text-theme-text-primary tracking-tight leading-none">{getTabLabel()}</h2>
+            {/* Mobile responsive drawer toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-theme-text-secondary hover:text-theme-text-primary focus:outline-none shrink-0"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <span className="md:hidden w-7 h-7 bg-brand-emerald/10 text-brand-emerald rounded flex items-center justify-center shrink-0">
+                  <Bike className="w-4.5 h-4.5" />
+                </span>
+                <h2 className="text-sm font-bold text-theme-text-primary tracking-tight leading-none">{getTabLabel()}</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-4 text-xs font-semibold pr-1">
-            {isLoading && (
-              <span className="flex items-center gap-1 text-theme-text-secondary font-mono text-[10px]">
-                <RefreshCw className="w-3 h-3 animate-spin text-brand-emerald" />
-                refreshing...
-              </span>
-            )}
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-theme-text-secondary">Service Status:</span>
-              <span className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-bold border transition-colors duration-300 ${
-                isServerConnected 
-                  ? 'bg-emerald-950/40 text-[#00C896] border-emerald-900/50' 
-                  : 'bg-rose-950/40 text-rose-400 border-rose-900/50 animate-pulse'
-              }`}>
-                {isServerConnected ? 'ONLINE' : 'RECONNECTING'}
-              </span>
+            <div className="flex items-center gap-4 text-xs font-semibold pr-1">
+              {isLoading && (
+                <span className="flex items-center gap-1 text-theme-text-secondary font-mono text-[10px]">
+                  <RefreshCw className="w-3 h-3 animate-spin text-brand-emerald" />
+                  refreshing...
+                </span>
+              )}
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="text-theme-text-secondary">Service Status:</span>
+                <span className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-bold border transition-colors duration-300 ${
+                  isServerConnected 
+                    ? 'bg-emerald-950/40 text-[#00C896] border-emerald-900/50' 
+                    : 'bg-rose-950/40 text-rose-400 border-rose-900/50 animate-pulse'
+                }`}>
+                  {isServerConnected ? 'ONLINE' : 'RECONNECTING'}
+                </span>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Mobile Responsive Navigation Draw overlay if open */}
-        {mobileMenuOpen && (
+        {mobileMenuOpen && currentPath !== '/login' && (
           <div className="md:hidden bg-theme-bg text-theme-text-secondary absolute top-14 left-0 right-0 z-50 p-4 border-b border-theme-border shadow-md flex flex-col gap-1.5 animate-fadeIn">
             {(() => {
               if (!isLoggedIn) return [{ path: '/login', label: 'Welcome to ZipRide' }];
@@ -605,7 +660,7 @@ export default function App() {
         )}
 
         {/* Center Canvas */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
+        <main className={currentPath === '/login' ? "flex-1 w-full h-screen p-0 max-w-none overflow-hidden" : "flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto"}>
           {/* Main Router Switch Case */}
           {currentPath === '/login' && (
             <LoginView 
@@ -732,12 +787,70 @@ export default function App() {
           )}
         </main>
         
+        {/* Driver Found Notification Modal */}
+        {driverFoundRide && (
+          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center mx-auto text-brand-emerald">
+                <Bike className="w-8 h-8 animate-bounce text-brand-emerald" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-theme-text-primary">Captain Assigned!</h3>
+                <p className="text-xs text-theme-text-secondary mt-1">Your rider captain has accepted the booking and is heading to you.</p>
+              </div>
+              
+              <div className="bg-theme-bg/50 border border-theme-border rounded-2xl p-4 text-left space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-theme-text-secondary font-medium">Captain:</span>
+                  <span className="text-theme-text-primary font-bold">{driverFoundRide.driverName || 'Rajesh Kumar'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-theme-text-secondary font-medium">Vehicle Details:</span>
+                  <span className="text-theme-text-primary font-bold font-mono">Bike (MH 12 AB 1234)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-theme-text-secondary font-medium">Captain Rating:</span>
+                  <span className="text-theme-text-primary font-bold">4.8 ★</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-theme-text-secondary font-medium">Estimated Arrival:</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">4 mins</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDriverFoundRide(null)}
+                  className="flex-1 bg-theme-bg border border-theme-border hover:bg-theme-hover-bg text-theme-text-secondary py-3 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Dismiss
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDriverFoundRide(null);
+                    selectTab('/tracker');
+                  }}
+                  className="flex-1 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 py-3 rounded-xl text-xs font-bold transition cursor-pointer border-0"
+                >
+                  Track Captain
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Global Floating AI Assistant Widget */}
-        <AiAssistantWidget 
-          currentUser={currentUser}
-          currentUserRole={currentUserRole}
-          currentPath={currentPath}
-        />
+        {currentPath !== '/login' && (
+          <AiAssistantWidget 
+            currentUser={currentUser}
+            currentUserRole={currentUserRole}
+            currentPath={currentPath}
+            activeRide={activeRide}
+            systemState={systemState}
+          />
+        )}
       </div>
     </div>
   </ErrorBoundary>

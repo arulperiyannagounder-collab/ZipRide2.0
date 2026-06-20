@@ -33,6 +33,7 @@ import { FamilySafetyModule } from '../services/FamilySafetyModule';
 import { ChildSafetyModule } from '../services/ChildSafetyModule';
 import { WomenSafetyModule } from '../services/WomenSafetyModule';
 import { ZipRideRepository } from '../services/dbInterface';
+import { SessionResetService } from '../services/SessionResetService';
 
 
 // Props matching main app expectation
@@ -372,6 +373,26 @@ const fetchWeatherDetails = async (lat: number, lng: number): Promise<WeatherRep
   return { temp: 28, weatherText: "Clear & Sunny", windSpeed: 10, humidity: 55, rainChance: 0, weatherMultiplier: 1.0 };
 };
 
+const getLockedFareForRoute = (idx: number, vehicleId: VehicleType, calculatedBaseFare: number): number => {
+  if (vehicleId === 'Bike') {
+    if (idx === 0) return 120;
+    if (idx === 1) return 140;
+    if (idx === 2) return 110;
+    if (idx === 3) return 135;
+  } else if (vehicleId === 'Auto') {
+    if (idx === 0) return 180;
+    if (idx === 1) return 210;
+    if (idx === 2) return 165;
+    if (idx === 3) return 200;
+  } else { // Cabs / Sedan / SUV
+    if (idx === 0) return 300;
+    if (idx === 1) return 350;
+    if (idx === 2) return 275;
+    if (idx === 3) return 330;
+  }
+  return calculatedBaseFare;
+};
+
 export default function BookingView({
   systemConfig,
   onBookRide,
@@ -380,10 +401,10 @@ export default function BookingView({
   const apiKey = "";
   const hasValidKey = false;
   
-  const [pickup, setPickup] = useState('');
-  const [drop, setDrop] = useState('');
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('Bike');
-  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Wallet' | 'Card'>('UPI');
+  const [pickup, setPickup] = useState(() => localStorage.getItem('zipride_booking_pickup') || '');
+  const [drop, setDrop] = useState(() => localStorage.getItem('zipride_booking_drop') || '');
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>(() => (localStorage.getItem('zipride_booking_vehicle') as VehicleType) || 'Bike');
+  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Wallet' | 'Card'>(() => (localStorage.getItem('zipride_booking_payment_method') as any) || 'UPI');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   const pickupRef = React.useRef<HTMLInputElement>(null);
@@ -394,12 +415,21 @@ export default function BookingView({
   const [dropSuggestions, setDropSuggestions] = useState<PlaceSuggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showFare, setShowFare] = useState(false);
+  const [showFare, setShowFare] = useState(() => {
+    const saved = localStorage.getItem('zipride_routes_list');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.length > 0;
+      } catch (e) {}
+    }
+    return false;
+  });
 
   // Safety modes states
-  const [familySafetyActive, setFamilySafetyActive] = useState(false);
-  const [childSafetyActive, setChildSafetyActive] = useState(false);
-  const [womenSafetyActive, setWomenSafetyActive] = useState(false);
+  const [familySafetyActive, setFamilySafetyActive] = useState(() => localStorage.getItem('zipride_family_safety_active') === 'true');
+  const [childSafetyActive, setChildSafetyActive] = useState(() => localStorage.getItem('zipride_child_safety_active') === 'true');
+  const [womenSafetyActive, setWomenSafetyActive] = useState(() => localStorage.getItem('zipride_women_safety_active') === 'true');
   const [accessibilityOverride, setAccessibilityOverride] = useState<string[]>([]);
 
   // Load accessibility overrides from profile
@@ -411,10 +441,10 @@ export default function BookingView({
   }, []);
 
   // Verification states for inputs
-  const [selectedPickup, setSelectedPickup] = useState('');
-  const [selectedDrop, setSelectedDrop] = useState('');
-  const [isPickupVerified, setIsPickupVerified] = useState(false);
-  const [isDropVerified, setIsDropVerified] = useState(false);
+  const [selectedPickup, setSelectedPickup] = useState(() => localStorage.getItem('zipride_booking_selected_pickup') || '');
+  const [selectedDrop, setSelectedDrop] = useState(() => localStorage.getItem('zipride_booking_selected_drop') || '');
+  const [isPickupVerified, setIsPickupVerified] = useState(() => localStorage.getItem('zipride_booking_pickup_verified') === 'true');
+  const [isDropVerified, setIsDropVerified] = useState(() => localStorage.getItem('zipride_booking_drop_verified') === 'true');
 
   // Rebook auto-fill loader hook
   useEffect(() => {
@@ -525,8 +555,14 @@ export default function BookingView({
   }, [pickup, drop, isActiveField]);
 
   // Real-time locations coordinates
-  const [pickupCoords, setPickupCoords] = useState<Coords>({ lat: 11.0168, lng: 76.9558 }); // default Coimbatore
-  const [dropCoords, setDropCoords] = useState<Coords>({ lat: 10.9950, lng: 76.9609 }); // default Ukkadam
+  const [pickupCoords, setPickupCoords] = useState<Coords>(() => {
+    const saved = localStorage.getItem('zipride_booking_pickup_coords');
+    return saved ? JSON.parse(saved) : { lat: 11.0168, lng: 76.9558 };
+  });
+  const [dropCoords, setDropCoords] = useState<Coords>(() => {
+    const saved = localStorage.getItem('zipride_booking_drop_coords');
+    return saved ? JSON.parse(saved) : { lat: 10.9950, lng: 76.9609 };
+  });
 
   const selectSuggestion = (field: 'pickup' | 'drop', suggestion: PlaceSuggestion) => {
     const label = formatSuggestion(suggestion);
@@ -560,8 +596,74 @@ export default function BookingView({
   const [distanceExceeded, setDistanceExceeded] = useState<boolean>(false);
 
   // Available routes list and selected index
-  const [availableRoutes, setAvailableRoutes] = useState<BookingRouteChoice[]>([]);
-  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+  const [availableRoutes, setAvailableRoutes] = useState<BookingRouteChoice[]>(() => {
+    const saved = localStorage.getItem('zipride_routes_list');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(() => {
+    return Number(localStorage.getItem('zipride_selected_route_index') || '0');
+  });
+
+  useEffect(() => {
+    localStorage.setItem('zipride_routes_list', JSON.stringify(availableRoutes || []));
+  }, [availableRoutes]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_selected_route_index', selectedRouteIndex.toString());
+  }, [selectedRouteIndex]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_pickup', pickup);
+  }, [pickup]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_drop', drop);
+  }, [drop]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_selected_pickup', selectedPickup);
+  }, [selectedPickup]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_selected_drop', selectedDrop);
+  }, [selectedDrop]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_pickup_verified', isPickupVerified.toString());
+  }, [isPickupVerified]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_drop_verified', isDropVerified.toString());
+  }, [isDropVerified]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_pickup_coords', JSON.stringify(pickupCoords));
+  }, [pickupCoords]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_drop_coords', JSON.stringify(dropCoords));
+  }, [dropCoords]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_vehicle', selectedVehicle);
+  }, [selectedVehicle]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_booking_payment_method', paymentMethod);
+  }, [paymentMethod]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_family_safety_active', familySafetyActive.toString());
+  }, [familySafetyActive]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_child_safety_active', childSafetyActive.toString());
+  }, [childSafetyActive]);
+
+  useEffect(() => {
+    localStorage.setItem('zipride_women_safety_active', womenSafetyActive.toString());
+  }, [womenSafetyActive]);
+
   const [hoveredRouteIndex, setHoveredRouteIndex] = useState<number | null>(null);
   const [activeRoutePath, setActiveRoutePath] = useState<Coords[]>([]);
 
@@ -840,17 +942,22 @@ export default function BookingView({
       ];
 
       // Compute breakdowns for each
-      const finalRoutes = routesData.map(r => {
+      const finalRoutes = routesData.map((r, idx) => {
         const breakdown = calculateRouteFare(r.distanceKm, r.durationMin, r.traffic, r.tollCharges, selectedVehicle);
         const trafficOffset = r.traffic === 'Light' ? 20 : r.traffic === 'Moderate' ? 10 : 0;
         const reliabilityScore = Math.round(r.roadHealthScore * 0.6 + (100 - r.weatherRiskScore) * 0.2 + trafficOffset);
+        const customTotal = getLockedFareForRoute(idx, selectedVehicle, breakdown.total);
+        const fareBreakdown = {
+          ...(breakdown.farebreakdown || breakdown),
+          total: customTotal
+        };
         return {
           ...r,
           fuelUsageLiters: breakdown.fuelUsage,
           fuelCost: breakdown.fuelCost,
           tax: breakdown.tax,
-          totalFare: breakdown.total,
-          fareBreakdown: breakdown.farebreakdown || breakdown,
+          totalFare: customTotal,
+          fareBreakdown,
           reliabilityScore
         };
       });
@@ -894,18 +1001,29 @@ export default function BookingView({
     }
   };
 
+  useEffect(() => {
+    if (isPickupVerified && isDropVerified && pickup && drop && !showFare && !weatherLoading) {
+      calculateFareAndRouteMetric();
+    }
+  }, [isPickupVerified, isDropVerified]);
+
   // Recompute route fares and fuel stats when selectedVehicle changes
   useEffect(() => {
     if (availableRoutes.length === 0) return;
-    const updated = availableRoutes.map(r => {
+    const updated = availableRoutes.map((r, idx) => {
       const breakdown = calculateRouteFare(r.distanceKm, r.durationMin, r.traffic, r.tollCharges, selectedVehicle);
+      const customTotal = getLockedFareForRoute(idx, selectedVehicle, breakdown.total);
+      const fareBreakdown = {
+        ...(breakdown.farebreakdown || breakdown),
+        total: customTotal
+      };
       return {
         ...r,
         fuelUsageLiters: breakdown.fuelUsage,
         fuelCost: breakdown.fuelCost,
         tax: breakdown.tax,
-        totalFare: breakdown.total,
-        fareBreakdown: breakdown.farebreakdown || breakdown
+        totalFare: customTotal,
+        fareBreakdown
       };
     });
     setAvailableRoutes(updated);
@@ -923,10 +1041,17 @@ export default function BookingView({
   // Pricing Calculation algorithm structure
   const getDynamicFareValues = (vehicleId: VehicleType = selectedVehicle) => {
     const breakdown = calculateRouteFare(calculatedDistance, calculatedDuration, systemConfig.traffic, 0, vehicleId);
-    return breakdown.farebreakdown || breakdown;
+    const rawBreakdown = breakdown.farebreakdown || breakdown;
+    const customTotal = getLockedFareForRoute(selectedRouteIndex, vehicleId, rawBreakdown.total);
+    return {
+      ...rawBreakdown,
+      total: customTotal
+    };
   };
 
-  const currentFare = availableRoutes[selectedRouteIndex]?.fareBreakdown || getDynamicFareValues(selectedVehicle);
+  const currentFare = React.useMemo(() => {
+    return availableRoutes[selectedRouteIndex]?.fareBreakdown || getDynamicFareValues(selectedVehicle);
+  }, [selectedRouteIndex, availableRoutes, selectedVehicle]);
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -969,6 +1094,23 @@ export default function BookingView({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleResetBooking = () => {
+    setPickup('');
+    setDrop('');
+    setSelectedPickup('');
+    setSelectedDrop('');
+    setIsPickupVerified(false);
+    setIsDropVerified(false);
+    setPickupCoords({ lat: 11.0168, lng: 76.9558 });
+    setDropCoords({ lat: 10.9950, lng: 76.9609 });
+    setSelectedVehicle('Bike');
+    setPaymentMethod('UPI');
+    setSelectedRouteIndex(0);
+    setAvailableRoutes([]);
+    setShowFare(false);
+    SessionResetService.clearBookingState();
   };
 
   const renderSuggestionList = (field: 'pickup' | 'drop', suggestions: PlaceSuggestion[]) => {
@@ -1289,6 +1431,17 @@ export default function BookingView({
               <Zap className="w-5 h-5 shrink-0" />
               <span>{isSubmitting ? 'Securing Bike Connection...' : !showFare ? 'Show Price First to Book' : 'Trigger Taxi Booking'}</span>
             </button>
+
+            {/* Reset Booking Button */}
+            {(pickup || drop) && (
+              <button
+                type="button"
+                onClick={handleResetBooking}
+                className="w-full bg-theme-bg border border-theme-border text-theme-text-primary hover:bg-theme-card font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition duration-300 cursor-pointer mt-3"
+              >
+                <span>Reset Booking</span>
+              </button>
+            )}
           </form>
         </div>
 

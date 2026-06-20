@@ -932,7 +932,7 @@ apiRouter.get('/alerts', (req: Request, res: Response) => {
 
 // 14. POST GEMINI REAL-TIME GROUNDED ASSISTANT
 apiRouter.post('/gemini/assist', asyncWrapper(async (req: Request, res: Response) => {
-  const { question, history, currentUser, role } = req.body;
+  const { question, history, currentUser, role, routes, selectedRouteIndex, driverRating } = req.body;
   if (!question) {
     res.status(400).json({ error: 'A user question query is required.' });
     return;
@@ -968,7 +968,24 @@ apiRouter.post('/gemini/assist', asyncWrapper(async (req: Request, res: Response
         `- Safety Score: ${activeRide.safetyScore}%\n` +
         `- Overspeed Events: ${activeRide.overspeedEvents}, Harsh Braking: ${activeRide.harshBrakeEvents}\n` +
         `- Payment Status: ${activeRide.paymentStatus || 'Pending'}\n` +
-        `- Active SOS Flag: ${activeRide.hasActiveSOS ? 'YES' : 'NO'}`;
+        `- Active SOS Flag: ${activeRide.hasActiveSOS ? 'YES' : 'NO'}\n` +
+        `- Child Safety Mode: ${activeRide.isChildSafety ? 'ACTIVE' : 'INACTIVE'}\n` +
+        `- Women Safety Mode: ${activeRide.isWomenSafety ? 'ACTIVE' : 'INACTIVE'}\n` +
+        `- Family Safety Mode: ${activeRide.isFamilySafety ? 'ACTIVE' : 'INACTIVE'}\n` +
+        `- Pickup Verification PIN: ${activeRide.pickupCode || 'N/A'}\n` +
+        `- Child Arrival Confirmed by Guardian: ${activeRide.childArrivalConfirmed ? 'YES' : 'NO'}`;
+    }
+
+    if (routes && Array.isArray(routes) && routes.length > 0) {
+      context += `\nAvailable Routes:\n`;
+      routes.forEach((route: any, idx: number) => {
+        const isSelected = idx === selectedRouteIndex;
+        context += `- Route ${idx + 1}: ${route.name}${isSelected ? ' (Selected)' : ''}. ETA: ${route.durationMin} mins, Distance: ${route.distanceKm} km, Traffic Score: ${route.trafficScore}/100, Fuel: ${route.fuelUsageLiters}L, Road Health: ${route.roadHealthScore}/100, Reliability Score: ${route.reliabilityScore || 90}%\n`;
+      });
+    }
+
+    if (driverRating !== undefined) {
+      context += `\nDriver Reputation / Rating: ${driverRating} stars out of 5.0\n`;
     }
   }
 

@@ -355,6 +355,73 @@ export default function LiveJourneyMap({
 
   const { showToast } = useToast();
 
+  const activePath = routePathOverride || (routes[activeRouteIndex] ? routes[activeRouteIndex].path : []);
+  let currentTrackingPosition: Coords | null = null;
+  if (isTrackingMode && activePath.length > 0) {
+    const idx = Math.min(
+      activePath.length - 1,
+      Math.max(0, Math.floor((rideProgressPct / 100) * (activePath.length - 1)))
+    );
+    currentTrackingPosition = activePath[idx];
+  }
+
+  const [animatedVehiclePos, setAnimatedVehiclePos] = useState<Coords | null>(null);
+  const prevPositionRef = useRef<Coords | null>(null);
+
+  const targetLat = currentTrackingPosition?.lat;
+  const targetLng = currentTrackingPosition?.lng;
+
+  useEffect(() => {
+    if (!isTrackingMode || !targetLat || !targetLng) {
+      setAnimatedVehiclePos(null);
+      prevPositionRef.current = null;
+      return;
+    }
+    
+    const endPos = { lat: targetLat, lng: targetLng };
+    
+    if (!animatedVehiclePos) {
+      setAnimatedVehiclePos(endPos);
+      prevPositionRef.current = endPos;
+      return;
+    }
+    
+    const startPos = prevPositionRef.current || animatedVehiclePos;
+    
+    if (startPos.lat === endPos.lat && startPos.lng === endPos.lng) {
+      return;
+    }
+    
+    let startTime: number | null = null;
+    const duration = 1800; // 1.8 seconds transition
+    let animFrame: number;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      
+      const nextLat = startPos.lat + (endPos.lat - startPos.lat) * ease;
+      const nextLng = startPos.lng + (endPos.lng - startPos.lng) * ease;
+      
+      const nextPos = { lat: nextLat, lng: nextLng };
+      setAnimatedVehiclePos(nextPos);
+      
+      if (progress < 1) {
+        animFrame = requestAnimationFrame(animate);
+      } else {
+        prevPositionRef.current = endPos;
+      }
+    };
+    
+    animFrame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(animFrame);
+    };
+  }, [targetLat, targetLng, isTrackingMode]);
+
   // Generate dynamic hazards and hospitals near the active route path
   useEffect(() => {
     if (!pickupCoords || !dropCoords) return;
@@ -451,7 +518,10 @@ export default function LiveJourneyMap({
         if (isCancelled) return;
 
         if (data.routes && data.routes.length > 0) {
-          const baseDistance = distanceKm > 0 ? distanceKm : Number((data.routes[0].distance / 1000).toFixed(2));
+          const latD = pickupCoords.lat - dropCoords.lat;
+          const lngD = pickupCoords.lng - dropCoords.lng;
+          const computedDist = Math.sqrt(latD * latD + lngD * lngD) * 111.0;
+          const baseDistance = computedDist > 0 ? Number(computedDist.toFixed(2)) : Number((data.routes[0].distance / 1000).toFixed(2));
           const baseDuration = Math.round(data.routes[0].duration / 60) || 12;
           const rawPrimaryPath = data.routes[0].geometry.coordinates.map((c: any) => ({ lat: c[1], lng: c[0] }));
           
@@ -525,7 +595,10 @@ export default function LiveJourneyMap({
         const opt3Points = getSimulatedBezierRoute(pickupCoords, dropCoords, 0.22);
         const opt4Points = getSimulatedBezierRoute(pickupCoords, dropCoords, -0.22);
 
-        const baseDistance = distanceKm > 0 ? distanceKm : 4.3;
+        const latD = pickupCoords.lat - dropCoords.lat;
+        const lngD = pickupCoords.lng - dropCoords.lng;
+        const computedDist = Math.sqrt(latD * latD + lngD * lngD) * 111.0;
+        const baseDistance = computedDist > 0 ? Number(computedDist.toFixed(2)) : 4.3;
         const baseDuration = Math.round(baseDistance * 2.1) || 13;
 
         const isCoimbatore = String(pickupName).toLowerCase().includes('gandhipuram') || String(dropName).toLowerCase().includes('ukkadam');
@@ -584,7 +657,7 @@ export default function LiveJourneyMap({
     return () => {
       isCancelled = true;
     };
-  }, [pickupCoords, dropCoords, distanceKm, pickupName, dropName]);
+  }, [pickupCoords, dropCoords, pickupName, dropName]);
 
   const handleSelectRoute = (idx: number) => {
     if (!routes[idx]) return;
@@ -606,17 +679,6 @@ export default function LiveJourneyMap({
     ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-  // Calculate Live tracking coordinates during active Ride Tracker simulation progress
-  const activePath = routePathOverride || (routes[activeRouteIndex] ? routes[activeRouteIndex].path : []);
-  let currentTrackingPosition: Coords | null = null;
-  if (isTrackingMode && activePath.length > 0) {
-    const idx = Math.min(
-      activePath.length - 1,
-      Math.max(0, Math.floor((rideProgressPct / 100) * (activePath.length - 1)))
-    );
-    currentTrackingPosition = activePath[idx];
-  }
-
   // Find nearest hospital for SOS anomaly overlays
   let nearestHospital: typeof hospitals[0] | null = null;
   if (currentTrackingPosition && hospitals.length > 0) {
@@ -632,9 +694,9 @@ export default function LiveJourneyMap({
 
   // Compute map bounds to fit either active route or active tracking path
   let mapBounds = undefined;
-  if (isTrackingMode && currentTrackingPosition && dropCoords) {
+  if (isTrackingMode && animatedVehiclePos && dropCoords) {
     mapBounds = L.latLngBounds([
-      [currentTrackingPosition.lat, currentTrackingPosition.lng],
+      [animatedVehiclePos.lat, animatedVehiclePos.lng],
       [dropCoords.lat, dropCoords.lng]
     ]);
   } else if (pickupCoords && dropCoords) {
@@ -643,37 +705,60 @@ export default function LiveJourneyMap({
 
   // Segmented route polyline with custom glows depending on selections
   const renderRouteSegments = (route: RouteOption, idx: number) => {
-    const isSelected = idx === activeRouteIndex;
-    const isHovered = idx === hoveredRouteIndex;
+    const isSelected = routePathOverride ? true : (idx === activeRouteIndex);
     
-    // Inactive routes render as faded thin grey paths
+    // Inactive routes are hidden
     if (!isSelected) {
-      return (
-        <Polyline
-          positions={route.path.map(p => [p.lat, p.lng])}
-          pathOptions={{
-            color: isHovered ? '#6366f1' : '#94a3b8',
-            opacity: isHovered ? 0.8 : 0.45,
-            weight: isHovered ? 6 : 4,
-            className: isHovered ? 'leaflet-hover-route' : ''
-          }}
-          eventHandlers={{
-            click: () => handleSelectRoute(idx)
-          }}
-        />
-      );
+      return null;
     }
 
     const points = route.path;
+    
+    if (isTrackingMode) {
+      const currentIdx = Math.min(
+        points.length - 1,
+        Math.max(0, Math.floor((rideProgressPct / 100) * (points.length - 1)))
+      );
+      const completedPath = points.slice(0, currentIdx + 1);
+      const remainingPath = points.slice(currentIdx);
+      
+      return (
+        <>
+          {completedPath.length > 1 && (
+            <Polyline
+              positions={completedPath.map(p => [p.lat, p.lng])}
+              pathOptions={{
+                color: '#00E676', // Green
+                opacity: 0.95,
+                weight: 8,
+                className: 'leaflet-selected-route-green'
+              }}
+            />
+          )}
+          {remainingPath.length > 1 && (
+            <Polyline
+              positions={remainingPath.map(p => [p.lat, p.lng])}
+              pathOptions={{
+                color: '#94a3b8', // Gray
+                opacity: 0.7,
+                weight: 6,
+                className: 'leaflet-remaining-route-gray'
+              }}
+            />
+          )}
+        </>
+      );
+    }
+
     if (points.length < 3) {
       return (
         <Polyline
           positions={points.map(p => [p.lat, p.lng])}
           pathOptions={{
-            color: '#6366f1',
+            color: '#00E676',
             opacity: 0.95,
             weight: 8,
-            className: 'leaflet-selected-route-green'
+            className: 'leaflet-selected-route-green animate-route-flow'
           }}
         />
       );
@@ -693,10 +778,10 @@ export default function LiveJourneyMap({
           <Polyline
             positions={part1.map(p => [p.lat, p.lng])}
             pathOptions={{
-              color: '#10b981', // green / free flow
+              color: '#00E676', // green / free flow
               opacity: 0.95,
               weight: 8,
-              className: 'leaflet-selected-route-green'
+              className: 'leaflet-selected-route-green animate-route-flow'
             }}
             eventHandlers={{
               click: () => handleSelectRoute(idx)
@@ -707,10 +792,10 @@ export default function LiveJourneyMap({
           <Polyline
             positions={part2.map(p => [p.lat, p.lng])}
             pathOptions={{
-              color: '#fbbf24', // yellow / moderate
+              color: '#FF9100', // orange / moderate
               opacity: 0.95,
               weight: 8,
-              className: 'leaflet-selected-route-yellow'
+              className: 'leaflet-selected-route-yellow animate-route-flow'
             }}
             eventHandlers={{
               click: () => handleSelectRoute(idx)
@@ -721,10 +806,10 @@ export default function LiveJourneyMap({
           <Polyline
             positions={part3.map(p => [p.lat, p.lng])}
             pathOptions={{
-              color: '#ef4444', // red / heavy traffic
+              color: '#FF1744', // red / heavy traffic
               opacity: 0.95,
               weight: 8,
-              className: 'leaflet-selected-route-red'
+              className: 'leaflet-selected-route-red animate-route-flow'
             }}
             eventHandlers={{
               click: () => handleSelectRoute(idx)
@@ -832,9 +917,9 @@ export default function LiveJourneyMap({
             })}
 
             {/* Active Live Tracking Vehicle Marker */}
-            {isTrackingMode && currentTrackingPosition && (
+            {isTrackingMode && animatedVehiclePos && (
               <Marker 
-                position={[currentTrackingPosition.lat, currentTrackingPosition.lng]} 
+                position={[animatedVehiclePos.lat, animatedVehiclePos.lng]} 
                 icon={createLiveTrackingIcon(activeTravelMode, rideSpeedKmH, rideStatus)}
               >
                 <Popup>

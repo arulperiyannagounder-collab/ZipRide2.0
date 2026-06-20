@@ -21,6 +21,21 @@ interface SettingsViewProps {
 export default function SettingsView({ currentUser, currentUserRole, onLogout, theme, onThemeChange }: SettingsViewProps) {
   const { showToast } = useToast();
   
+  // Animation settings state
+  const [enableAnimations, setEnableAnimations] = useState(() => {
+    return localStorage.getItem("skipZipRideIntro") !== "true";
+  });
+
+  const handleToggleAnimations = (checked: boolean) => {
+    setEnableAnimations(checked);
+    if (checked) {
+      localStorage.removeItem("skipZipRideIntro");
+    } else {
+      localStorage.setItem("skipZipRideIntro", "true");
+    }
+    showToast(checked ? 'Cinematic intro enabled!' : 'Cinematic intro disabled.', 'info');
+  };
+
   // Load and manage user profile
   const [profile, setProfile] = useState<UserProfile>(() => ZipRideRepository.getProfile());
 
@@ -260,6 +275,20 @@ export default function SettingsView({ currentUser, currentUserRole, onLogout, t
                 );
               })}
             </div>
+          </div>
+
+          {/* Animations Settings */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-3">
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Animations Settings</span>
+            <label className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+              <input
+                type="checkbox"
+                checked={enableAnimations}
+                onChange={(e) => handleToggleAnimations(e.target.checked)}
+                className="rounded text-emerald-500 focus:ring-emerald-500 bg-slate-900 border-slate-800 w-4 h-4 cursor-pointer"
+              />
+              <span className="text-xs font-semibold text-slate-200">Enable Cinematic Intro</span>
+            </label>
           </div>
 
           {/* Logout card */}

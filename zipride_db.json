@@ -12,8 +12,8 @@
       "baseTodayEarnings": 1250,
       "phone": "+91 9876543210",
       "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
+        "lat": 11.0168,
+        "lng": 76.9558
       }
     },
     {
@@ -28,92 +28,12 @@
       "baseTodayEarnings": 1250,
       "phone": "+91 9876543210",
       "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
+        "lat": 11.0168,
+        "lng": 76.9558
       }
     },
     {
-      "id": "DRV-041318",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-dhdhhdhd",
-      "vehicleType": "Bike",
-      "vehicleNumber": "dhdhhdhd",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 11.0168,
-        "lng": 76.9558
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-756554",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-tn 26275",
-      "vehicleType": "Bike",
-      "vehicleNumber": "tn 26275",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-893975",
-      "name": "Saran",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-BIKE-TN37AB3286",
-      "vehicleType": "Bike",
-      "vehicleNumber": "BIKE-TN37AB3286",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 11.0168,
-        "lng": 76.9558
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-867384",
-      "name": "Saran",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-BIKE-TN37AB3286",
-      "vehicleType": "Bike",
-      "vehicleNumber": "BIKE-TN37AB3286",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-687284",
-      "name": "Saran",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-BIKE-TN37AB3286",
-      "vehicleType": "Bike",
-      "vehicleNumber": "BIKE-TN37AB3286",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-741209",
+      "id": "DRV-490152",
       "name": "Arul",
       "phone": "+91 9876543210",
       "vehicle": "BIKE-TN-09-XX-8822",
@@ -129,39 +49,23 @@
       "baseTodayEarnings": 0
     },
     {
-      "id": "DRV-976169",
+      "id": "DRV-686427",
       "name": "Arul",
       "phone": "+91 9876543210",
-      "vehicle": "AUTO-TN-09-XX-8822",
-      "vehicleType": "Auto",
+      "vehicle": "BIKE-TN-09-XX-8822",
+      "vehicleType": "Bike",
       "vehicleNumber": "TN-09-XX-8822",
       "rating": 5,
       "status": "online",
       "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
+        "lat": 11.0168,
+        "lng": 76.9558
       },
       "baseCompletedRides": 0,
       "baseTodayEarnings": 0
     },
     {
-      "id": "DRV-947019",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "AUTO-AUTO-TN-09-XX-8822",
-      "vehicleType": "Auto",
-      "vehicleNumber": "AUTO-TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-727053",
+      "id": "DRV-017114",
       "name": "Arul",
       "phone": "+91 9876543210",
       "vehicle": "BIKE-BIKE-TN-09-XX-8822",
@@ -170,136 +74,8 @@
       "rating": 5,
       "status": "online",
       "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-033555",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-147434",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-5678",
-      "name": "Amruda",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN37AB9771",
-      "rating": 4.6,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN37AB9771",
-      "baseCompletedRides": 24,
-      "baseTodayEarnings": 1250
-    },
-    {
-      "id": "DRV-340959",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-915022",
-      "name": "Guna",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
         "lat": 11.0168,
         "lng": 76.9558
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-4053",
-      "name": "Gunavathi",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN37AB8360",
-      "rating": 4.6,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
-      },
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN37AB8360",
-      "baseCompletedRides": 24,
-      "baseTodayEarnings": 1250
-    },
-    {
-      "id": "DRV-088614",
-      "name": "Guna",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "BIKE-TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 10.876927,
-        "lng": 77.021416
-      },
-      "baseCompletedRides": 0,
-      "baseTodayEarnings": 0
-    },
-    {
-      "id": "DRV-978620",
-      "name": "Arul",
-      "phone": "+91 9876543210",
-      "vehicle": "BIKE-TN-09-XX-8822",
-      "vehicleType": "Bike",
-      "vehicleNumber": "TN-09-XX-8822",
-      "rating": 5,
-      "status": "online",
-      "location": {
-        "lat": 13.0827,
-        "lng": 80.2707
       },
       "baseCompletedRides": 0,
       "baseTodayEarnings": 0
@@ -307,1491 +83,7 @@
   ],
   "rides": [
     {
-      "id": "ZR009841C7",
-      "pickup": "Dadar Station, Mumbai",
-      "drop": "Juhu Beach, Mumbai",
-      "distanceKm": 14.5,
-      "durationMin": 35,
-      "baseFare": 20,
-      "distanceFare": 174,
-      "durationFare": 52.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 245.15,
-      "safetyScore": 60,
-      "overspeedEvents": 1,
-      "harshBrakeEvents": 3,
-      "behaviorDiscount": 45,
-      "finalFare": 236.92,
-      "paymentMethod": "Card",
-      "status": "completed",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:55:00.000Z",
-      "gpsLat": 19.0835,
-      "gpsLng": 72.8827,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "adjustmentTrigger": "weather",
-      "adjustmentAmount": 36.77,
-      "adjustmentEvidence": {
-        "type": "Weather API API-re-fetch",
-        "description": "Weather escalated to high winds."
-      },
-      "adjustmentStatus": "accepted",
-      "riderName": "Saran",
-      "completedAt": "2026-06-15T14:55:16.939Z"
-    },
-    {
-      "id": "ZR37DA8BD5",
-      "pickup": "Andheri Station, Mumbai",
-      "drop": "BKC, Mumbai",
-      "distanceKm": 18.2,
-      "durationMin": 44,
-      "baseFare": 20,
-      "distanceFare": 218.4,
-      "durationFare": 66,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 316.7,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 316.7,
-      "paymentMethod": "UPI",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:54:00.000Z",
-      "gpsLat": 19.1136,
-      "gpsLng": 72.8697,
-      "speed": 35,
-      "ignition": "on",
-      "seat": "occupied",
-      "motion": "moving",
-      "nfc": "active",
-      "progress": 15,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZRDB1E5F25",
-      "pickup": "Dadar Station, Mumbai",
-      "drop": "Juhu Beach, Mumbai",
-      "distanceKm": 14.5,
-      "durationMin": 35,
-      "baseFare": 20,
-      "distanceFare": 174,
-      "durationFare": 52.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 310.7,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 310.7,
-      "paymentMethod": "Wallet",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:53:00.000Z",
-      "gpsLat": 19.0178,
-      "gpsLng": 72.8478,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZRF38CBF51",
-      "pickup": "Andheri Station, Mumbai",
-      "drop": "BKC, Mumbai",
-      "distanceKm": 18.2,
-      "durationMin": 44,
-      "baseFare": 20,
-      "distanceFare": 218.4,
-      "durationFare": 66,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 266.3,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 266.3,
-      "paymentMethod": "UPI",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:52:00.000Z",
-      "gpsLat": 19.1136,
-      "gpsLng": 72.8697,
-      "speed": 28,
-      "ignition": "on",
-      "seat": "occupied",
-      "motion": "moving",
-      "nfc": "active",
-      "progress": 55,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZRDF10E68E",
-      "pickup": "Dadar Station, Mumbai",
-      "drop": "Juhu Beach, Mumbai",
-      "distanceKm": 14.5,
-      "durationMin": 35,
-      "baseFare": 20,
-      "distanceFare": 174,
-      "durationFare": 52.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 240.05,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 240.05,
-      "paymentMethod": "UPI",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:51:00.000Z",
-      "gpsLat": 19.0178,
-      "gpsLng": 72.8478,
-      "speed": 12,
-      "ignition": "on",
-      "seat": "occupied",
-      "motion": "moving",
-      "nfc": "active",
-      "progress": 82,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZRA77E12D5",
-      "pickup": "Andheri Station, Mumbai",
-      "drop": "BKC, Mumbai",
-      "distanceKm": 18.2,
-      "durationMin": 44,
-      "baseFare": 20,
-      "distanceFare": 218.4,
-      "durationFare": 66,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 274.7,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 274.7,
-      "paymentMethod": "UPI",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:50:00.000Z",
-      "gpsLat": 19.1136,
-      "gpsLng": 72.8697,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZRA5ECDBCB",
-      "pickup": "Lower Parel, Mumbai",
-      "drop": "BKC, Mumbai",
-      "distanceKm": 5.4,
-      "durationMin": 15,
-      "baseFare": 20,
-      "distanceFare": 64.8,
-      "durationFare": 22.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 100.7,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 100.7,
-      "paymentMethod": "UPI",
-      "status": "completed",
-      "paymentStatus": "Disputed",
-      "createdAt": "2026-06-11T21:00:00.000Z",
-      "completedAt": "2026-06-11T21:15:00.000Z",
-      "gpsLat": 19.076,
-      "gpsLng": 72.8777,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR88E2848F",
-      "pickup": "Dadar Station, Mumbai",
-      "drop": "Juhu Beach, Mumbai",
-      "distanceKm": 14.5,
-      "durationMin": 35,
-      "baseFare": 20,
-      "distanceFare": 174,
-      "durationFare": 52.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 293.9,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 293.9,
-      "paymentMethod": "Card",
-      "status": "completed",
-      "paymentStatus": "Paid",
-      "rating": 5,
-      "createdAt": "2026-06-11T20:30:00.000Z",
-      "completedAt": "2026-06-11T21:05:00.000Z",
-      "gpsLat": 19.0178,
-      "gpsLng": 72.8478,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR93928EAE",
-      "pickup": "Bandra West, Mumbai",
-      "drop": "Powai Lake, Mumbai",
-      "distanceKm": 20.4,
-      "durationMin": 50,
-      "baseFare": 20,
-      "distanceFare": 244.8,
-      "durationFare": 75,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 356.64,
-      "safetyScore": 90,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 1,
-      "behaviorDiscount": 10,
-      "finalFare": 346.64,
-      "paymentMethod": "UPI",
-      "status": "completed",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:55:20.000Z",
-      "gpsLat": 19.07675,
-      "gpsLng": 72.8782,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "driverId": "DRV-4581",
-      "driverName": "Saran",
-      "driverVehicle": "BIKE-TN37AB3286",
-      "driverRating": 4.7,
-      "driverPhone": "9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-15T12:55:39.654Z",
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR6ADB0F88",
-      "pickup": "Bandra West, Mumbai",
-      "drop": "Powai Lake, Mumbai",
-      "distanceKm": 16.5,
-      "durationMin": 41,
-      "baseFare": 20,
-      "distanceFare": 198,
-      "durationFare": 61.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 284.1,
-      "safetyScore": 10,
-      "overspeedEvents": 18,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 270,
-      "finalFare": 20,
-      "paymentMethod": "UPI",
-      "status": "completed",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:55:10.000Z",
-      "gpsLat": 19.091,
-      "gpsLng": 72.88770000000001,
-      "speed": 42,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Saran",
-      "driverId": "DRV-2038",
-      "driverName": "Arul",
-      "driverVehicle": "BIKE-TN37AB6609",
-      "driverRating": 4.9,
-      "driverPhone": "+91 9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-15T16:26:37.588Z"
-    },
-    {
-      "id": "ZRA1A8BF0B",
-      "pickup": "ijy7b",
-      "drop": "othakalmandapam",
-      "distanceKm": 18.5,
-      "durationMin": 43,
-      "baseFare": 20,
-      "distanceFare": 222,
-      "durationFare": 64.5,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 287.15,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 287.15,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:55:05.000Z",
-      "gpsLat": 10.9012,
-      "gpsLng": 77.0145,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR19952BD9",
-      "pickup": "Churchgate Station, Mumbai",
-      "drop": "Marine Drive, Mumbai",
-      "distanceKm": 4.5,
-      "durationMin": 12,
-      "baseFare": 20,
-      "distanceFare": 54,
-      "durationFare": 18,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 137.6,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 137.6,
-      "paymentMethod": "UPI",
-      "status": "assigned",
-      "paymentStatus": "Pending",
-      "createdAt": "2026-06-11T21:49:00.000Z",
-      "gpsLat": 18.9322,
-      "gpsLng": 72.8264,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-791485",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 141.52,
-      "durationMin": 368,
-      "baseFare": 20,
-      "distanceFare": 1698.24,
-      "durationFare": 552,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 2579.52,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 2579.52,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T05:52:07.765Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-361068",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 20,
-      "distanceFare": 208.32,
-      "durationFare": 31.65,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 296.29,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 296.29,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T05:52:57.760Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-704697",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 20,
-      "distanceFare": 208.32,
-      "durationFare": 31.65,
-      "weatherType": "Rain Showers",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 331.29,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 331.29,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T06:18:21.156Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-449792",
-      "pickup": "Ukkadam Bus Stand, Podanur, Tamil Nadu",
-      "drop": "Pollachi, Pollachi, Tamil Nadu",
-      "distanceKm": 39.88,
-      "durationMin": 44.4,
-      "baseFare": 20,
-      "distanceFare": 478.56,
-      "durationFare": 66.6,
-      "weatherType": "Rain Showers",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 676.08,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 676.08,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T08:21:37.198Z",
-      "gpsLat": 10.9883471,
-      "gpsLng": 76.9618799,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-871211",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam Academy of Higher Education, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.24,
-      "durationMin": 20.9,
-      "baseFare": 20,
-      "distanceFare": 206.88,
-      "durationFare": 31.35,
-      "weatherType": "Rain Showers",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 329.31,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 329.31,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T08:34:01.602Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-374485",
-      "pickup": "Lower Parel, Mumbai",
-      "drop": "BKC, Mumbai",
-      "distanceKm": 5.4,
-      "durationMin": 15,
-      "baseFare": 20,
-      "distanceFare": 64.8,
-      "durationFare": 22.5,
-      "weatherType": "Light Drizzle",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 144.15,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 144.15,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T09:23:22.550Z",
-      "gpsLat": 11.0168,
-      "gpsLng": 76.9558,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran"
-    },
-    {
-      "id": "ZR-360375",
-      "pickup": "Marina Beach,Chennai, Chennai, Tamil Nadu",
-      "drop": "Madras High Court, Chennai, Tamil Nadu",
-      "distanceKm": 4.87,
-      "durationMin": 6.4,
-      "baseFare": 20,
-      "distanceFare": 58.44,
-      "durationFare": 9.6,
-      "weatherType": "Light Drizzle",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 121.95,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 121.95,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T11:51:36.704Z",
-      "gpsLat": 13.0533969,
-      "gpsLng": 80.2833328,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 13.0533969,
-      "riderLng": 80.2833328
-    },
-    {
-      "id": "ZR-474193",
-      "pickup": "Pennagaram, Pennagaram, Tamil Nadu",
-      "drop": "Dharmapuri, Dharmapuri, Tamil Nadu",
-      "distanceKm": 29.75,
-      "durationMin": 33.6,
-      "baseFare": 20,
-      "distanceFare": 357,
-      "durationFare": 50.4,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 485.43,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 485.43,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T12:09:46.009Z",
-      "gpsLat": 12.1125277,
-      "gpsLng": 77.8677247,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 12.1125277,
-      "riderLng": 77.8677247
-    },
-    {
-      "id": "ZR-705802",
-      "pickup": "Myleripalayam, Myleripalayam, Tamil Nadu",
-      "drop": "Chettipalayam, Chettipalayam, Tamil Nadu",
-      "distanceKm": 5.6,
-      "durationMin": 8.3,
-      "baseFare": 20,
-      "distanceFare": 67.2,
-      "durationFare": 12.45,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 115.13,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 115.13,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T12:27:45.183Z",
-      "gpsLat": 10.8702488,
-      "gpsLng": 77.0228645,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.8702488,
-      "riderLng": 77.0228645
-    },
-    {
-      "id": "ZR-351486",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 25.31,
-      "durationMin": 74,
-      "baseFare": 20,
-      "distanceFare": 303.72,
-      "durationFare": 111,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 496.19,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 496.19,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T14:27:48.814Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609
-    },
-    {
-      "id": "ZR-512328",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu",
-      "distanceKm": 3.6,
-      "durationMin": 3.7,
-      "baseFare": 20,
-      "distanceFare": 43.2,
-      "durationFare": 5.55,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 80.08,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 80.08,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T15:58:58.145Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609
-    },
-    {
-      "id": "ZR-475420",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 20,
-      "distanceFare": 208.32,
-      "durationFare": 31.65,
-      "weatherType": "Partly Cloudy",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 296.29,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 296.29,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T16:04:34.808Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609
-    },
-    {
-      "id": "ZR-776671",
-      "pickup": "Ukkadam, Podanur, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.08,
-      "durationMin": 21.6,
-      "baseFare": 20,
-      "distanceFare": 204.96,
-      "durationFare": 32.4,
-      "weatherType": "Clear & Sunny",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 277.36,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 277.36,
-      "paymentMethod": "Wallet",
-      "status": "booked",
-      "createdAt": "2026-06-15T16:25:17.478Z",
-      "gpsLat": 10.9913011,
-      "gpsLng": 76.9628106,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.9913011,
-      "riderLng": 76.9628106
-    },
-    {
-      "id": "ZR-370108",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam Faculty Of Medical Sciences And Research, Othakalmandapam, Tamil Nadu",
-      "distanceKm": 15.5,
-      "durationMin": 18.8,
-      "baseFare": 20,
-      "distanceFare": 186,
-      "durationFare": 28.2,
-      "weatherType": "Clear & Sunny",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 167.8,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 167.8,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T16:38:37.936Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609
-    },
-    {
-      "id": "ZR-852287",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 20,
-      "distanceFare": 208.32,
-      "durationFare": 31.65,
-      "weatherType": "Clear & Sunny",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T16:52:28.224Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609
-    },
-    {
-      "id": "ZR-681976",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 25,
-      "distanceFare": 138.88,
-      "durationFare": 21.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T16:58:57.286Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Saran",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-637421",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 25,
-      "distanceFare": 138.88,
-      "durationFare": 21.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "GooglePay",
-      "status": "completed",
-      "createdAt": "2026-06-15T17:50:58.975Z",
-      "gpsLat": 19.07975,
-      "gpsLng": 72.8802,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0,
-      "driverId": "DRV-4581",
-      "driverName": "Saran",
-      "driverVehicle": "BIKE-TN37AB3286",
-      "driverRating": 4.7,
-      "driverPhone": "+91 9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-15T17:53:03.056Z",
-      "rating": 5,
-      "paymentStatus": "paid",
-      "paymentReference": "TXN-GOOGLEPAY-219526",
-      "paidAt": "2026-06-15T20:34:59.296Z"
-    },
-    {
-      "id": "ZR-610850",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 25,
-      "distanceFare": 138.88,
-      "durationFare": 21.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T18:16:08.551Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-666237",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 25,
-      "distanceFare": 138.88,
-      "durationFare": 21.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T18:27:12.525Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-853825",
-      "pickup": "Ukkadam Lake Promenade, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.24,
-      "durationMin": 21.6,
-      "baseFare": 25,
-      "distanceFare": 137.92,
-      "durationFare": 21.6,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.52,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.52,
-      "paymentMethod": "UPI",
-      "status": "booked",
-      "createdAt": "2026-06-15T19:15:22.684Z",
-      "gpsLat": 10.9925,
-      "gpsLng": 76.9585,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.9925,
-      "riderLng": 76.9585,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-652337",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu",
-      "distanceKm": 3.6,
-      "durationMin": 3.7,
-      "baseFare": 25,
-      "distanceFare": 28.8,
-      "durationFare": 3.7,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 57.5,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 57.5,
-      "paymentMethod": "UPI",
-      "paymentStatus": "pending",
-      "status": "booked",
-      "createdAt": "2026-06-15T20:01:56.920Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-739581",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam Institute of Technology, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.93,
-      "durationMin": 22.1,
-      "baseFare": 25,
-      "distanceFare": 143.44,
-      "durationFare": 22.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 190.54,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 190.54,
-      "paymentMethod": "UPI",
-      "paymentStatus": "pending",
-      "status": "booked",
-      "createdAt": "2026-06-16T01:28:41.717Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-155588",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam College of Engineering, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.36,
-      "durationMin": 21.1,
-      "baseFare": 25,
-      "distanceFare": 138.88,
-      "durationFare": 21.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.98,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.98,
-      "paymentMethod": "GooglePay",
-      "paymentStatus": "paid",
-      "status": "completed",
-      "createdAt": "2026-06-16T01:30:23.419Z",
-      "gpsLat": 19.091,
-      "gpsLng": 72.88770000000001,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Arul1",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0,
-      "paymentReference": "TXN-GOOGLEPAY-727479",
-      "paidAt": "2026-06-16T01:48:51.814Z",
-      "driverId": "DRV-2038",
-      "driverName": "Arul",
-      "driverVehicle": "BIKE-TN37AB6609",
-      "driverRating": 4.9,
-      "driverPhone": "+91 9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-16T02:02:38.292Z"
-    },
-    {
-      "id": "ZR-271008",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Karpagam Institute of Technology, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.93,
-      "durationMin": 22.1,
-      "baseFare": 25,
-      "distanceFare": 143.44,
-      "durationFare": 22.1,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 190.54,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 190.54,
-      "paymentMethod": "UPI",
-      "paymentStatus": "paid",
-      "status": "completed",
-      "createdAt": "2026-06-16T01:56:35.216Z",
-      "gpsLat": 19.091,
-      "gpsLng": 72.88770000000001,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Arul",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0,
-      "driverId": "DRV-2038",
-      "driverName": "Arul",
-      "driverVehicle": "BIKE-TN37AB6609",
-      "driverRating": 4.9,
-      "driverPhone": "+91 9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-16T01:57:45.624Z",
-      "paymentReference": "DRV-CASH-855523",
-      "paidAt": "2026-06-16T01:57:51.388Z"
-    },
-    {
-      "id": "ZR-922834",
-      "pickup": "Gandhi Park, Coimbatore, Tamil Nadu",
-      "drop": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "distanceKm": 3.03,
-      "durationMin": 4.4,
-      "baseFare": 25,
-      "distanceFare": 24.24,
-      "durationFare": 4.4,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 53.64,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 53.64,
-      "paymentMethod": "GooglePay",
-      "paymentStatus": "paid",
-      "status": "booked",
-      "createdAt": "2026-06-16T02:01:52.949Z",
-      "gpsLat": 11.0054,
-      "gpsLng": 76.9471,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Amruda",
-      "riderPhone": "9876543210",
-      "riderLat": 11.0054,
-      "riderLng": 76.9471,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0,
-      "paymentReference": "TXN-GOOGLEPAY-681094",
-      "paidAt": "2026-06-16T02:03:46.610Z",
-      "isSilentSOS": false,
-      "hasActiveSOS": true
-    },
-    {
-      "id": "ZR-334574",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Othakalmandapam Central, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.31,
-      "durationMin": 20.6,
-      "baseFare": 25,
-      "distanceFare": 138.48,
-      "durationFare": 20.6,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.08,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.08,
-      "paymentMethod": "UPI",
-      "paymentStatus": "pending",
-      "status": "booked",
-      "createdAt": "2026-06-16T02:07:32.304Z",
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
-      "speed": 0,
-      "ignition": "off",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 0,
-      "riderName": "Guna",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0
-    },
-    {
-      "id": "ZR-107909",
-      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
-      "drop": "Othakalmandapam Central, Coimbatore, Tamil Nadu",
-      "distanceKm": 17.31,
-      "durationMin": 20.6,
-      "baseFare": 25,
-      "distanceFare": 138.48,
-      "durationFare": 20.6,
-      "weatherType": "Clear",
-      "weatherFactor": 0,
-      "trafficType": "Light",
-      "trafficFactor": 1,
-      "initialFare": 184.08,
-      "safetyScore": 100,
-      "overspeedEvents": 0,
-      "harshBrakeEvents": 0,
-      "behaviorDiscount": 0,
-      "finalFare": 184.08,
-      "paymentMethod": "GooglePay",
-      "paymentStatus": "paid",
-      "status": "completed",
-      "createdAt": "2026-06-16T02:10:42.196Z",
-      "gpsLat": 19.091,
-      "gpsLng": 72.88770000000001,
-      "speed": 0,
-      "ignition": "on",
-      "seat": "empty",
-      "motion": "stationary",
-      "nfc": "inactive",
-      "progress": 100,
-      "riderName": "Gunavathi",
-      "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
-      "vehicleType": "Bike",
-      "weatherCondition": "Clear",
-      "temperature": 28,
-      "humidity": 55,
-      "windSpeed": 10,
-      "weatherMultiplier": 1,
-      "rainChance": 0,
-      "isSilentSOS": false,
-      "hasActiveSOS": true,
-      "driverId": "DRV-915022",
-      "driverName": "Guna",
-      "driverVehicle": "BIKE-TN-09-XX-8822",
-      "driverRating": 5,
-      "driverPhone": "+91 9876543210",
-      "driverVehicleType": "Bike",
-      "completedAt": "2026-06-16T02:12:32.909Z",
-      "rating": 4,
-      "paymentReference": "TXN-GOOGLEPAY-606161",
-      "paidAt": "2026-06-16T02:13:20.280Z"
-    },
-    {
-      "id": "ZR-264730",
+      "id": "ZR-821336",
       "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
       "drop": "Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu",
       "distanceKm": 3.6,
@@ -1803,775 +95,2116 @@
       "weatherFactor": 10,
       "trafficType": "Light",
       "trafficFactor": 1,
-      "initialFare": 125.5,
+      "initialFare": 81.13,
       "safetyScore": 100,
       "overspeedEvents": 0,
       "harshBrakeEvents": 0,
       "behaviorDiscount": 0,
-      "finalFare": 125.5,
-      "paymentMethod": "UPI",
-      "paymentStatus": "pending",
-      "status": "booked",
-      "createdAt": "2026-06-18T22:32:27.740Z",
-      "nightSurcharge": 30,
+      "finalFare": 81.13,
+      "paymentMethod": "GooglePay",
+      "paymentStatus": "failed",
+      "status": "completed",
+      "createdAt": "2026-06-20T06:07:36.367Z",
+      "nightSurcharge": 0,
       "fuelUsage": 0.072,
       "fuelCost": 7.38,
       "fuelAdjustment": 2.95,
       "tollCharges": 0,
       "platformFee": 7,
-      "tax": 19.39,
-      "gpsLat": 10.995,
-      "gpsLng": 76.9609,
+      "tax": 13.99,
+      "gpsLat": 19.0775,
+      "gpsLng": 72.87870000000001,
+      "speed": 0,
+      "ignition": "on",
+      "seat": "empty",
+      "motion": "stationary",
+      "nfc": "inactive",
+      "progress": 100,
+      "selectedRouteIndex": 0,
+      "routePath": [
+        {
+          "lat": 10.994995,
+          "lng": 76.960725
+        },
+        {
+          "lat": 10.994394,
+          "lng": 76.960741
+        },
+        {
+          "lat": 10.994331,
+          "lng": 76.960738
+        },
+        {
+          "lat": 10.994277,
+          "lng": 76.960736
+        },
+        {
+          "lat": 10.994077,
+          "lng": 76.960727
+        },
+        {
+          "lat": 10.99353,
+          "lng": 76.960698
+        },
+        {
+          "lat": 10.993355,
+          "lng": 76.959756
+        },
+        {
+          "lat": 10.993216,
+          "lng": 76.95892
+        },
+        {
+          "lat": 10.993132,
+          "lng": 76.958419
+        },
+        {
+          "lat": 10.994168,
+          "lng": 76.958208
+        },
+        {
+          "lat": 10.994781,
+          "lng": 76.958083
+        },
+        {
+          "lat": 10.995567,
+          "lng": 76.957931
+        },
+        {
+          "lat": 10.996257,
+          "lng": 76.957797
+        },
+        {
+          "lat": 10.996721,
+          "lng": 76.957696
+        },
+        {
+          "lat": 10.997244,
+          "lng": 76.957583
+        },
+        {
+          "lat": 10.998484,
+          "lng": 76.957332
+        },
+        {
+          "lat": 10.998541,
+          "lng": 76.957319
+        },
+        {
+          "lat": 10.999345,
+          "lng": 76.95713
+        },
+        {
+          "lat": 10.99941,
+          "lng": 76.957115
+        },
+        {
+          "lat": 11.0002,
+          "lng": 76.95693
+        },
+        {
+          "lat": 11.000592,
+          "lng": 76.956849
+        },
+        {
+          "lat": 11.000619,
+          "lng": 76.95684
+        },
+        {
+          "lat": 11.000794,
+          "lng": 76.956787
+        },
+        {
+          "lat": 11.000919,
+          "lng": 76.956745
+        },
+        {
+          "lat": 11.00097,
+          "lng": 76.956728
+        },
+        {
+          "lat": 11.001326,
+          "lng": 76.956608
+        },
+        {
+          "lat": 11.001489,
+          "lng": 76.956553
+        },
+        {
+          "lat": 11.002264,
+          "lng": 76.956308
+        },
+        {
+          "lat": 11.002317,
+          "lng": 76.956292
+        },
+        {
+          "lat": 11.003032,
+          "lng": 76.956097
+        },
+        {
+          "lat": 11.003409,
+          "lng": 76.956025
+        },
+        {
+          "lat": 11.003499,
+          "lng": 76.956017
+        },
+        {
+          "lat": 11.003559,
+          "lng": 76.955986
+        },
+        {
+          "lat": 11.003621,
+          "lng": 76.955978
+        },
+        {
+          "lat": 11.00386,
+          "lng": 76.955957
+        },
+        {
+          "lat": 11.004225,
+          "lng": 76.955916
+        },
+        {
+          "lat": 11.004663,
+          "lng": 76.955872
+        },
+        {
+          "lat": 11.004865,
+          "lng": 76.955841
+        },
+        {
+          "lat": 11.005608,
+          "lng": 76.955726
+        },
+        {
+          "lat": 11.00576,
+          "lng": 76.955708
+        },
+        {
+          "lat": 11.006179,
+          "lng": 76.955652
+        },
+        {
+          "lat": 11.006502,
+          "lng": 76.955625
+        },
+        {
+          "lat": 11.006553,
+          "lng": 76.955619
+        },
+        {
+          "lat": 11.006743,
+          "lng": 76.955611
+        },
+        {
+          "lat": 11.007275,
+          "lng": 76.955544
+        },
+        {
+          "lat": 11.00774,
+          "lng": 76.955473
+        },
+        {
+          "lat": 11.008198,
+          "lng": 76.955424
+        },
+        {
+          "lat": 11.009058,
+          "lng": 76.955239
+        },
+        {
+          "lat": 11.009757,
+          "lng": 76.955114
+        },
+        {
+          "lat": 11.009976,
+          "lng": 76.955083
+        },
+        {
+          "lat": 11.010869,
+          "lng": 76.954999
+        },
+        {
+          "lat": 11.011451,
+          "lng": 76.954985
+        },
+        {
+          "lat": 11.011994,
+          "lng": 76.954942
+        },
+        {
+          "lat": 11.01298,
+          "lng": 76.954871
+        },
+        {
+          "lat": 11.013172,
+          "lng": 76.954857
+        },
+        {
+          "lat": 11.013203,
+          "lng": 76.954847
+        },
+        {
+          "lat": 11.013236,
+          "lng": 76.954843
+        },
+        {
+          "lat": 11.013268,
+          "lng": 76.954845
+        },
+        {
+          "lat": 11.0133,
+          "lng": 76.954854
+        },
+        {
+          "lat": 11.013329,
+          "lng": 76.954868
+        },
+        {
+          "lat": 11.013811,
+          "lng": 76.954838
+        },
+        {
+          "lat": 11.01422,
+          "lng": 76.95479
+        },
+        {
+          "lat": 11.01472,
+          "lng": 76.954707
+        },
+        {
+          "lat": 11.015125,
+          "lng": 76.954613
+        },
+        {
+          "lat": 11.015369,
+          "lng": 76.954547
+        },
+        {
+          "lat": 11.015635,
+          "lng": 76.954467
+        },
+        {
+          "lat": 11.016019,
+          "lng": 76.954308
+        },
+        {
+          "lat": 11.016267,
+          "lng": 76.954223
+        },
+        {
+          "lat": 11.016823,
+          "lng": 76.954012
+        },
+        {
+          "lat": 11.017138,
+          "lng": 76.953904
+        },
+        {
+          "lat": 11.01732,
+          "lng": 76.953842
+        },
+        {
+          "lat": 11.017438,
+          "lng": 76.953749
+        },
+        {
+          "lat": 11.017483,
+          "lng": 76.953599
+        },
+        {
+          "lat": 11.017466,
+          "lng": 76.95341
+        },
+        {
+          "lat": 11.017422,
+          "lng": 76.953276
+        },
+        {
+          "lat": 11.017378,
+          "lng": 76.953188
+        },
+        {
+          "lat": 11.017327,
+          "lng": 76.953147
+        },
+        {
+          "lat": 11.017122,
+          "lng": 76.953057
+        },
+        {
+          "lat": 11.016929,
+          "lng": 76.953067
+        },
+        {
+          "lat": 11.016789,
+          "lng": 76.953122
+        },
+        {
+          "lat": 11.016671,
+          "lng": 76.953239
+        },
+        {
+          "lat": 11.016631,
+          "lng": 76.95343
+        },
+        {
+          "lat": 11.016703,
+          "lng": 76.954256
+        },
+        {
+          "lat": 11.016739,
+          "lng": 76.954612
+        },
+        {
+          "lat": 11.016805,
+          "lng": 76.955305
+        },
+        {
+          "lat": 11.016828,
+          "lng": 76.95561
+        },
+        {
+          "lat": 11.01683,
+          "lng": 76.955761
+        },
+        {
+          "lat": 11.016828,
+          "lng": 76.955801
+        }
+      ],
+      "riderName": "Arul",
+      "riderPhone": "9876543210",
+      "riderLat": 10.995,
+      "riderLng": 76.9609,
+      "vehicleType": "Bike",
+      "weatherCondition": "Cloudy",
+      "temperature": 30.6,
+      "humidity": 54,
+      "windSpeed": 13.6,
+      "weatherMultiplier": 1.1,
+      "rainChance": 61,
+      "isChildSafety": false,
+      "isWomenSafety": false,
+      "isFamilySafety": true,
+      "childArrivalConfirmed": false,
+      "driverId": "DRV-2038",
+      "driverName": "Arul",
+      "driverVehicle": "BIKE-TN37AB6609",
+      "driverRating": 4.9,
+      "driverPhone": "+91 9876543210",
+      "driverVehicleType": "Bike",
+      "completedAt": "2026-06-20T06:09:09.097Z",
+      "isSilentSOS": false,
+      "hasActiveSOS": true,
+      "rating": 5,
+      "paymentReference": "REF-955398"
+    },
+    {
+      "id": "ZR-699292",
+      "pickup": "Ukkadam Lake Promenade, Coimbatore, Tamil Nadu",
+      "drop": "Othakalmandapam Central, Coimbatore, Tamil Nadu",
+      "distanceKm": 17.19,
+      "durationMin": 21,
+      "baseFare": 25,
+      "distanceFare": 137.52,
+      "durationFare": 21,
+      "weatherType": "Cloudy",
+      "weatherFactor": 10,
+      "trafficType": "Light",
+      "trafficFactor": 1,
+      "initialFare": 301.63,
+      "safetyScore": 100,
+      "overspeedEvents": 0,
+      "harshBrakeEvents": 0,
+      "behaviorDiscount": 0,
+      "finalFare": 301.63,
+      "paymentMethod": "UPI",
+      "paymentStatus": "pending",
+      "status": "booked",
+      "createdAt": "2026-06-20T06:20:51.163Z",
+      "nightSurcharge": 0,
+      "fuelUsage": 0.344,
+      "fuelCost": 35.24,
+      "fuelAdjustment": 14.1,
+      "tollCharges": 50,
+      "platformFee": 7,
+      "tax": 47.63,
+      "gpsLat": 10.9925,
+      "gpsLng": 76.9585,
       "speed": 0,
       "ignition": "off",
       "seat": "empty",
       "motion": "stationary",
       "nfc": "inactive",
       "progress": 0,
-      "riderName": "Gunavathi",
+      "selectedRouteIndex": 0,
+      "routePath": [
+        {
+          "lat": 10.992522,
+          "lng": 76.958584
+        },
+        {
+          "lat": 10.992305,
+          "lng": 76.958643
+        },
+        {
+          "lat": 10.991661,
+          "lng": 76.95881
+        },
+        {
+          "lat": 10.991302,
+          "lng": 76.958881
+        },
+        {
+          "lat": 10.991291,
+          "lng": 76.959149
+        },
+        {
+          "lat": 10.991279,
+          "lng": 76.959468
+        },
+        {
+          "lat": 10.991261,
+          "lng": 76.959836
+        },
+        {
+          "lat": 10.991039,
+          "lng": 76.960173
+        },
+        {
+          "lat": 10.99099,
+          "lng": 76.960266
+        },
+        {
+          "lat": 10.99084,
+          "lng": 76.960518
+        },
+        {
+          "lat": 10.990866,
+          "lng": 76.960575
+        },
+        {
+          "lat": 10.990634,
+          "lng": 76.96067
+        },
+        {
+          "lat": 10.990538,
+          "lng": 76.960709
+        },
+        {
+          "lat": 10.99042,
+          "lng": 76.960786
+        },
+        {
+          "lat": 10.990288,
+          "lng": 76.960863
+        },
+        {
+          "lat": 10.990087,
+          "lng": 76.960996
+        },
+        {
+          "lat": 10.989824,
+          "lng": 76.96117
+        },
+        {
+          "lat": 10.989676,
+          "lng": 76.961235
+        },
+        {
+          "lat": 10.989547,
+          "lng": 76.961275
+        },
+        {
+          "lat": 10.989435,
+          "lng": 76.961301
+        },
+        {
+          "lat": 10.989283,
+          "lng": 76.961332
+        },
+        {
+          "lat": 10.989217,
+          "lng": 76.961346
+        },
+        {
+          "lat": 10.989067,
+          "lng": 76.961345
+        },
+        {
+          "lat": 10.988849,
+          "lng": 76.961347
+        },
+        {
+          "lat": 10.988694,
+          "lng": 76.961343
+        },
+        {
+          "lat": 10.988503,
+          "lng": 76.961396
+        },
+        {
+          "lat": 10.988391,
+          "lng": 76.961404
+        },
+        {
+          "lat": 10.988259,
+          "lng": 76.961419
+        },
+        {
+          "lat": 10.988152,
+          "lng": 76.961435
+        },
+        {
+          "lat": 10.988093,
+          "lng": 76.961457
+        },
+        {
+          "lat": 10.988028,
+          "lng": 76.961513
+        },
+        {
+          "lat": 10.987964,
+          "lng": 76.961617
+        },
+        {
+          "lat": 10.987952,
+          "lng": 76.961672
+        },
+        {
+          "lat": 10.987967,
+          "lng": 76.962174
+        },
+        {
+          "lat": 10.987993,
+          "lng": 76.962359
+        },
+        {
+          "lat": 10.98801,
+          "lng": 76.962395
+        },
+        {
+          "lat": 10.988028,
+          "lng": 76.962428
+        },
+        {
+          "lat": 10.988065,
+          "lng": 76.962482
+        },
+        {
+          "lat": 10.988149,
+          "lng": 76.962536
+        },
+        {
+          "lat": 10.988168,
+          "lng": 76.962545
+        },
+        {
+          "lat": 10.988287,
+          "lng": 76.962567
+        },
+        {
+          "lat": 10.988371,
+          "lng": 76.962545
+        },
+        {
+          "lat": 10.98841,
+          "lng": 76.962534
+        },
+        {
+          "lat": 10.988455,
+          "lng": 76.962501
+        },
+        {
+          "lat": 10.988511,
+          "lng": 76.962441
+        },
+        {
+          "lat": 10.988539,
+          "lng": 76.962379
+        },
+        {
+          "lat": 10.988568,
+          "lng": 76.962245
+        },
+        {
+          "lat": 10.988589,
+          "lng": 76.962058
+        },
+        {
+          "lat": 10.988619,
+          "lng": 76.961798
+        },
+        {
+          "lat": 10.988639,
+          "lng": 76.961594
+        },
+        {
+          "lat": 10.988634,
+          "lng": 76.96148
+        },
+        {
+          "lat": 10.98858,
+          "lng": 76.961365
+        },
+        {
+          "lat": 10.988481,
+          "lng": 76.961299
+        },
+        {
+          "lat": 10.988351,
+          "lng": 76.961276
+        },
+        {
+          "lat": 10.988168,
+          "lng": 76.961287
+        },
+        {
+          "lat": 10.987889,
+          "lng": 76.961322
+        },
+        {
+          "lat": 10.987162,
+          "lng": 76.961439
+        },
+        {
+          "lat": 10.986913,
+          "lng": 76.961483
+        },
+        {
+          "lat": 10.986492,
+          "lng": 76.96154
+        },
+        {
+          "lat": 10.98628,
+          "lng": 76.96156
+        },
+        {
+          "lat": 10.985978,
+          "lng": 76.961576
+        },
+        {
+          "lat": 10.985778,
+          "lng": 76.961589
+        },
+        {
+          "lat": 10.984976,
+          "lng": 76.961609
+        },
+        {
+          "lat": 10.983686,
+          "lng": 76.961586
+        },
+        {
+          "lat": 10.983524,
+          "lng": 76.961583
+        },
+        {
+          "lat": 10.982599,
+          "lng": 76.961505
+        },
+        {
+          "lat": 10.981663,
+          "lng": 76.961396
+        },
+        {
+          "lat": 10.981253,
+          "lng": 76.961356
+        },
+        {
+          "lat": 10.980449,
+          "lng": 76.96126
+        },
+        {
+          "lat": 10.980236,
+          "lng": 76.961235
+        },
+        {
+          "lat": 10.980005,
+          "lng": 76.961179
+        },
+        {
+          "lat": 10.979709,
+          "lng": 76.961086
+        },
+        {
+          "lat": 10.979554,
+          "lng": 76.961008
+        },
+        {
+          "lat": 10.979346,
+          "lng": 76.960888
+        },
+        {
+          "lat": 10.979153,
+          "lng": 76.960749
+        },
+        {
+          "lat": 10.978787,
+          "lng": 76.960473
+        },
+        {
+          "lat": 10.978661,
+          "lng": 76.960385
+        },
+        {
+          "lat": 10.978523,
+          "lng": 76.960326
+        },
+        {
+          "lat": 10.978365,
+          "lng": 76.96029
+        },
+        {
+          "lat": 10.978201,
+          "lng": 76.960298
+        },
+        {
+          "lat": 10.978057,
+          "lng": 76.960326
+        },
+        {
+          "lat": 10.977915,
+          "lng": 76.960385
+        },
+        {
+          "lat": 10.977784,
+          "lng": 76.960468
+        },
+        {
+          "lat": 10.977644,
+          "lng": 76.960606
+        },
+        {
+          "lat": 10.977498,
+          "lng": 76.960793
+        },
+        {
+          "lat": 10.977206,
+          "lng": 76.961154
+        },
+        {
+          "lat": 10.977041,
+          "lng": 76.961321
+        },
+        {
+          "lat": 10.976872,
+          "lng": 76.961466
+        },
+        {
+          "lat": 10.976672,
+          "lng": 76.961594
+        },
+        {
+          "lat": 10.976482,
+          "lng": 76.9617
+        },
+        {
+          "lat": 10.976255,
+          "lng": 76.961781
+        },
+        {
+          "lat": 10.976036,
+          "lng": 76.961842
+        },
+        {
+          "lat": 10.975862,
+          "lng": 76.961874
+        },
+        {
+          "lat": 10.975778,
+          "lng": 76.961882
+        },
+        {
+          "lat": 10.975663,
+          "lng": 76.961892
+        },
+        {
+          "lat": 10.975506,
+          "lng": 76.961888
+        },
+        {
+          "lat": 10.975308,
+          "lng": 76.961869
+        },
+        {
+          "lat": 10.97523,
+          "lng": 76.961897
+        },
+        {
+          "lat": 10.97491,
+          "lng": 76.961881
+        },
+        {
+          "lat": 10.974843,
+          "lng": 76.961898
+        },
+        {
+          "lat": 10.974708,
+          "lng": 76.961952
+        },
+        {
+          "lat": 10.97463,
+          "lng": 76.961996
+        },
+        {
+          "lat": 10.974529,
+          "lng": 76.962086
+        },
+        {
+          "lat": 10.974406,
+          "lng": 76.962254
+        },
+        {
+          "lat": 10.974266,
+          "lng": 76.962473
+        },
+        {
+          "lat": 10.973997,
+          "lng": 76.962845
+        },
+        {
+          "lat": 10.973778,
+          "lng": 76.963177
+        },
+        {
+          "lat": 10.973701,
+          "lng": 76.963302
+        },
+        {
+          "lat": 10.973482,
+          "lng": 76.963711
+        },
+        {
+          "lat": 10.973377,
+          "lng": 76.963953
+        },
+        {
+          "lat": 10.973281,
+          "lng": 76.964183
+        },
+        {
+          "lat": 10.973197,
+          "lng": 76.964424
+        },
+        {
+          "lat": 10.9731,
+          "lng": 76.964706
+        },
+        {
+          "lat": 10.973047,
+          "lng": 76.964843
+        },
+        {
+          "lat": 10.972976,
+          "lng": 76.964987
+        },
+        {
+          "lat": 10.9729,
+          "lng": 76.965077
+        },
+        {
+          "lat": 10.972885,
+          "lng": 76.965091
+        },
+        {
+          "lat": 10.972829,
+          "lng": 76.965144
+        },
+        {
+          "lat": 10.972637,
+          "lng": 76.965265
+        },
+        {
+          "lat": 10.972309,
+          "lng": 76.965469
+        },
+        {
+          "lat": 10.972084,
+          "lng": 76.965638
+        },
+        {
+          "lat": 10.971896,
+          "lng": 76.965782
+        },
+        {
+          "lat": 10.971716,
+          "lng": 76.965919
+        },
+        {
+          "lat": 10.971545,
+          "lng": 76.96604
+        },
+        {
+          "lat": 10.97143,
+          "lng": 76.966081
+        },
+        {
+          "lat": 10.971315,
+          "lng": 76.966165
+        },
+        {
+          "lat": 10.970745,
+          "lng": 76.966582
+        },
+        {
+          "lat": 10.969805,
+          "lng": 76.967128
+        },
+        {
+          "lat": 10.96917,
+          "lng": 76.967491
+        },
+        {
+          "lat": 10.968672,
+          "lng": 76.967725
+        },
+        {
+          "lat": 10.968059,
+          "lng": 76.96802
+        },
+        {
+          "lat": 10.967654,
+          "lng": 76.968258
+        },
+        {
+          "lat": 10.967464,
+          "lng": 76.968382
+        },
+        {
+          "lat": 10.966774,
+          "lng": 76.968768
+        },
+        {
+          "lat": 10.96629,
+          "lng": 76.969031
+        },
+        {
+          "lat": 10.966132,
+          "lng": 76.969139
+        },
+        {
+          "lat": 10.965638,
+          "lng": 76.96957
+        },
+        {
+          "lat": 10.96532,
+          "lng": 76.96978
+        },
+        {
+          "lat": 10.964846,
+          "lng": 76.970033
+        },
+        {
+          "lat": 10.964657,
+          "lng": 76.970147
+        },
+        {
+          "lat": 10.964271,
+          "lng": 76.970408
+        },
+        {
+          "lat": 10.964011,
+          "lng": 76.970601
+        },
+        {
+          "lat": 10.963839,
+          "lng": 76.970862
+        },
+        {
+          "lat": 10.963774,
+          "lng": 76.971034
+        },
+        {
+          "lat": 10.963586,
+          "lng": 76.971668
+        },
+        {
+          "lat": 10.963488,
+          "lng": 76.972004
+        },
+        {
+          "lat": 10.963422,
+          "lng": 76.97217
+        },
+        {
+          "lat": 10.963329,
+          "lng": 76.972287
+        },
+        {
+          "lat": 10.963261,
+          "lng": 76.97233
+        },
+        {
+          "lat": 10.963059,
+          "lng": 76.972345
+        },
+        {
+          "lat": 10.96291,
+          "lng": 76.972299
+        },
+        {
+          "lat": 10.962868,
+          "lng": 76.972272
+        },
+        {
+          "lat": 10.962775,
+          "lng": 76.972201
+        },
+        {
+          "lat": 10.962509,
+          "lng": 76.971958
+        },
+        {
+          "lat": 10.962225,
+          "lng": 76.97174
+        },
+        {
+          "lat": 10.962165,
+          "lng": 76.971688
+        },
+        {
+          "lat": 10.961969,
+          "lng": 76.971543
+        },
+        {
+          "lat": 10.961847,
+          "lng": 76.971509
+        },
+        {
+          "lat": 10.961669,
+          "lng": 76.971461
+        },
+        {
+          "lat": 10.961495,
+          "lng": 76.97142
+        },
+        {
+          "lat": 10.961198,
+          "lng": 76.971342
+        },
+        {
+          "lat": 10.961047,
+          "lng": 76.971315
+        },
+        {
+          "lat": 10.960884,
+          "lng": 76.971299
+        },
+        {
+          "lat": 10.960745,
+          "lng": 76.971315
+        },
+        {
+          "lat": 10.960446,
+          "lng": 76.971387
+        },
+        {
+          "lat": 10.959821,
+          "lng": 76.971565
+        },
+        {
+          "lat": 10.959729,
+          "lng": 76.971649
+        },
+        {
+          "lat": 10.958879,
+          "lng": 76.971899
+        },
+        {
+          "lat": 10.958567,
+          "lng": 76.971958
+        },
+        {
+          "lat": 10.957917,
+          "lng": 76.972102
+        },
+        {
+          "lat": 10.957444,
+          "lng": 76.97219
+        },
+        {
+          "lat": 10.956699,
+          "lng": 76.972341
+        },
+        {
+          "lat": 10.956522,
+          "lng": 76.972396
+        },
+        {
+          "lat": 10.95623,
+          "lng": 76.972499
+        },
+        {
+          "lat": 10.956066,
+          "lng": 76.972581
+        },
+        {
+          "lat": 10.955748,
+          "lng": 76.9728
+        },
+        {
+          "lat": 10.954482,
+          "lng": 76.973683
+        },
+        {
+          "lat": 10.954308,
+          "lng": 76.973825
+        },
+        {
+          "lat": 10.953704,
+          "lng": 76.974246
+        },
+        {
+          "lat": 10.952902,
+          "lng": 76.974803
+        },
+        {
+          "lat": 10.9525,
+          "lng": 76.97511
+        },
+        {
+          "lat": 10.952114,
+          "lng": 76.975409
+        },
+        {
+          "lat": 10.951934,
+          "lng": 76.975517
+        },
+        {
+          "lat": 10.951723,
+          "lng": 76.975667
+        },
+        {
+          "lat": 10.951518,
+          "lng": 76.975801
+        },
+        {
+          "lat": 10.950863,
+          "lng": 76.976216
+        },
+        {
+          "lat": 10.949921,
+          "lng": 76.976745
+        },
+        {
+          "lat": 10.949558,
+          "lng": 76.976971
+        },
+        {
+          "lat": 10.949482,
+          "lng": 76.977011
+        },
+        {
+          "lat": 10.94947,
+          "lng": 76.977017
+        },
+        {
+          "lat": 10.948975,
+          "lng": 76.977316
+        },
+        {
+          "lat": 10.948733,
+          "lng": 76.977461
+        },
+        {
+          "lat": 10.948393,
+          "lng": 76.977613
+        },
+        {
+          "lat": 10.948319,
+          "lng": 76.977646
+        },
+        {
+          "lat": 10.94822,
+          "lng": 76.977691
+        },
+        {
+          "lat": 10.947845,
+          "lng": 76.977859
+        },
+        {
+          "lat": 10.947555,
+          "lng": 76.977965
+        },
+        {
+          "lat": 10.947299,
+          "lng": 76.978039
+        },
+        {
+          "lat": 10.946489,
+          "lng": 76.978344
+        },
+        {
+          "lat": 10.945937,
+          "lng": 76.978499
+        },
+        {
+          "lat": 10.945796,
+          "lng": 76.97854
+        },
+        {
+          "lat": 10.945562,
+          "lng": 76.978609
+        },
+        {
+          "lat": 10.94461,
+          "lng": 76.978877
+        },
+        {
+          "lat": 10.9445,
+          "lng": 76.978906
+        },
+        {
+          "lat": 10.943441,
+          "lng": 76.979191
+        },
+        {
+          "lat": 10.942757,
+          "lng": 76.979396
+        },
+        {
+          "lat": 10.941799,
+          "lng": 76.979652
+        },
+        {
+          "lat": 10.941137,
+          "lng": 76.97976
+        },
+        {
+          "lat": 10.940974,
+          "lng": 76.979786
+        },
+        {
+          "lat": 10.940746,
+          "lng": 76.979807
+        },
+        {
+          "lat": 10.940591,
+          "lng": 76.979788
+        },
+        {
+          "lat": 10.940217,
+          "lng": 76.97982
+        },
+        {
+          "lat": 10.939964,
+          "lng": 76.979852
+        },
+        {
+          "lat": 10.9393,
+          "lng": 76.979915
+        },
+        {
+          "lat": 10.938865,
+          "lng": 76.979962
+        },
+        {
+          "lat": 10.938451,
+          "lng": 76.980079
+        },
+        {
+          "lat": 10.938256,
+          "lng": 76.980161
+        },
+        {
+          "lat": 10.937964,
+          "lng": 76.980276
+        },
+        {
+          "lat": 10.937636,
+          "lng": 76.980388
+        },
+        {
+          "lat": 10.937358,
+          "lng": 76.980435
+        },
+        {
+          "lat": 10.937129,
+          "lng": 76.980458
+        },
+        {
+          "lat": 10.936768,
+          "lng": 76.98047
+        },
+        {
+          "lat": 10.936078,
+          "lng": 76.98048
+        },
+        {
+          "lat": 10.935466,
+          "lng": 76.980507
+        },
+        {
+          "lat": 10.935271,
+          "lng": 76.980549
+        },
+        {
+          "lat": 10.93495,
+          "lng": 76.980547
+        },
+        {
+          "lat": 10.934903,
+          "lng": 76.980549
+        },
+        {
+          "lat": 10.934454,
+          "lng": 76.980561
+        },
+        {
+          "lat": 10.933921,
+          "lng": 76.980505
+        },
+        {
+          "lat": 10.93336,
+          "lng": 76.980386
+        },
+        {
+          "lat": 10.93309,
+          "lng": 76.980343
+        },
+        {
+          "lat": 10.932732,
+          "lng": 76.980275
+        },
+        {
+          "lat": 10.932347,
+          "lng": 76.980225
+        },
+        {
+          "lat": 10.932115,
+          "lng": 76.980201
+        },
+        {
+          "lat": 10.932008,
+          "lng": 76.980208
+        },
+        {
+          "lat": 10.931833,
+          "lng": 76.980216
+        },
+        {
+          "lat": 10.931627,
+          "lng": 76.980243
+        },
+        {
+          "lat": 10.931319,
+          "lng": 76.980313
+        },
+        {
+          "lat": 10.930978,
+          "lng": 76.980414
+        },
+        {
+          "lat": 10.930682,
+          "lng": 76.980488
+        },
+        {
+          "lat": 10.930517,
+          "lng": 76.980552
+        },
+        {
+          "lat": 10.930496,
+          "lng": 76.980559
+        },
+        {
+          "lat": 10.930106,
+          "lng": 76.9807
+        },
+        {
+          "lat": 10.929247,
+          "lng": 76.981016
+        },
+        {
+          "lat": 10.929161,
+          "lng": 76.981051
+        },
+        {
+          "lat": 10.928955,
+          "lng": 76.981134
+        },
+        {
+          "lat": 10.928663,
+          "lng": 76.981246
+        },
+        {
+          "lat": 10.928191,
+          "lng": 76.981405
+        },
+        {
+          "lat": 10.927925,
+          "lng": 76.981589
+        },
+        {
+          "lat": 10.927815,
+          "lng": 76.981621
+        },
+        {
+          "lat": 10.927154,
+          "lng": 76.981816
+        },
+        {
+          "lat": 10.926043,
+          "lng": 76.982162
+        },
+        {
+          "lat": 10.925955,
+          "lng": 76.98219
+        },
+        {
+          "lat": 10.925776,
+          "lng": 76.982259
+        },
+        {
+          "lat": 10.925432,
+          "lng": 76.982391
+        },
+        {
+          "lat": 10.925266,
+          "lng": 76.982455
+        },
+        {
+          "lat": 10.925089,
+          "lng": 76.982522
+        },
+        {
+          "lat": 10.924407,
+          "lng": 76.98276
+        },
+        {
+          "lat": 10.924115,
+          "lng": 76.982833
+        },
+        {
+          "lat": 10.923967,
+          "lng": 76.982863
+        },
+        {
+          "lat": 10.923416,
+          "lng": 76.982888
+        },
+        {
+          "lat": 10.92278,
+          "lng": 76.982869
+        },
+        {
+          "lat": 10.922488,
+          "lng": 76.982902
+        },
+        {
+          "lat": 10.92175,
+          "lng": 76.983124
+        },
+        {
+          "lat": 10.921529,
+          "lng": 76.983215
+        },
+        {
+          "lat": 10.921027,
+          "lng": 76.983417
+        },
+        {
+          "lat": 10.92059,
+          "lng": 76.983695
+        },
+        {
+          "lat": 10.919835,
+          "lng": 76.984325
+        },
+        {
+          "lat": 10.91962,
+          "lng": 76.984505
+        },
+        {
+          "lat": 10.919433,
+          "lng": 76.984641
+        },
+        {
+          "lat": 10.919229,
+          "lng": 76.984788
+        },
+        {
+          "lat": 10.918886,
+          "lng": 76.985037
+        },
+        {
+          "lat": 10.918728,
+          "lng": 76.985183
+        },
+        {
+          "lat": 10.918501,
+          "lng": 76.985439
+        },
+        {
+          "lat": 10.918164,
+          "lng": 76.985894
+        },
+        {
+          "lat": 10.918084,
+          "lng": 76.985994
+        },
+        {
+          "lat": 10.918038,
+          "lng": 76.986041
+        },
+        {
+          "lat": 10.91793,
+          "lng": 76.986067
+        },
+        {
+          "lat": 10.917911,
+          "lng": 76.986091
+        },
+        {
+          "lat": 10.917855,
+          "lng": 76.986163
+        },
+        {
+          "lat": 10.917827,
+          "lng": 76.986198
+        },
+        {
+          "lat": 10.917746,
+          "lng": 76.986301
+        },
+        {
+          "lat": 10.917609,
+          "lng": 76.986474
+        },
+        {
+          "lat": 10.917297,
+          "lng": 76.986841
+        },
+        {
+          "lat": 10.916918,
+          "lng": 76.987313
+        },
+        {
+          "lat": 10.916479,
+          "lng": 76.987928
+        },
+        {
+          "lat": 10.915708,
+          "lng": 76.988995
+        },
+        {
+          "lat": 10.915276,
+          "lng": 76.989567
+        },
+        {
+          "lat": 10.915138,
+          "lng": 76.98972
+        },
+        {
+          "lat": 10.914983,
+          "lng": 76.989831
+        },
+        {
+          "lat": 10.914794,
+          "lng": 76.989974
+        },
+        {
+          "lat": 10.91454,
+          "lng": 76.990093
+        },
+        {
+          "lat": 10.914267,
+          "lng": 76.990169
+        },
+        {
+          "lat": 10.91365,
+          "lng": 76.990342
+        },
+        {
+          "lat": 10.913068,
+          "lng": 76.99048
+        },
+        {
+          "lat": 10.912336,
+          "lng": 76.990727
+        },
+        {
+          "lat": 10.911718,
+          "lng": 76.991041
+        },
+        {
+          "lat": 10.911258,
+          "lng": 76.991323
+        },
+        {
+          "lat": 10.91087,
+          "lng": 76.991647
+        },
+        {
+          "lat": 10.909742,
+          "lng": 76.992659
+        },
+        {
+          "lat": 10.909419,
+          "lng": 76.992892
+        },
+        {
+          "lat": 10.908693,
+          "lng": 76.993416
+        },
+        {
+          "lat": 10.908308,
+          "lng": 76.993686
+        },
+        {
+          "lat": 10.907945,
+          "lng": 76.993922
+        },
+        {
+          "lat": 10.907818,
+          "lng": 76.994005
+        },
+        {
+          "lat": 10.907498,
+          "lng": 76.994213
+        },
+        {
+          "lat": 10.907194,
+          "lng": 76.994475
+        },
+        {
+          "lat": 10.906945,
+          "lng": 76.994769
+        },
+        {
+          "lat": 10.90615,
+          "lng": 76.995932
+        },
+        {
+          "lat": 10.905533,
+          "lng": 76.99685
+        },
+        {
+          "lat": 10.905162,
+          "lng": 76.997435
+        },
+        {
+          "lat": 10.904973,
+          "lng": 76.997668
+        },
+        {
+          "lat": 10.904802,
+          "lng": 76.997827
+        },
+        {
+          "lat": 10.904716,
+          "lng": 76.997906
+        },
+        {
+          "lat": 10.904471,
+          "lng": 76.998097
+        },
+        {
+          "lat": 10.904388,
+          "lng": 76.998147
+        },
+        {
+          "lat": 10.904234,
+          "lng": 76.998245
+        },
+        {
+          "lat": 10.904072,
+          "lng": 76.998334
+        },
+        {
+          "lat": 10.903997,
+          "lng": 76.998362
+        },
+        {
+          "lat": 10.903901,
+          "lng": 76.998397
+        },
+        {
+          "lat": 10.903854,
+          "lng": 76.998414
+        },
+        {
+          "lat": 10.902012,
+          "lng": 76.998786
+        },
+        {
+          "lat": 10.899864,
+          "lng": 76.999226
+        },
+        {
+          "lat": 10.899718,
+          "lng": 76.999253
+        },
+        {
+          "lat": 10.899028,
+          "lng": 76.999397
+        },
+        {
+          "lat": 10.89803,
+          "lng": 76.999578
+        },
+        {
+          "lat": 10.897474,
+          "lng": 76.999679
+        },
+        {
+          "lat": 10.895414,
+          "lng": 76.999979
+        },
+        {
+          "lat": 10.894611,
+          "lng": 77.000084
+        },
+        {
+          "lat": 10.893902,
+          "lng": 77.000176
+        },
+        {
+          "lat": 10.893533,
+          "lng": 77.000218
+        },
+        {
+          "lat": 10.892446,
+          "lng": 77.000341
+        },
+        {
+          "lat": 10.892154,
+          "lng": 77.000374
+        },
+        {
+          "lat": 10.891395,
+          "lng": 77.000445
+        },
+        {
+          "lat": 10.89113,
+          "lng": 77.00047
+        },
+        {
+          "lat": 10.890554,
+          "lng": 77.000533
+        },
+        {
+          "lat": 10.889393,
+          "lng": 77.000644
+        },
+        {
+          "lat": 10.888194,
+          "lng": 77.00076
+        },
+        {
+          "lat": 10.887533,
+          "lng": 77.000824
+        },
+        {
+          "lat": 10.886115,
+          "lng": 77.000926
+        },
+        {
+          "lat": 10.883602,
+          "lng": 77.001429
+        },
+        {
+          "lat": 10.883017,
+          "lng": 77.0015
+        },
+        {
+          "lat": 10.882436,
+          "lng": 77.00162
+        },
+        {
+          "lat": 10.882154,
+          "lng": 77.001675
+        },
+        {
+          "lat": 10.881642,
+          "lng": 77.001855
+        },
+        {
+          "lat": 10.880824,
+          "lng": 77.002196
+        },
+        {
+          "lat": 10.880059,
+          "lng": 77.002562
+        },
+        {
+          "lat": 10.879734,
+          "lng": 77.002729
+        },
+        {
+          "lat": 10.879378,
+          "lng": 77.002913
+        },
+        {
+          "lat": 10.877773,
+          "lng": 77.00374
+        },
+        {
+          "lat": 10.878088,
+          "lng": 77.004612
+        },
+        {
+          "lat": 10.878205,
+          "lng": 77.004937
+        },
+        {
+          "lat": 10.87832,
+          "lng": 77.005251
+        },
+        {
+          "lat": 10.878498,
+          "lng": 77.005727
+        },
+        {
+          "lat": 10.878467,
+          "lng": 77.005845
+        },
+        {
+          "lat": 10.878757,
+          "lng": 77.006924
+        },
+        {
+          "lat": 10.879025,
+          "lng": 77.007755
+        },
+        {
+          "lat": 10.878688,
+          "lng": 77.008048
+        },
+        {
+          "lat": 10.878414,
+          "lng": 77.008303
+        },
+        {
+          "lat": 10.878341,
+          "lng": 77.008371
+        },
+        {
+          "lat": 10.878108,
+          "lng": 77.008581
+        },
+        {
+          "lat": 10.877845,
+          "lng": 77.008817
+        },
+        {
+          "lat": 10.877824,
+          "lng": 77.008869
+        },
+        {
+          "lat": 10.877786,
+          "lng": 77.008959
+        },
+        {
+          "lat": 10.877498,
+          "lng": 77.009654
+        },
+        {
+          "lat": 10.87646,
+          "lng": 77.010392
+        },
+        {
+          "lat": 10.87622,
+          "lng": 77.010559
+        },
+        {
+          "lat": 10.876138,
+          "lng": 77.010621
+        },
+        {
+          "lat": 10.876,
+          "lng": 77.010649
+        },
+        {
+          "lat": 10.875812,
+          "lng": 77.010696
+        },
+        {
+          "lat": 10.875453,
+          "lng": 77.010785
+        },
+        {
+          "lat": 10.875274,
+          "lng": 77.01083
+        },
+        {
+          "lat": 10.874695,
+          "lng": 77.010974
+        },
+        {
+          "lat": 10.8746,
+          "lng": 77.011392
+        },
+        {
+          "lat": 10.874487,
+          "lng": 77.011623
+        },
+        {
+          "lat": 10.874316,
+          "lng": 77.01198
+        },
+        {
+          "lat": 10.87406,
+          "lng": 77.012368
+        },
+        {
+          "lat": 10.87272,
+          "lng": 77.014403
+        },
+        {
+          "lat": 10.872619,
+          "lng": 77.014558
+        },
+        {
+          "lat": 10.871397,
+          "lng": 77.016982
+        },
+        {
+          "lat": 10.87121,
+          "lng": 77.01834
+        },
+        {
+          "lat": 10.871165,
+          "lng": 77.018666
+        },
+        {
+          "lat": 10.871014,
+          "lng": 77.018999
+        },
+        {
+          "lat": 10.870849,
+          "lng": 77.019364
+        },
+        {
+          "lat": 10.87109,
+          "lng": 77.020028
+        },
+        {
+          "lat": 10.871207,
+          "lng": 77.020352
+        },
+        {
+          "lat": 10.871274,
+          "lng": 77.020908
+        },
+        {
+          "lat": 10.871281,
+          "lng": 77.020964
+        },
+        {
+          "lat": 10.871281,
+          "lng": 77.021003
+        }
+      ],
+      "riderName": "Arul",
       "riderPhone": "9876543210",
-      "riderLat": 10.995,
-      "riderLng": 76.9609,
+      "riderLat": 10.9925,
+      "riderLng": 76.9585,
       "vehicleType": "Bike",
       "weatherCondition": "Cloudy",
-      "temperature": 23,
-      "humidity": 100,
-      "windSpeed": 7.7,
+      "temperature": 31,
+      "humidity": 52,
+      "windSpeed": 13.7,
       "weatherMultiplier": 1.1,
-      "rainChance": 57,
+      "rainChance": 61,
       "isChildSafety": false,
       "isWomenSafety": false,
       "isFamilySafety": true,
       "childArrivalConfirmed": false
     }
   ],
-  "disputes": [
-    {
-      "id": "DSPSBA18ABB",
-      "rideId": "ZRA5ECDBCB",
-      "pickup": "Lower Parel, Mumbai",
-      "drop": "BKC, Mumbai",
-      "driverName": "Rajesh Kumar",
-      "safetyScore": 100,
-      "initialFare": 100.7,
-      "finalFare": 100.7,
-      "reason": "extra_cash",
-      "aiExplanation": "Cash demand violation on ride at ₹100.70. Context: Driver requested extra cash: Driver requested cash after arrival. Sensors: [dispute] Dispute DSPSBA18ABB filed | [ops_alert] Dispute DSPSBA18ABB filed: Dri\n\nSENSOR / KNOWLEDGE CONTEXT\n[dispute] Dispute DSPSBA18ABB filed | [ops_alert] Dispute DSPSBA18ABB filed: Driver requested extra cash: Driver requested cash after arrival | [assignment] Driver Rajesh Kumar assigned",
-      "status": "resolved",
-      "resolutionRefundAmount": 100.7,
-      "createdAt": "2026-06-1"
-    }
-  ],
+  "disputes": [],
   "config": {
-    "weather": "Heavy Rain",
+    "weather": "Clear",
     "traffic": "Light"
   },
   "alerts": [
     {
-      "id": "EVT-1781821947747",
-      "rideId": "ZR-264730",
+      "id": "EVT-PAY-1781941297788",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Ride ZR-264730 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹125.5 (Weather fee: +₹10, Traffic Multiplier: 1x, Dist: 3.6 km).",
+      "message": "Payment successful for ride ZR-821336. Reference: REF-955398. Amount: ₹81.13.",
       "severity": "info",
-      "timestamp": "2026-06-18T22:32:27.747Z"
+      "timestamp": "2026-06-20T07:41:37.788Z"
     },
     {
-      "id": "EVT-PAY-1781576000283",
-      "rideId": "ZR-107909",
+      "id": "EVT-PAY-1781941293686",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Payment successful for ride ZR-107909. Reference: TXN-GOOGLEPAY-606161. Amount: ₹184.08.",
+      "message": "Payment successful for ride ZR-821336. Reference: REF-195317. Amount: ₹81.13.",
       "severity": "info",
-      "timestamp": "2026-06-16T02:13:20.283Z"
+      "timestamp": "2026-06-20T07:41:33.686Z"
     },
     {
-      "id": "EVT-PAY-1781575997701",
-      "rideId": "ZR-107909",
+      "id": "EVT-1781936451175",
+      "rideId": "ZR-699292",
       "type": "info",
-      "message": "Payment successful for ride ZR-107909. Reference: REF-881290. Amount: ₹184.08.",
+      "message": "Ride ZR-699292 booked (Bike). Pickup: \"Ukkadam Lake Promenade, Coimbatore, Tamil Nadu\" -> Drop: \"Othakalmandapam Central, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹301.63 (Weather fee: +₹10, Traffic Multiplier: 1x, Dist: 17.19 km).",
       "severity": "info",
-      "timestamp": "2026-06-16T02:13:17.701Z"
+      "timestamp": "2026-06-20T06:20:51.175Z"
     },
     {
-      "id": "EVT-RT-1781575988735",
-      "rideId": "ZR-107909",
+      "id": "EVT-PAY-1781936277016",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Rider rated ride ZR-107909 as 4 stars.",
+      "message": "Payment successful for ride ZR-821336. Reference: REF-341370. Amount: ₹81.13.",
       "severity": "info",
-      "timestamp": "2026-06-16T02:13:08.735Z"
+      "timestamp": "2026-06-20T06:17:57.016Z"
     },
     {
-      "id": "EVT-1781575952913",
-      "rideId": "ZR-107909",
+      "id": "EVT-RT-1781936268308",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Ride ZR-107909 successfully completed. Total Charged: ₹184.08 (Deductions for behavior: -₹0). Final safety score: 100%.",
+      "message": "Rider rated ride ZR-821336 as 5 stars.",
       "severity": "info",
-      "timestamp": "2026-06-16T02:12:32.913Z"
+      "timestamp": "2026-06-20T06:17:48.308Z"
     },
     {
-      "id": "EVT-1781575931543",
-      "rideId": "ZR-107909",
-      "type": "info",
-      "message": "Driver \"Guna\" (BIKE-TN-09-XX-8822) accepted ride ZR-107909 and is heading to the pickup location.",
-      "severity": "low",
-      "timestamp": "2026-06-16T02:12:11.543Z"
-    },
-    {
-      "id": "ALRT-SOS-1781575850045",
-      "rideId": "ZR-107909",
+      "id": "ALRT-SOS-1781935812131",
+      "rideId": "ZR-821336",
       "type": "safety",
-      "message": "🚨 Emergency SOS triggered! Reason: Feeling Unsafe. Driver alerted.",
+      "message": "🚨 Emergency SOS triggered! Reason: Medical Emergency SOS. Driver alerted.",
       "severity": "critical",
-      "timestamp": "2026-06-16T02:10:50.045Z"
+      "timestamp": "2026-06-20T06:10:12.131Z"
     },
     {
-      "id": "EVT-1781575842201",
-      "rideId": "ZR-107909",
+      "id": "EVT-1781935749107",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Ride ZR-107909 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Othakalmandapam Central, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.08 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.31 km).",
+      "message": "Ride ZR-821336 successfully completed. Total Charged: ₹81.13 (Deductions for behavior: -₹0). Final safety score: 100%.",
       "severity": "info",
-      "timestamp": "2026-06-16T02:10:42.201Z"
+      "timestamp": "2026-06-20T06:09:09.107Z"
     },
     {
-      "id": "EVT-1781575652306",
-      "rideId": "ZR-334574",
+      "id": "EVT-1781935690169",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Ride ZR-334574 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Othakalmandapam Central, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.08 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.31 km).",
-      "severity": "info",
-      "timestamp": "2026-06-16T02:07:32.306Z"
-    },
-    {
-      "id": "ALRT-SOS-1781575447591",
-      "rideId": "ZR-922834",
-      "type": "safety",
-      "message": "🚨 Emergency SOS triggered! Reason: Feeling Unsafe. Driver alerted.",
-      "severity": "critical",
-      "timestamp": "2026-06-16T02:04:07.591Z"
-    },
-    {
-      "id": "EVT-PAY-1781575426613",
-      "rideId": "ZR-922834",
-      "type": "info",
-      "message": "Payment successful for ride ZR-922834. Reference: TXN-GOOGLEPAY-681094. Amount: ₹53.64.",
-      "severity": "info",
-      "timestamp": "2026-06-16T02:03:46.613Z"
-    },
-    {
-      "id": "EVT-PAY-1781575423987",
-      "rideId": "ZR-922834",
-      "type": "info",
-      "message": "Payment successful for ride ZR-922834. Reference: REF-176716. Amount: ₹53.64.",
-      "severity": "info",
-      "timestamp": "2026-06-16T02:03:43.987Z"
-    },
-    {
-      "id": "EVT-1781575358294",
-      "rideId": "ZR-155588",
-      "type": "info",
-      "message": "Ride ZR-155588 successfully completed. Total Charged: ₹184.98 (Deductions for behavior: -₹0). Final safety score: 100%.",
-      "severity": "info",
-      "timestamp": "2026-06-16T02:02:38.294Z"
-    },
-    {
-      "id": "EVT-1781575312952",
-      "rideId": "ZR-922834",
-      "type": "info",
-      "message": "Ride ZR-922834 booked (Bike). Pickup: \"Gandhi Park, Coimbatore, Tamil Nadu\" -> Drop: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹53.64 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 3.03 km).",
-      "severity": "info",
-      "timestamp": "2026-06-16T02:01:52.952Z"
-    },
-    {
-      "id": "EVT-1781575157853",
-      "rideId": "ZR-155588",
-      "type": "info",
-      "message": "Driver \"Arul\" (BIKE-TN37AB6609) accepted ride ZR-155588 and is heading to the pickup location.",
+      "message": "Driver \"Arul\" (BIKE-TN37AB6609) accepted ride ZR-821336 and is heading to the pickup location.",
       "severity": "low",
-      "timestamp": "2026-06-16T01:59:17.853Z"
+      "timestamp": "2026-06-20T06:08:10.169Z"
     },
     {
-      "id": "EVT-PAY-1781575071391",
-      "rideId": "ZR-271008",
+      "id": "EVT-1781935656381",
+      "rideId": "ZR-821336",
       "type": "info",
-      "message": "Payment successful for ride ZR-271008. Reference: DRV-CASH-855523. Amount: ₹190.54.",
+      "message": "Ride ZR-821336 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹81.13 (Weather fee: +₹10, Traffic Multiplier: 1x, Dist: 3.6 km).",
       "severity": "info",
-      "timestamp": "2026-06-16T01:57:51.391Z"
-    },
-    {
-      "id": "EVT-1781575065626",
-      "rideId": "ZR-271008",
-      "type": "info",
-      "message": "Ride ZR-271008 successfully completed. Total Charged: ₹190.54 (Deductions for behavior: -₹0). Final safety score: 100%.",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:57:45.626Z"
-    },
-    {
-      "id": "EVT-1781575040713",
-      "rideId": "ZR-271008",
-      "type": "info",
-      "message": "Driver \"Arul\" (BIKE-TN37AB6609) accepted ride ZR-271008 and is heading to the pickup location.",
-      "severity": "low",
-      "timestamp": "2026-06-16T01:57:20.713Z"
-    },
-    {
-      "id": "EVT-1781574995220",
-      "rideId": "ZR-271008",
-      "type": "info",
-      "message": "Ride ZR-271008 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam Institute of Technology, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹190.54 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.93 km).",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:56:35.220Z"
-    },
-    {
-      "id": "EVT-PAY-1781574531816",
-      "rideId": "ZR-155588",
-      "type": "info",
-      "message": "Payment successful for ride ZR-155588. Reference: TXN-GOOGLEPAY-727479. Amount: ₹184.98.",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:48:51.816Z"
-    },
-    {
-      "id": "EVT-PAY-1781574528110",
-      "rideId": "ZR-155588",
-      "type": "info",
-      "message": "Payment successful for ride ZR-155588. Reference: REF-170039. Amount: ₹184.98.",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:48:48.110Z"
-    },
-    {
-      "id": "EVT-1781573423421",
-      "rideId": "ZR-155588",
-      "type": "info",
-      "message": "Ride ZR-155588 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:30:23.421Z"
-    },
-    {
-      "id": "EVT-1781573321722",
-      "rideId": "ZR-739581",
-      "type": "info",
-      "message": "Ride ZR-739581 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam Institute of Technology, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹190.54 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.93 km).",
-      "severity": "info",
-      "timestamp": "2026-06-16T01:28:41.722Z"
-    },
-    {
-      "id": "SPD-1781555739402-0.29551825663564524",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 83 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.402Z"
-    },
-    {
-      "id": "SPD-1781555739366-0.5646606355038681",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 84 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.366Z"
-    },
-    {
-      "id": "SPD-1781555739213-0.08162993380146344",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 86 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.213Z"
-    },
-    {
-      "id": "SPD-1781555739113-0.23830886467259516",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 87 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.113Z"
-    },
-    {
-      "id": "SPD-1781555739100-0.6792384130880764",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 90 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.100Z"
-    },
-    {
-      "id": "SPD-1781555739091-0.21456704976394714",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 93 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.091Z"
-    },
-    {
-      "id": "SPD-1781555739048-0.32123213459962285",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 96 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.048Z"
-    },
-    {
-      "id": "SPD-1781555739028-0.7268893606188578",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 100 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.028Z"
-    },
-    {
-      "id": "SPD-1781555739013-0.6110071915349332",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 105 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:39.013Z"
-    },
-    {
-      "id": "SPD-1781555738956-0.7565039980040696",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 108 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:38.956Z"
-    },
-    {
-      "id": "SPD-1781555736119-0.5522667377846336",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 110 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:36.119Z"
-    },
-    {
-      "id": "SPD-1781555736047-0.1937176099385156",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 110 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:36.047Z"
-    },
-    {
-      "id": "SPD-1781555736032-0.5636672551857937",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 110 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:36.032Z"
-    },
-    {
-      "id": "SPD-1781555735930-0.7127567259884823",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 110 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:35.930Z"
-    },
-    {
-      "id": "SPD-1781555735913-0.5130606964835119",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 105 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:35.913Z"
-    },
-    {
-      "id": "SPD-1781555735795-0.9499360353715872",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 91 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:35.795Z"
-    },
-    {
-      "id": "SPD-1781555735777-0.3763659651808994",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 83 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:35.777Z"
-    },
-    {
-      "id": "SPD-1781555735687-0.5856592015593745",
-      "rideId": "ZR6ADB0F88",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR6ADB0F88! Driver recorded speed of 99 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T20:35:35.687Z"
-    },
-    {
-      "id": "EVT-PAY-1781555699298",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Payment successful for ride ZR-637421. Reference: TXN-GOOGLEPAY-219526. Amount: ₹184.98.",
-      "severity": "info",
-      "timestamp": "2026-06-15T20:34:59.298Z"
-    },
-    {
-      "id": "EVT-PAY-1781555696636",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Payment successful for ride ZR-637421. Reference: REF-544176. Amount: ₹184.98.",
-      "severity": "info",
-      "timestamp": "2026-06-15T20:34:56.636Z"
-    },
-    {
-      "id": "EVT-1781553716923",
-      "rideId": "ZR-652337",
-      "type": "info",
-      "message": "Ride ZR-652337 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹57.5 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 3.6 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T20:01:56.923Z"
-    },
-    {
-      "id": "EVT-RT-1781553663404",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Rider rated ride ZR-637421 as 5 stars.",
-      "severity": "info",
-      "timestamp": "2026-06-15T20:01:03.404Z"
-    },
-    {
-      "id": "EVT-1781550922687",
-      "rideId": "ZR-853825",
-      "type": "info",
-      "message": "Ride ZR-853825 booked (Bike). Pickup: \"Ukkadam Lake Promenade, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.52 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.24 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T19:15:22.687Z"
-    },
-    {
-      "id": "EVT-1781548032544",
-      "rideId": "ZR-666237",
-      "type": "info",
-      "message": "Ride ZR-666237 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T18:27:12.544Z"
-    },
-    {
-      "id": "EVT-1781547368557",
-      "rideId": "ZR-610850",
-      "type": "info",
-      "message": "Ride ZR-610850 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T18:16:08.557Z"
-    },
-    {
-      "id": "EVT-1781545983062",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Ride ZR-637421 successfully completed. Total Charged: ₹184.98 (Deductions for behavior: -₹0). Final safety score: 100%.",
-      "severity": "info",
-      "timestamp": "2026-06-15T17:53:03.062Z"
-    },
-    {
-      "id": "EVT-1781545911762",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Driver \"Saran\" (BIKE-TN37AB3286) accepted ride ZR-637421 and is heading to the pickup location.",
-      "severity": "low",
-      "timestamp": "2026-06-15T17:51:51.762Z"
-    },
-    {
-      "id": "EVT-1781545858987",
-      "rideId": "ZR-637421",
-      "type": "info",
-      "message": "Ride ZR-637421 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T17:50:58.987Z"
-    },
-    {
-      "id": "EVT-1781542737290",
-      "rideId": "ZR-681976",
-      "type": "info",
-      "message": "Ride ZR-681976 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:58:57.290Z"
-    },
-    {
-      "id": "EVT-1781542348226",
-      "rideId": "ZR-852287",
-      "type": "info",
-      "message": "Ride ZR-852287 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹184.98 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:52:28.226Z"
-    },
-    {
-      "id": "EVT-1781541517937",
-      "rideId": "ZR-370108",
-      "type": "info",
-      "message": "Ride ZR-370108 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam Faculty Of Medical Sciences And Research, Othakalmandapam, Tamil Nadu\". Dynamic Fare calculated at ₹167.8 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 15.5 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:38:37.937Z"
-    },
-    {
-      "id": "EVT-1781540797590",
-      "rideId": "ZR6ADB0F88",
-      "type": "info",
-      "message": "Ride ZR6ADB0F88 successfully completed. Total Charged: ₹284.1 (Deductions for behavior: -₹0). Final safety score: 100%.",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:26:37.590Z"
-    },
-    {
-      "id": "EVT-1781540765923",
-      "rideId": "ZR6ADB0F88",
-      "type": "info",
-      "message": "Driver \"Arul\" (BIKE-TN37AB6609) accepted ride ZR6ADB0F88 and is heading to the pickup location.",
-      "severity": "low",
-      "timestamp": "2026-06-15T16:26:05.923Z"
-    },
-    {
-      "id": "EVT-1781540717483",
-      "rideId": "ZR-776671",
-      "type": "info",
-      "message": "Ride ZR-776671 booked. Pickup: \"Ukkadam, Podanur, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹277.36 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.08 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:25:17.483Z"
-    },
-    {
-      "id": "EVT-1781539474810",
-      "rideId": "ZR-475420",
-      "type": "info",
-      "message": "Ride ZR-475420 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹296.29 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T16:04:34.810Z"
-    },
-    {
-      "id": "EVT-1781539138151",
-      "rideId": "ZR-512328",
-      "type": "info",
-      "message": "Ride ZR-512328 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹80.08 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 3.6 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T15:58:58.151Z"
-    },
-    {
-      "id": "EVT-1781535316940",
-      "rideId": "ZR009841C7",
-      "type": "info",
-      "message": "Ride ZR009841C7 successfully completed. Total Charged: ₹236.92 (Deductions for behavior: -₹45). Final safety score: 60%.",
-      "severity": "info",
-      "timestamp": "2026-06-15T14:55:16.940Z"
-    },
-    {
-      "id": "EVT-1781533668817",
-      "rideId": "ZR-351486",
-      "type": "info",
-      "message": "Ride ZR-351486 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹496.19 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 25.31 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T14:27:48.817Z"
-    },
-    {
-      "id": "EVT-1781528139655",
-      "rideId": "ZR93928EAE",
-      "type": "info",
-      "message": "Ride ZR93928EAE successfully completed. Total Charged: ₹346.64 (Deductions for behavior: -₹10). Final safety score: 90%.",
-      "severity": "info",
-      "timestamp": "2026-06-15T12:55:39.655Z"
-    },
-    {
-      "id": "EVT-1781526465187",
-      "rideId": "ZR-705802",
-      "type": "info",
-      "message": "Ride ZR-705802 booked. Pickup: \"Myleripalayam, Myleripalayam, Tamil Nadu\" -> Drop: \"Chettipalayam, Chettipalayam, Tamil Nadu\". Dynamic Fare calculated at ₹115.13 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 5.6 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T12:27:45.187Z"
-    },
-    {
-      "id": "EVT-1781525386013",
-      "rideId": "ZR-474193",
-      "type": "info",
-      "message": "Ride ZR-474193 booked. Pickup: \"Pennagaram, Pennagaram, Tamil Nadu\" -> Drop: \"Dharmapuri, Dharmapuri, Tamil Nadu\". Dynamic Fare calculated at ₹485.43 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 29.75 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T12:09:46.013Z"
-    },
-    {
-      "id": "EVT-1781524296706",
-      "rideId": "ZR-360375",
-      "type": "info",
-      "message": "Ride ZR-360375 booked. Pickup: \"Marina Beach,Chennai, Chennai, Tamil Nadu\" -> Drop: \"Madras High Court, Chennai, Tamil Nadu\". Dynamic Fare calculated at ₹121.95 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 4.87 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T11:51:36.706Z"
-    },
-    {
-      "id": "BRK-1781524045823-0.0667079947889635",
-      "rideId": "ZR93928EAE",
-      "type": "braking",
-      "message": "Harsh Deceleration detected on Ride ZR93928EAE! Telemetry recorded rapid safety brake shift. Dynamic billing applied a ₹10.00 safety refund discount.",
-      "severity": "medium",
-      "timestamp": "2026-06-15T11:47:25.823Z"
-    },
-    {
-      "id": "EVT-1781524036511",
-      "rideId": "ZR93928EAE",
-      "type": "info",
-      "message": "Driver \"Saran\" (BIKE-TN37AB3286) accepted ride ZR93928EAE and is heading to the pickup location.",
-      "severity": "low",
-      "timestamp": "2026-06-15T11:47:16.511Z"
-    },
-    {
-      "id": "EVT-1781515402554",
-      "rideId": "ZR-374485",
-      "type": "info",
-      "message": "Ride ZR-374485 booked. Pickup: \"Lower Parel, Mumbai\" -> Drop: \"BKC, Mumbai\". Dynamic Fare calculated at ₹144.15 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 5.4 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T09:23:22.554Z"
-    },
-    {
-      "id": "EVT-1781512441604",
-      "rideId": "ZR-871211",
-      "type": "info",
-      "message": "Ride ZR-871211 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam Academy of Higher Education, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹329.31 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.24 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T08:34:01.604Z"
-    },
-    {
-      "id": "EVT-1781511697201",
-      "rideId": "ZR-449792",
-      "type": "info",
-      "message": "Ride ZR-449792 booked. Pickup: \"Ukkadam Bus Stand, Podanur, Tamil Nadu\" -> Drop: \"Pollachi, Pollachi, Tamil Nadu\". Dynamic Fare calculated at ₹676.08 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 39.88 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T08:21:37.201Z"
-    },
-    {
-      "id": "EVT-1781504301159",
-      "rideId": "ZR-704697",
-      "type": "info",
-      "message": "Ride ZR-704697 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹331.29 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T06:18:21.159Z"
-    },
-    {
-      "id": "ADJ-ACC-1781503696079",
-      "rideId": "ZR009841C7",
-      "type": "info",
-      "message": "Rider accepted the fare adjustment of ₹36.77. New final fare is ₹236.92.",
-      "severity": "low",
-      "timestamp": "2026-06-15T06:08:16.079Z"
-    },
-    {
-      "id": "SYS-1781503662186",
-      "rideId": "SYSTEM",
-      "type": "info",
-      "message": "System environment adjusted: Weather is now \"Heavy Rain\", Traffic level is now \"Light\".",
-      "severity": "info",
-      "timestamp": "2026-06-15T06:07:42.186Z"
-    },
-    {
-      "id": "SYS-1781503656050",
-      "rideId": "SYSTEM",
-      "type": "info",
-      "message": "System environment adjusted: Weather is now \"Overcast\", Traffic level is now \"Light\".",
-      "severity": "info",
-      "timestamp": "2026-06-15T06:07:36.050Z"
-    },
-    {
-      "id": "SYS-1781503651612",
-      "rideId": "SYSTEM",
-      "type": "info",
-      "message": "System environment adjusted: Weather is now \"Clear\", Traffic level is now \"Heavy Congestion\".",
-      "severity": "info",
-      "timestamp": "2026-06-15T06:07:31.612Z"
-    },
-    {
-      "id": "SYS-1781503646077",
-      "rideId": "SYSTEM",
-      "type": "info",
-      "message": "System environment adjusted: Weather is now \"Clear\", Traffic level is now \"Light\".",
-      "severity": "info",
-      "timestamp": "2026-06-15T06:07:26.077Z"
-    },
-    {
-      "id": "ADJ-1781503622800",
-      "rideId": "ZR009841C7",
-      "type": "info",
-      "message": "System triggered a fare adjustment of ₹36.77 for reason: weather. Awaiting rider consent.",
-      "severity": "medium",
-      "timestamp": "2026-06-15T06:07:02.800Z"
-    },
-    {
-      "id": "SYS-1781503592317",
-      "rideId": "ZRA5ECDBCB",
-      "type": "safety",
-      "message": "Dispute DSPSBA18ABB was RESOLVED by Operations. Refund processed: ₹100.7.",
-      "severity": "low",
-      "timestamp": "2026-06-15T06:06:32.317Z"
-    },
-    {
-      "id": "BRK-1781503579898-0.5260391274569195",
-      "rideId": "ZR009841C7",
-      "type": "braking",
-      "message": "Harsh Deceleration detected on Ride ZR009841C7! Telemetry recorded rapid safety brake shift. Dynamic billing applied a ₹10.00 safety refund discount.",
-      "severity": "medium",
-      "timestamp": "2026-06-15T06:06:19.898Z"
-    },
-    {
-      "id": "BRK-1781503576739-0.45257914367453067",
-      "rideId": "ZR009841C7",
-      "type": "braking",
-      "message": "Harsh Deceleration detected on Ride ZR009841C7! Telemetry recorded rapid safety brake shift. Dynamic billing applied a ₹10.00 safety refund discount.",
-      "severity": "medium",
-      "timestamp": "2026-06-15T06:06:16.739Z"
-    },
-    {
-      "id": "BRK-1781503575404-0.9886931478568066",
-      "rideId": "ZR009841C7",
-      "type": "braking",
-      "message": "Harsh Deceleration detected on Ride ZR009841C7! Telemetry recorded rapid safety brake shift. Dynamic billing applied a ₹10.00 safety refund discount.",
-      "severity": "medium",
-      "timestamp": "2026-06-15T06:06:15.404Z"
-    },
-    {
-      "id": "SPD-1781503573886-0.5339579611377214",
-      "rideId": "ZR009841C7",
-      "type": "speed",
-      "message": "Speed Violation on Ride ZR009841C7! Driver recorded speed of 81 km/h (Limit set at 80 km/h due to \"Clear\"). Dynamic billing applied a ₹15.00 refund discount.",
-      "severity": "high",
-      "timestamp": "2026-06-15T06:06:13.886Z"
-    },
-    {
-      "id": "EVT-1781502777762",
-      "rideId": "ZR-361068",
-      "type": "info",
-      "message": "Ride ZR-361068 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹296.29 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 17.36 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T05:52:57.762Z"
-    },
-    {
-      "id": "EVT-1781502727768",
-      "rideId": "ZR-791485",
-      "type": "info",
-      "message": "Ride ZR-791485 booked. Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Karpagam College of Engineering, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹2579.52 (Weather fee: +₹0, Traffic Multiplier: 1x, Dist: 141.52 km).",
-      "severity": "info",
-      "timestamp": "2026-06-15T05:52:07.768Z"
+      "timestamp": "2026-06-20T06:07:36.382Z"
     }
   ],
   "sosAlerts": [
     {
-      "id": "SOS-40065",
-      "rideId": "ZR-922834",
+      "id": "SOS-79703",
+      "rideId": "ZR-821336",
       "riderId": "USR-SARAN",
-      "riderName": "Amruda",
-      "driverId": "DRV001",
-      "driverName": "Rajesh Kumar",
-      "vehicleNumber": "MH-02-AB-1234",
-      "reason": "Feeling Unsafe",
-      "riderLocation": {
-        "lat": 11.0054,
-        "lng": 76.9471
-      },
-      "driverLocation": {
-        "lat": 19.0765,
-        "lng": 72.878
-      },
-      "status": "active",
-      "severity": "high",
-      "isSilentSOS": false,
-      "createdAt": "2026-06-16T02:04:07.586Z"
-    },
-    {
-      "id": "SOS-14546",
-      "rideId": "ZR-107909",
-      "riderId": "USR-SARAN",
-      "riderName": "Gunavathi",
-      "driverId": "DRV001",
-      "driverName": "Rajesh Kumar",
-      "vehicleNumber": "MH-02-AB-1234",
-      "reason": "Feeling Unsafe",
+      "riderName": "Arul",
+      "driverId": "DRV-2038",
+      "driverName": "Arul",
+      "vehicleNumber": "BIKE-TN37AB6609",
+      "reason": "Medical Emergency SOS",
       "riderLocation": {
         "lat": 10.995,
         "lng": 76.9609
@@ -2583,7 +2216,7 @@
       "status": "active",
       "severity": "high",
       "isSilentSOS": false,
-      "createdAt": "2026-06-16T02:10:50.038Z"
+      "createdAt": "2026-06-20T06:10:12.095Z"
     }
   ]
 }

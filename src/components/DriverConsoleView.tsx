@@ -59,6 +59,8 @@ export default function DriverConsoleView({
     return localStorage.getItem('zipride_driver_online') !== 'false';
   });
 
+  const [activeTab, setActiveTab] = useState<'requests' | 'active'>('requests');
+
   const [availableOrders, setAvailableOrders] = useState<Ride[]>([]);
   const [rejectedRideIds, setRejectedRideIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('zipride_rejected_rides');
@@ -81,6 +83,15 @@ export default function DriverConsoleView({
 
   // Reputation metrics state
   const [reputationMetrics, setReputationMetrics] = useState<any>(null);
+
+  // Auto-focus Active Ride if it exists, otherwise Ride Requests
+  useEffect(() => {
+    if (activeRide) {
+      setActiveTab('active');
+    } else {
+      setActiveTab('requests');
+    }
+  }, [activeRide]);
 
   // Sync hazard alerts based on progress telemetry
   useEffect(() => {
@@ -120,7 +131,7 @@ export default function DriverConsoleView({
 
   // Poll GET /api/driver/orders
   useEffect(() => {
-    if (!isOnline || activeRide) return;
+    if (!isOnline) return;
     
     const fetchOrders = async () => {
       try {
@@ -137,7 +148,7 @@ export default function DriverConsoleView({
     fetchOrders();
     const interval = setInterval(fetchOrders, 3000);
     return () => clearInterval(interval);
-  }, [isOnline, activeRide]);
+  }, [isOnline]);
 
   // Fetch driver profile dynamically from GET /api/driver/profile
   useEffect(() => {
@@ -305,6 +316,21 @@ export default function DriverConsoleView({
     (r.status === 'completed' || r.status === 'cancelled') && r.driverName === currentUser
   );
 
+  const getStepperStep = () => {
+    if (!activeRide) return 9; // Ready For Next Ride
+    if (activeRide.status === 'completed') {
+      return activeRide.paymentStatus === 'paid' ? 8 : 7; // Payment Confirmed (8), Payment Pending / Ride Completed (7)
+    }
+    if (activeRide.status === 'en_route') {
+      return activeRide.progress > 25 ? 5 : 4; // Ride In Progress (5), Ride Started (4)
+    }
+    if (activeRide.status === 'pickup') return 3; // Arrived
+    if (activeRide.status === 'assigned') {
+      return activeRide.progress > 0 ? 2 : 1; // Heading to Pickup (2), Accepted (1)
+    }
+    return 0; // Pending Acceptance
+  };
+
   const currentSpeedLimit = getLimits(activeRide ? activeRide.weatherType : systemConfig.weather);
 
   return (
@@ -383,8 +409,46 @@ export default function DriverConsoleView({
             Go Online & Start Shift
           </button>
         </div>
-      ) : !activeRide ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      ) : (
+        <>
+          {/* Shift is Online, render Tab navigation */}
+          <div className="flex border-b border-theme-border pb-px gap-6 mb-6">
+            <button
+              onClick={() => setActiveTab('requests')}
+              className={`py-2 px-1 text-xs font-bold font-mono border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'requests'
+                  ? 'border-brand-emerald text-brand-emerald'
+                  : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
+              }`}
+            >
+              <span>Ride Requests</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${activeTab === 'requests' ? 'bg-brand-emerald text-slate-950' : 'bg-theme-bg border border-theme-border text-theme-text-secondary'}`}>
+                {availableOrders.filter(r => !rejectedRideIds.includes(r.id)).length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`py-2 px-1 text-xs font-bold font-mono border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'active'
+                  ? 'border-brand-emerald text-brand-emerald'
+                  : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
+              }`}
+            >
+              <span>Active Ride</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${activeTab === 'active' ? 'bg-brand-emerald text-slate-950' : 'bg-theme-bg border border-theme-border text-theme-text-secondary'}`}>
+                {activeRide ? 1 : 0}
+              </span>
+            </button>
+          </div>
+
+          {activeTab === 'requests' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {activeRide && (
+                <div className="lg:col-span-12 p-3 bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300 rounded-xl text-xs flex items-center gap-2 font-semibold">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>You have an active ride. Finish the trip and confirm payment to accept new orders.</span>
+                </div>
+              )}
           {/* Available Orders Section */}
           <div className="lg:col-span-8 bg-theme-card border border-theme-border rounded-3xl p-6 shadow-xs space-y-4">
             <div className="flex justify-between items-center border-b border-theme-border pb-3">
@@ -434,7 +498,12 @@ export default function DriverConsoleView({
                           <td className="py-3 px-3 flex gap-1 justify-center items-center">
                             <button
                               onClick={() => onAcceptRide(ride.id)}
-                              className="px-2.5 py-1.5 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 font-extrabold rounded-lg text-[10px] transition cursor-pointer"
+                              disabled={activeRide !== null}
+                              className={`px-2.5 py-1.5 font-extrabold rounded-lg text-[10px] transition cursor-pointer border-0 ${
+                                activeRide !== null
+                                  ? 'bg-theme-bg text-theme-text-secondary/50 border border-theme-border cursor-not-allowed'
+                                  : 'bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950'
+                              }`}
                             >
                               Accept
                             </button>
@@ -541,11 +610,47 @@ export default function DriverConsoleView({
             />
           </div>
         </div>
-      ) : null}
-
-      {/* ACTIVE JOB PRESENT */}
-      {isOnline && activeRide && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      ) : (
+        /* Active Ride Tab */
+        activeRide ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Stepper tracking active ride states */}
+            <div className="lg:col-span-12">
+              <div className="bg-theme-bg/50 border border-theme-border rounded-2xl p-4 space-y-3">
+                <span className="text-[10px] font-mono uppercase text-theme-text-secondary block font-bold">Ride Stepper State</span>
+                <div className="flex items-center justify-between gap-1 overflow-x-auto pb-2 scrollbar-none">
+                  {[
+                    { label: 'Accepted', index: 1 },
+                    { label: 'Heading to Pickup', index: 2 },
+                    { label: 'Arrived', index: 3 },
+                    { label: 'Ride Started', index: 4 },
+                    { label: 'In Progress', index: 5 },
+                    { label: 'Completed', index: 7 }, // Completed / Payment Pending
+                    { label: 'Payment Paid', index: 8 },
+                  ].map((step, idx) => {
+                    const isCompleted = getStepperStep() >= step.index;
+                    const isCurrent = getStepperStep() === step.index;
+                    return (
+                      <div key={idx} className="flex flex-col items-center flex-1 min-w-[70px] text-center space-y-1">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition ${
+                          isCurrent 
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow animate-pulse'
+                            : isCompleted
+                            ? 'bg-emerald-500 text-white border-emerald-500'
+                            : 'bg-theme-bg text-theme-text-secondary border-theme-border'
+                        }`}>
+                          {isCompleted ? '✓' : idx + 1}
+                        </div>
+                        <span className={`text-[9px] font-bold leading-tight ${isCurrent ? 'text-indigo-650 dark:text-indigo-400' : 'text-theme-text-secondary'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           
           {/* Flashing Hazard Warnings block */}
           {currentHazardAlert && (
@@ -1120,8 +1225,17 @@ export default function DriverConsoleView({
               </div>
             </div>
           )}
-
-        </div>
+          </div>
+        ) : (
+          <div className="bg-theme-card border border-theme-border rounded-3xl py-16 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-theme-bg flex items-center justify-center border border-theme-border mb-4 text-theme-text-secondary">
+              <Bike className="w-8 h-8 text-theme-text-secondary animate-pulse" />
+            </div>
+            <h3 className="text-xl font-bold text-theme-text-primary">No Active Job</h3>
+            <p className="text-xs text-theme-text-secondary max-w-[360px] mt-2">You don't have any active trip. Go to the "Ride Requests" tab to view and accept incoming ride commands.</p>
+          </div>
+        ))}
+        </>
       )}
 
       {/* COMPLETED RIDES HISTORY */}

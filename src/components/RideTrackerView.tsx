@@ -64,22 +64,148 @@ export default function RideTrackerView({
   const [selectedApp, setSelectedApp] = useState<'GooglePay' | 'PhonePe' | 'Paytm' | 'BHIM' | 'AmazonPay' | 'Cash' | 'Razorpay' | 'Stripe'>('GooglePay');
   const [paymentInfoMessage, setPaymentInfoMessage] = useState('');
 
+  // Payment/Rating Modal States refactored to Finite State Machine (FSM)
+  type RideState = 
+    | 'accepted' 
+    | 'arriving' 
+    | 'started' 
+    | 'in_progress' 
+    | 'completed' 
+    | 'payment_pending' 
+    | 'payment_processing' 
+    | 'payment_success' 
+    | 'rating' 
+    | 'closed';
+
+  const [rideState, setRideState] = useState<RideState>('closed');
+  const [paymentTimeoutActive, setPaymentTimeoutActive] = useState(false);
+  const paymentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [completedRide, setCompletedRide] = useState<Ride | null>(null);
+  const prevRideIdRef = useRef<string | null>(null);
+
+  const transitionTo = (nextState: RideState) => {
+    if (rideState === nextState) return;
+    console.log(`[RideState] Transition: Current State = ${rideState}, Next State = ${nextState}, Timestamp = ${new Date().toISOString()}`);
+    setRideState(nextState);
+
+    // side-effects on state entry
+    if (nextState === 'payment_processing') {
+      setPaymentTimeoutActive(false);
+      if (paymentTimeoutRef.current) clearTimeout(paymentTimeoutRef.current);
+      paymentTimeoutRef.current = setTimeout(() => {
+        console.log(`[RideState] Payment processing timed out. Timestamp = ${new Date().toISOString()}`);
+        setPaymentTimeoutActive(true);
+      }, 10000); // 10 seconds timeout
+    } else {
+      if (paymentTimeoutRef.current) {
+        clearTimeout(paymentTimeoutRef.current);
+        paymentTimeoutRef.current = null;
+      }
+      setPaymentTimeoutActive(false);
+    }
+  };
+
+  const mapStatusToState = (status: string, payStatus?: string): RideState => {
+    if (status === 'completed') {
+      if (payStatus === 'paid') return 'payment_success';
+      if (payStatus === 'processing') return 'payment_processing';
+      return 'payment_pending';
+    }
+    if (status === 'cancelled') return 'closed';
+    if (status === 'booked' || status === 'assigned') return 'accepted';
+    if (status === 'pickup' || status === 'arrived') return 'arriving';
+    if (status === 'en_route') return 'started';
+    if (status === 'in_progress' || status === 'anomaly') return 'in_progress';
+    return 'accepted';
+  };
+
+  // Reset/sync FSM states on ride transition/change and handle New Ride Created / Ride Reset
+  useEffect(() => {
+    if (activeRide) {
+      const isNewRide = prevRideIdRef.current !== activeRide.id;
+      if (isNewRide) {
+        console.log("New Ride Created");
+        prevRideIdRef.current = activeRide.id;
+        
+        // Reset all states for a completely fresh ride session
+        setCompletedRide(null);
+        setDisputeFiled(false);
+        setComplaintText('');
+        setShowQRPanel(false);
+        setSafetyLog([]);
+        setShowSafetyConfirm(false);
+        setPaymentInfoMessage('');
+        setIsPaying(false);
+        setIsSuccessPaid(activeRide.paymentStatus === 'paid');
+        
+        const initial = mapStatusToState(activeRide.status, activeRide.paymentStatus);
+        transitionTo(initial);
+        console.log("Ride Reset");
+      } else {
+        // If it's an existing ride, update states unless in terminal override states
+        const ignoreStates: RideState[] = ['payment_processing', 'payment_success', 'rating', 'closed'];
+        if (!ignoreStates.includes(rideState)) {
+          const targetState = mapStatusToState(activeRide.status, activeRide.paymentStatus);
+          if (targetState !== rideState) {
+            transitionTo(targetState);
+          }
+        } else if (rideState === 'payment_processing' && activeRide.paymentStatus === 'paid') {
+          transitionTo('payment_success');
+        }
+      }
+
+      // Sync Payment Open log
+      if (activeRide.status === 'completed' && activeRide.paymentStatus !== 'paid' && !isSuccessPaid && rideState === 'payment_pending') {
+        console.log("Payment Open");
+      }
+    } else {
+      // Clear all states if no active ride is present
+      setCompletedRide(null);
+      setIsSuccessPaid(false);
+      setIsPaying(false);
+      setDisputeFiled(false);
+      setComplaintText('');
+      setShowQRPanel(false);
+      setSafetyLog([]);
+      setShowSafetyConfirm(false);
+      if (prevRideIdRef.current) {
+        console.log("Ride Reset");
+      }
+      prevRideIdRef.current = null;
+      transitionTo('closed');
+    }
+  }, [activeRide?.id, activeRide?.status, activeRide?.paymentStatus]);
+
   const handleLaunchAppAndPay = async (appName: typeof selectedApp) => {
     if (!activeRide) return;
     setSelectedApp(appName);
     
+    console.log("Payment Open");
+    transitionTo('payment_processing');
+    setIsPaying(true);
+
+    if (onPayRide) {
+      await onPayRide(activeRide.id, undefined, appName, 'processing');
+    }
+
     if (appName === 'Cash') {
-      setIsPaying(true);
-      if (onPayRide) {
-        await onPayRide(activeRide.id, undefined, 'Cash', 'processing');
-      }
       setTimeout(async () => {
-        setIsSuccessPaid(true);
+        // If timed out or cancelled during verification, ignore timeout callback
+        if (paymentTimeoutRef.current === null) return;
+
         const refCode = `CASH-${Math.floor(100000 + Math.random() * 900000)}`;
+        console.log("Payment Success");
+        setIsSuccessPaid(true);
+        setIsPaying(false);
+        setCompletedRide(activeRide);
+
+        // Open rating screen once and close payment
+        transitionTo('rating');
+        console.log("Rating Open");
+
         if (onPayRide) {
           await onPayRide(activeRide.id, refCode, 'Cash', 'paid');
         }
-        setIsPaying(false);
       }, 1500);
       return;
     }
@@ -90,8 +216,6 @@ export default function RideTrackerView({
       return;
     }
 
-    setIsPaying(true);
-    
     // Generate UPI String
     const upiString = `upi://pay?pa=${merchantUpiId}&pn=ZipRide&am=${activeRide.finalFare.toFixed(2)}&cu=INR&tn=Ride-${activeRide.id}`;
     
@@ -111,10 +235,6 @@ export default function RideTrackerView({
 
     console.log(`Launching deep link for ${appName}: ${deepLink}`);
 
-    if (onPayRide) {
-      await onPayRide(activeRide.id, undefined, appName, 'processing');
-    }
-
     // Attempt to open custom protocol with standard fallback
     try {
       window.location.href = deepLink;
@@ -127,13 +247,46 @@ export default function RideTrackerView({
 
     // Simulate completion
     setTimeout(async () => {
-      setIsSuccessPaid(true);
+      // If timed out or cancelled during verification, ignore timeout callback
+      if (paymentTimeoutRef.current === null) return;
+
       const refCode = `TXN-${appName.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      console.log("Payment Success");
+      setIsSuccessPaid(true);
+      setIsPaying(false);
+      setCompletedRide(activeRide);
+
+      // Open rating screen once
+      transitionTo('rating');
+      console.log("Rating Open");
+
       if (onPayRide) {
         await onPayRide(activeRide.id, refCode, appName, 'paid');
       }
-      setIsPaying(false);
     }, 2500);
+  };
+
+  const handleRatingSelect = async (stars: number) => {
+    const rideToRate = activeRide || completedRide;
+    if (!rideToRate) return;
+    
+    console.log("Rating Submitted:", stars);
+    if (onRateRide) {
+      await onRateRide(rideToRate.id, stars);
+    }
+    
+    // Move FSM state to closed
+    transitionTo('closed');
+    
+    // Fully clear ride-completion state
+    console.log("Ride Reset");
+    localStorage.setItem(`zipride_dismissed_passenger_ride_${rideToRate.id}`, 'true');
+    setCompletedRide(null);
+    onRefresh();
+    
+    // Redirect to booking
+    window.history.pushState(null, '', '/booking');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -272,6 +425,23 @@ export default function RideTrackerView({
             className="px-5 py-2.5 bg-brand-emerald hover:bg-brand-emerald-dark font-semibold text-white rounded-xl text-xs shadow-sm transition"
           >
             Check Active Jobs
+          </button>
+        </div>
+      ) : activeRide.status === 'cancelled' ? (
+        <div className="bg-theme-card border border-theme-border rounded-2xl py-16 px-6 text-center max-w-xl mx-auto flex flex-col items-center shadow-xs">
+          <ShieldAlert className="w-12 h-12 text-rose-500 mb-3 animate-bounce" />
+          <h3 className="text-lg font-bold text-theme-text-primary">Ride Cancelled</h3>
+          <p className="text-xs text-theme-text-secondary max-w-[340px] mt-1 mb-5">This ride was cancelled. Please book a new ride to proceed.</p>
+          <button 
+            onClick={() => {
+              localStorage.setItem(`zipride_dismissed_passenger_ride_${activeRide.id}`, 'true');
+              onRefresh();
+              window.history.pushState(null, '', '/booking');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
+            className="px-5 py-2.5 bg-brand-emerald hover:bg-brand-emerald-dark font-semibold text-white rounded-xl text-xs shadow-sm transition cursor-pointer border-0"
+          >
+            Book New Ride
           </button>
         </div>
       ) : (
@@ -540,7 +710,7 @@ export default function RideTrackerView({
             <div className="space-y-6">
 
               {/* PAYMENT PANEL — Always visible during active ride */}
-              {(activeRide.paymentStatus === 'paid' || isSuccessPaid) ? (
+              {(rideState === 'payment_success' || activeRide.paymentStatus === 'paid') ? (
                 /* Transaction Success Receipt Screen */
                 <div className="bg-theme-card border-2 border-brand-emerald rounded-2xl p-6 shadow-lg space-y-5">
                   <div className="flex flex-col items-center text-center py-4">
@@ -569,6 +739,18 @@ export default function RideTrackerView({
                       <span className="text-theme-text-primary text-right">{activeRide.paidAt ? new Date(activeRide.paidAt).toLocaleString() : new Date().toLocaleString()}</span>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem(`zipride_dismissed_passenger_ride_${activeRide.id}`, 'true');
+                      onRefresh();
+                      window.history.pushState(null, '', '/booking');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                    className="w-full bg-[#00C896] hover:bg-[#00b384] text-white py-3.5 rounded-xl font-bold transition shadow-sm text-xs mt-4 flex items-center justify-center gap-1.5 cursor-pointer border-0"
+                  >
+                    Close & Book New Ride
+                  </button>
                 </div>
               ) : (
                 /* QR Payment Panel (Enhanced UPI Portal) - Always visible during active rides */
@@ -793,7 +975,7 @@ export default function RideTrackerView({
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
-                            onClick={() => onRateRide(activeRide.id, star)}
+                            onClick={() => handleRatingSelect(star)}
                             className="text-lg text-theme-text-secondary hover:text-amber-500 cursor-pointer transition-colors"
                             id={`rate-star-${star}`}
                           >
@@ -913,6 +1095,171 @@ export default function RideTrackerView({
             </form>
           </div>
 
+        </div>
+      )}
+
+      {/* PAYMENT MODAL OVERLAY */}
+      {(rideState === 'payment_pending' || rideState === 'payment_processing') && (activeRide || completedRide) && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-theme-card border-2 border-brand-emerald rounded-3xl p-6 shadow-2xl max-w-md w-full space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-theme-border pb-3">
+              <div>
+                <h3 className="text-base font-black text-theme-text-primary tracking-tight">PAY FOR YOUR RIDE</h3>
+                <p className="text-[10px] text-theme-text-secondary mt-0.5 font-mono">Simulated Secure Gateway Panel</p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => {
+                  console.log("Payment Failed");
+                  if (onPayRide && (activeRide || completedRide)) {
+                    onPayRide((activeRide || completedRide)!.id, undefined, selectedApp, 'failed');
+                  }
+                  transitionTo('closed');
+                  // redirect to booking
+                  localStorage.setItem(`zipride_dismissed_passenger_ride_${(activeRide || completedRide)!.id}`, 'true');
+                  onRefresh();
+                  window.history.pushState(null, '', '/booking');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+                className="text-theme-text-secondary hover:text-theme-text-primary text-xs font-bold border-0 bg-transparent cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Processing Loader Screen or Timeout Screen */}
+            {rideState === 'payment_processing' ? (
+              paymentTimeoutActive ? (
+                <div className="flex flex-col items-center text-center py-6 space-y-4 animate-in fade-in duration-300">
+                  <ShieldAlert className="w-12 h-12 text-rose-500 animate-bounce" />
+                  <div>
+                    <h4 className="text-sm font-bold text-theme-text-primary">Payment verification timed out.</h4>
+                    <p className="text-xs text-theme-text-secondary mt-1">We couldn't verify your transaction status. Please retry or cancel.</p>
+                  </div>
+                  <div className="flex gap-3 w-full pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log("Payment Open");
+                        handleLaunchAppAndPay(selectedApp);
+                      }}
+                      className="flex-1 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 py-3 rounded-xl text-xs font-bold transition cursor-pointer border-0"
+                    >
+                      Retry Payment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        console.log("Payment Failed");
+                        if (onPayRide && (activeRide || completedRide)) {
+                          await onPayRide((activeRide || completedRide)!.id, undefined, selectedApp, 'failed');
+                        }
+                        transitionTo('payment_pending');
+                      }}
+                      className="flex-1 bg-theme-bg border border-theme-border hover:bg-theme-hover-bg text-theme-text-secondary py-3 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center text-center py-8 space-y-4 animate-in fade-in duration-300">
+                  <div className="w-12 h-12 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin"></div>
+                  <div>
+                    <h4 className="text-sm font-bold text-theme-text-primary">Verifying Settle Request</h4>
+                    <p className="text-xs text-theme-text-secondary mt-1">Processing via {selectedApp}. Please approve the payment popup inside your selected app.</p>
+                  </div>
+                </div>
+              )
+            ) : (
+              <>
+                {/* Ride Meta Info */}
+                <div className="grid grid-cols-2 gap-3 text-xs bg-theme-bg/50 border border-theme-border rounded-xl p-3 font-semibold">
+                  <div>
+                    <span className="text-[9px] text-theme-text-secondary font-mono uppercase block">Ride ID</span>
+                    <span className="text-theme-text-primary font-mono font-bold">{(activeRide || completedRide)?.id}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-theme-text-secondary font-mono uppercase block">Driver Name</span>
+                    <span className="text-theme-text-primary font-bold">{(activeRide || completedRide)?.driverName || 'ZipRide Partner'}</span>
+                  </div>
+                  <div className="col-span-2 border-t border-theme-border/50 pt-1.5 flex justify-between items-center">
+                    <span className="text-[10px] text-theme-text-primary font-bold uppercase">Total Fare</span>
+                    <span className="text-indigo-500 text-base font-black font-mono">₹{(activeRide || completedRide)?.finalFare.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Dynamic Clickable QR Code */}
+                <div className="flex flex-col items-center bg-white dark:bg-slate-900 border border-theme-border rounded-2xl p-4 shadow-xs">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                        `upi://pay?pa=${merchantUpiId}&pn=ZipRide&am=${(activeRide || completedRide)?.finalFare.toFixed(2)}&cu=INR&tn=Ride-${(activeRide || completedRide)?.id}`
+                      )}`}
+                      alt="UPI Payment QR Code"
+                      className="w-32 h-32 object-contain"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center text-[10px] font-mono font-bold text-theme-text-secondary uppercase">
+                  — OR —
+                </div>
+
+                {/* Choose UPI App grid */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-2">Choose Payment App</label>
+                  <div className="grid grid-cols-2 gap-2 text-xs font-bold text-theme-text-primary">
+                    {['GooglePay', 'PhonePe', 'Paytm', 'Cash'].map((app) => (
+                      <button
+                        key={app}
+                        type="button"
+                        onClick={() => handleLaunchAppAndPay(app as any)}
+                        className="flex items-center gap-2 p-2.5 border border-theme-border bg-theme-bg hover:bg-slate-100/50 dark:hover:bg-slate-800/40 rounded-xl transition cursor-pointer"
+                      >
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                          app === 'GooglePay' ? 'bg-blue-500' :
+                          app === 'PhonePe' ? 'bg-purple-550' :
+                          app === 'Paytm' ? 'bg-sky-550 font-bold shrink-0 text-sky-500' : 'bg-emerald-550 font-bold shrink-0 text-emerald-500'
+                        }`} />
+                        <span>{app === 'GooglePay' ? 'Google Pay' : app === 'PhonePe' ? 'PhonePe' : app === 'Paytm' ? 'Paytm' : 'Cash (Settle)'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* RATING MODAL OVERLAY */}
+      {rideState === 'rating' && (activeRide || completedRide) && (
+        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <div className="bg-theme-card border-2 border-brand-emerald rounded-3xl p-8 shadow-2xl max-w-sm w-full space-y-6 text-center animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-500">
+              <span className="text-3xl">★</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-theme-text-primary">Rate Your Commute</h3>
+              <p className="text-xs text-theme-text-secondary mt-1">Let us know how your driver performed on this trip.</p>
+            </div>
+
+            <div className="flex justify-center gap-4 py-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRatingSelect(star)}
+                  className="text-4xl text-theme-text-secondary hover:text-amber-500 cursor-pointer transition-colors border-0 bg-transparent"
+                  id={`modal-rate-star-${star}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            <p className="text-[11px] text-theme-text-secondary">Your feedback helps keep the ZipRide community safe and reliable.</p>
+          </div>
         </div>
       )}
 

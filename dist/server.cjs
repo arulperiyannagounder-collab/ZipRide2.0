@@ -252,32 +252,44 @@ Rider's Filed Dispute Complaint: "${rideSummary.userStateReason}"`;
   }
 }
 async function askGeminiAssist(question, history, context) {
-  const systemInstruction = `You are the ZipRide Operations and Safety Support Agent. You guide riders, drivers, and ops managers with extreme safety compliance expertise.
-Rely on ZipRide's explicit policy parameters:
-1. Base Fare: \u20B920.00
-2. Per-Kilometer Charge: \u20B912.00/km
-3. Per-Minute Charge: \u20B91.50/min
-4. Weather Surcharges (Added to Base):
-   - Clear: No surcharge (Limit: 80 km/h)
-   - Overcast: +\u20B910.00 base, Safety warning speed: 75 km/h
-   - High Winds: +\u20B920.00 base, Safety warning speed: 65 km/h
-   - Heavy Rain: +\u20B930.00 base, Safety warning speed: 60 km/h
-   - Monsoon Storm: +\u20B950.00 base, Safety warning speed: 50 km/h
-5. Traffic Surcharges (Multipliers applied to Distance/Time fares & ETA duration multiplier):
-   - Light: 1.0x (No multiplier)
-   - Moderate: 1.1x multiplier, ETA: 1.3x
-   - Heavy Congestion: 1.3x multiplier, ETA: 1.8x
-   - Gridlock: 1.5x multiplier, ETA: 2.5x
-6. Behavior Penalties & Cost Dropping discounts:
-   - Overspeeding (Going past warning speed): Triggers an immediate safety warning. Each incident drops the customer's fare cost by \u20B915.00 (discount applied directly, deducted from driver's settlement).
-   - Harsh Braking (Abrupt deceleration): Triggers safety check. Each incident drops the customer's fare cost by \u20B910.00 (discount applied directly, deducted from driver's settlement).
-   - High safety score keeps fare intact. Low safety score (<80%) guarantees additional fare protection.
+  const systemInstruction = `You are the ZipRide RideMate Companion\u2014an intelligent, friendly, and travel-focused AI assistant that acts as a real-time ride companion for passengers, drivers, and operations.
 
-Be helpful, professional, scannable, and extremely clear. Do not cite fake formulas, speak about code files, or output dry developer logs. Speak as an executive customer helper.`;
+ZipRide Safety & Surcharge Policy Rules:
+1. Base Fare: \u20B920.00, Per-KM: \u20B912.00, Per-Minute: \u20B91.50
+2. Weather base surcharges: Overcast (+\u20B910, limit 75km/h), High Winds (+\u20B920, limit 65km/h), Heavy Rain (+\u20B930, limit 60km/h), Monsoon Storm (+\u20B950, limit 50km/h).
+3. Traffic multipliers: Light (1.0x), Moderate (1.1x multiplier, ETA 1.3x), Heavy Congestion (1.3x multiplier, ETA 1.8x), Gridlock (1.5x multiplier, ETA 2.5x).
+4. Behavior deductions: Overspeeding past ceiling triggers -\u20B915 dynamic discount. Harsh braking triggers -\u20B910 dynamic discount. Deductions are subtracted directly from fare.
+
+Active Safety Modes & Protocols:
+- Child Safety Mode: Requires a 4-digit pickup verification code to start the ride, and guardian arrival confirmation at the drop destination. Always display the pickup verification PIN if this mode is ACTIVE and the user asks about it.
+- Women Safety Mode: Performs GPS deviation tracking (>350m threshold). Guardians receive automatic route alerts on warning triggers.
+- Family Safety Mode: Shares live tracking links and broadcasts vehicle coordinates to synced emergency contacts.
+
+Formatting Instructions:
+- Keep answers friendly, travel-focused, and highly contextual.
+- If the user uses Tamil or Tanglish (Tamil-English mix), respond in a friendly mixed Tanglish/English style.
+- If you notice dynamic issues (weather storm, high traffic, low safety score, or route deviations), proactively recommend actions.
+- For safety status queries, always display a scorecard in this exact format:
+  Safety Score: [score]%
+  Traffic Risk: [Low/Medium/High]
+  Weather Risk: [Low/Medium/High]
+  Driver Rating: [rating]
+  Recommendation: [recommendation]
+- Include Smart Action Alert Cards using these exact tags on their own line:
+  [ALERT: WEATHER] Description
+  [ALERT: TRAFFIC] Description
+  [ALERT: SAFETY] Description
+- Suggest actions using these exact tags on their own line:
+  [SUGGESTION: SHOW_SAFER_ROUTE] Label
+  [SUGGESTION: REDUCE_FARE] Label
+  [SUGGESTION: TRACK_DRIVER] Label
+  [SUGGESTION: EMERGENCY_HELP] Label
+
+Rely heavily on the Active State Grounding Context provided. Prioritize giving specific recommendations (like switching routes, warning limits, safety PINs, or emergency alerts) over general explanations.`;
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return getMockAssistAnswer(question);
+      return getMockAssistAnswer(question, context);
     }
     const client = getGeminiClient();
     const pastChats = history.map((h) => ({
@@ -299,10 +311,10 @@ ${context}` : "") }] },
         temperature: 0.5
       }
     });
-    return response.text || getMockAssistAnswer(question);
+    return response.text || getMockAssistAnswer(question, context);
   } catch (error) {
     console.error("Gemini API assist assistant failed:", error);
-    return getMockAssistAnswer(question);
+    return getMockAssistAnswer(question, context);
   }
 }
 function getMockDisputeSummary(ride) {
@@ -315,47 +327,242 @@ function getMockDisputeSummary(ride) {
 - **Cost Adjustments Log**: Real-time telemetry flagged ${ride.overspeedEvents + ride.harshBrakeEvents} behavioral violations. Combined safety discounts successfully dropped the final client fare to **\u20B9${ride.finalFare.toFixed(2)}** (a total safety discount of \u20B9${(ride.initialFare - ride.finalFare).toFixed(2)} was credited).
 - **Executive Recommendation**: Complaint is **VALID**. The safety score of **${ride.safetyScore}%** warrants processing a final full fare lock, and warning the driver (ID: Rajesh Kumar) for reckless transit behavior. No further refund is required as the safety discount was already subtracted in real-time.`;
 }
-function getMockAssistAnswer(question) {
+function parseGroundedContext(context) {
+  const result = {
+    weather: "Clear",
+    traffic: "Light",
+    currentUser: "Saran",
+    role: "passenger",
+    activeRide: null,
+    routes: [],
+    driverRating: 4.8
+  };
+  if (!context) return result;
+  const weatherMatch = context.match(/System Weather configuration:\s*([^,]+)/i);
+  if (weatherMatch) result.weather = weatherMatch[1].trim();
+  const trafficMatch = context.match(/Traffic:\s*([^\.]+)/i);
+  if (trafficMatch) result.traffic = trafficMatch[1].trim();
+  const userMatch = context.match(/Current user:\s*([^,]+)/i);
+  if (userMatch) result.currentUser = userMatch[1].trim();
+  if (context.includes("Active Ride:")) {
+    const getVal = (regex, def = "") => {
+      const m = context.match(regex);
+      return m ? m[1].trim() : def;
+    };
+    result.activeRide = {
+      id: getVal(/Ride ID:\s*([^\n]+)/i),
+      pickup: getVal(/Pickup:\s*([^\n]+)/i),
+      drop: getVal(/Drop:\s*([^\n]+)/i),
+      status: getVal(/Status:\s*([^\n]+)/i),
+      driverName: getVal(/Driver Name:\s*([^\n]+)/i, "Rajesh Kumar"),
+      riderName: getVal(/Rider Name:\s*([^\n]+)/i, "Saran"),
+      vehicleType: getVal(/Vehicle Type:\s*([^\n]+)/i, "Bike"),
+      initialFare: parseFloat(getVal(/Dynamic Fare:\s*Initial\s*₹([\d\.]+)/i, "0")),
+      finalFare: parseFloat(getVal(/Dynamic Fare:.*Final\s*charged\s*₹([\d\.]+)/i, "0")),
+      speed: parseFloat(getVal(/Speed:\s*([\d\.]+)/i, "0")),
+      safetyScore: parseFloat(getVal(/Safety Score:\s*([\d\.]+)/i, "100")),
+      overspeedEvents: parseInt(getVal(/Overspeed Events:\s*(\d+)/i, "0")),
+      harshBrakeEvents: parseInt(getVal(/Harsh Braking:\s*(\d+)/i, "0")),
+      paymentStatus: getVal(/Payment Status:\s*([^\n]+)/i, "Pending"),
+      hasActiveSOS: getVal(/Active SOS Flag:\s*([^\n]+)/i).toLowerCase() === "yes",
+      isChildSafety: getVal(/Child Safety Mode:\s*([^\n]+)/i).toLowerCase() === "active",
+      isWomenSafety: getVal(/Women Safety Mode:\s*([^\n]+)/i).toLowerCase() === "active",
+      isFamilySafety: getVal(/Family Safety Mode:\s*([^\n]+)/i).toLowerCase() === "active",
+      pickupCode: getVal(/Pickup Verification PIN:\s*([^\n]+)/i, "N/A"),
+      childArrivalConfirmed: getVal(/Child Arrival Confirmed by Guardian:\s*([^\n]+)/i).toLowerCase() === "yes"
+    };
+  }
+  const routeLines = context.split("\n");
+  routeLines.forEach((line) => {
+    const routeMatch = line.match(/-\s*Route\s*(\d+):\s*([^\.\(]+)(?:\s*\((Selected)\))?\.\s*ETA:\s*([\d\.]+)\s*mins,\s*Distance:\s*([\d\.]+)\s*km,\s*Traffic\s*Score:\s*(\d+)\/100,\s*Fuel:\s*([\d\.]+)L,\s*Road\s*Health:\s*(\d+)\/100/i);
+    if (routeMatch) {
+      const reliabilityMatch = line.match(/Reliability\s*Score:\s*(\d+)%/i);
+      result.routes.push({
+        name: routeMatch[2].trim(),
+        durationMin: parseFloat(routeMatch[4]),
+        distanceKm: parseFloat(routeMatch[5]),
+        trafficScore: parseInt(routeMatch[6]),
+        fuelUsageLiters: parseFloat(routeMatch[7]),
+        roadHealthScore: parseInt(routeMatch[8]),
+        reliabilityScore: reliabilityMatch ? parseInt(reliabilityMatch[1]) : 90,
+        isSelected: !!routeMatch[3]
+      });
+    }
+  });
+  const ratingMatch = context.match(/Driver Reputation \/ Rating:\s*([\d\.]+)/i);
+  if (ratingMatch) result.driverRating = parseFloat(ratingMatch[1]);
+  return result;
+}
+function getMockAssistAnswer(question, context) {
   const q = question.toLowerCase();
-  if (q.includes("weather") || q.includes("rain") || q.includes("storm")) {
-    return `### **ZipRide Weather Dynamic Fare Surcharges**
+  const state = parseGroundedContext(context);
+  if (q.includes("safe") || q.includes("safety") || q.includes("risk") || q.includes("accident") || q.includes("danger") || q.includes("child") || q.includes("women") || q.includes("family") || q.includes("pin") || q.includes("code")) {
+    const score = state.activeRide ? state.activeRide.safetyScore : 100;
+    const weather2 = state.weather;
+    const traffic2 = state.traffic;
+    const rating2 = state.driverRating;
+    let weatherRisk = "Low";
+    if (weather2 === "Heavy Rain" || weather2 === "High Winds") weatherRisk = "Medium";
+    else if (weather2 === "Monsoon Storm") weatherRisk = "High";
+    let trafficRisk = "Low";
+    if (traffic2 === "Heavy Congestion") trafficRisk = "Medium";
+    else if (traffic2 === "Gridlock") trafficRisk = "High";
+    let recommendation = "Your ride appears safe. The driver status checks out fine.";
+    if (state.activeRide?.hasActiveSOS) {
+      recommendation = "An active emergency SOS has been triggered! PCR emergency dispatch is routing to your position.";
+    } else if (score < 75) {
+      recommendation = "Reckless driver behavior detected. Speed limit cap has been activated. Switch to Route 2 for safety.";
+    } else if (weatherRisk === "High" || weatherRisk === "Medium") {
+      recommendation = "Inclement weather hazards reported near destination. Driver speed has been capped for traction.";
+    }
+    let safetyDetails = "";
+    if (state.activeRide) {
+      if (state.activeRide.isChildSafety) {
+        safetyDetails += `
+\u{1F512} **Child Safety Mode is ACTIVE** for this trip. Guardian pre-approval is verified. The pickup verification code is **${state.activeRide.pickupCode}** (share this with the driver only at pickup).`;
+      }
+      if (state.activeRide.isWomenSafety) {
+        safetyDetails += `
+\u{1F6E1}\uFE0F **Women Safety Mode is ACTIVE**. GPS Geofence deviation monitoring (>350m) is active. Guardian SMS tracking link is shared.`;
+      }
+      if (state.activeRide.isFamilySafety) {
+        safetyDetails += `
+\u{1F46A} **Family Safety Mode is ACTIVE**. Live location sharing broadcasts are running.`;
+      }
+      if (!state.activeRide.isChildSafety && !state.activeRide.isWomenSafety && !state.activeRide.isFamilySafety) {
+        safetyDetails += `
+\u2139\uFE0F Travel safety modes are currently inactive. You can toggle Child/Women/Family safe modes in settings or during booking.`;
+      }
+    }
+    const safetyCard = `Safety Score: ${score}%
 
-- **Clear**: No surcharge (Standard 80 km/h baseline speed ceiling).
-- **Overcast**: **+\u20B910.00** base surcharge (Safety limit drops to 75 km/h).
-- **High Winds**: **+\u20B920.00** base surcharge (Safety limit drops to 65 km/h).
-- **Heavy Rain**: **+\u20B930.00** base surcharge (Safety limit drops to 60 km/h).
-- **Monsoon Storm**: **+\u20B950.00** base surcharge (Safety limit drops to 50 km/h).
+Traffic Risk: ${trafficRisk}
+Weather Risk: ${weatherRisk}
+Driver Rating: ${rating2}
 
-*Note: All speed violations under monsoon weather count as overspeeding and subtract \u20B915.00 from your fare dynamically!*`;
+Recommendation:
+${recommendation}${safetyDetails}
+
+[ALERT: SAFETY] Safety Insight - GPS Geofencing active.
+[ALERT: WEATHER] Weather Risk - ${weatherRisk === "Low" ? "Normal weather conditions." : "Inclement weather guidelines active."}`;
+    const emergencySug = "[SUGGESTION: EMERGENCY_HELP] Emergency Help";
+    const trackSug = "[SUGGESTION: TRACK_DRIVER] Track Driver";
+    const routeSug = "[SUGGESTION: SHOW_SAFER_ROUTE] Show Safer Route";
+    return `${safetyCard}
+
+${routeSug}
+${trackSug}
+${emergencySug}`;
   }
-  if (q.includes("traffic") || q.includes("gridlock") || q.includes("congest")) {
-    return `### **ZipRide Traffic Congestion Multipliers**
+  if (q.includes("fare") || q.includes("surcharge") || q.includes("price") || q.includes("cost") || q.includes("increase") || q.includes("fee") || q.includes("charge")) {
+    const active = state.activeRide;
+    const initial = active ? active.initialFare : 50;
+    const final = active ? active.finalFare : 50;
+    let weatherFee = 0;
+    if (state.weather === "Overcast") weatherFee = 10;
+    else if (state.weather === "High Winds") weatherFee = 20;
+    else if (state.weather === "Heavy Rain") weatherFee = 30;
+    else if (state.weather === "Monsoon Storm") weatherFee = 50;
+    let trafficMult = "1.0x";
+    if (state.traffic === "Moderate") trafficMult = "1.1x";
+    else if (state.traffic === "Heavy Congestion") trafficMult = "1.3x";
+    else if (state.traffic === "Gridlock") trafficMult = "1.5x";
+    const overspeedDiscount = active ? active.overspeedEvents * 15 : 0;
+    const harshDiscount = active ? active.harshBrakeEvents * 10 : 0;
+    let recommendation = "Your fare increased due to weather and traffic conditions. To minimize costs, maintain safe speeds to qualify for compliance discounts.";
+    if (overspeedDiscount > 0 || harshDiscount > 0) {
+      recommendation = `Behavioral discounts applied: -\u20B9${overspeedDiscount + harshDiscount} due to driving exceptions.`;
+    }
+    const fareBreakdown = `Base Fare: \u20B920.00
+Weather Surcharge: +\u20B9${weatherFee.toFixed(2)} (${state.weather})
+Traffic Multiplier: ${trafficMult} (${state.traffic})
+Driver Safety Penalties: -\u20B9${(overspeedDiscount + harshDiscount).toFixed(2)}
 
-- **Light Traffic**: **1.0x** (No extra surcharge).
-- **Moderate Traffic**: **1.1x** multiplier (ETA increases by 1.3x).
-- **Heavy Traffic**: **1.3x** multiplier (ETA increases by 1.8x).
-- **Gridlock Traffic**: **1.5x** multiplier (ETA increases by 2.5x).
+Recommendation:
+${recommendation}
 
-*Wait-times are calculated in real-time, but fares are strictly locked once the ride begins!*`;
+[ALERT: TRAFFIC] Surcharge Active - Traffic multiplier is ${trafficMult}.
+[ALERT: WEATHER] Weather Fee - Weather fee is +\u20B9${weatherFee}.`;
+    const routeSug = "[SUGGESTION: SHOW_SAFER_ROUTE] Show Safer Route";
+    const reduceSug = "[SUGGESTION: REDUCE_FARE] Learn Surcharges";
+    return `${fareBreakdown}
+
+${routeSug}
+${reduceSug}`;
   }
-  if (q.includes("overspeed") || q.includes("brake") || q.includes("safety") || q.includes("behavior")) {
-    return `### **ZipRide Real-Time Safety Adjustments**
+  if (q.includes("traffic") || q.includes("route") || q.includes("eta") || q.includes("delay") || q.includes("congestion") || q.includes("best route") || q.includes("road")) {
+    let routeDetails = "Route Options Analysed:\n";
+    if (state.routes.length > 0) {
+      state.routes.forEach((r, idx) => {
+        routeDetails += `- Route ${idx + 1}: ${r.name} (${r.durationMin} mins, ${r.distanceKm} km, Road Health: ${r.roadHealthScore}/100)
+`;
+      });
+    } else {
+      routeDetails += "- Route 1: NH Highway Freeway (12 mins, Heavy traffic)\n- Route 2: Link Road Green Corridor (8 mins, Free flowing)\n";
+    }
+    const rec = state.routes.length > 0 ? "Route 2 currently has the lowest traffic congestion index. Switching routes will optimize transit time." : "Switching to Route 2 can save 4 minutes.";
+    return `${routeDetails}
+Recommendation:
+${rec}
 
-We actively monitor active speed and behavioral safety telemetries during ZipRide bookings:
-- **Overspeeding**: If the speed exceeds the dynamic weather ceiling, a warning alert triggers. Each warning automatically **reduces your ride cost by \u20B915.00** to compensate for the hazard.
-- **Harsh Braking**: If the driver brakes abruptly (instantly losing >20 km/h), a warning alerts operations. Each warning automatically **reduces your ride cost by \u20B910.00**.
+[ALERT: TRAFFIC] Traffic Alert - Route 1 has additional delays.
 
-*All behavioral deductions are displayed live on your ride tracker and deducted directly from the driver's final checkout settlement!*`;
+[SUGGESTION: SHOW_SAFER_ROUTE] Switch to Route 2`;
   }
-  return `### **Welcome to ZipRide Ops Support**
-196: 
-197: I can help with questions regarding:
-198: - **Base/Kilometer/Time rate systems** (\u20B920 base, \u20B912/km, \u20B91.5/min).
-199: - **Weather dynamic surcharges** (Drizzle, High Winds, Heavy Rain, Storms).
-200: - **Traffic multiplier indexes** (Light, Moderate, Heavy, Gridlock).
-201: - **Driver safety behaviour adjustments** (Overspeeding warnings: -\u20B915, Abrupt deceleration: -\u20B910).
-202: 
-203: How can I assist you with ZipRide guidelines today?`;
+  if (q.includes("weather") || q.includes("rain") || q.includes("storm") || q.includes("wind")) {
+    let surchargeInfo = "No active weather surcharges.";
+    if (state.weather !== "Clear") {
+      surchargeInfo = `Weather Base Surcharge: Active (+\u20B9${state.weather === "Overcast" ? "10" : state.weather === "High Winds" ? "20" : state.weather === "Heavy Rain" ? "30" : "50"})`;
+    }
+    return `Weather Condition: ${state.weather}
+Surcharge Status: ${surchargeInfo}
+Safety Capping: Speed cap is active at ${state.weather === "Monsoon Storm" ? "50 km/h" : state.weather === "Heavy Rain" ? "60 km/h" : state.weather === "High Winds" ? "65 km/h" : "75 km/h"}.
+
+Recommendation:
+Maintain a safe braking distance. Wet/overcast roads limit tire traction.
+
+[ALERT: WEATHER] Weather Alert - ${state.weather} conditions reported.
+
+[SUGGESTION: SHOW_SAFER_ROUTE] View Safer Route`;
+  }
+  if (q.includes("driver") || q.includes("reputation") || q.includes("rating") || q.includes("who is") || q.includes("rajesh") || q.includes("saran") || q.includes("arul")) {
+    const active = state.activeRide;
+    const rating2 = state.driverRating || 4.8;
+    const driverName = active ? active.driverName : "Rajesh Kumar";
+    return `Driver Name: ${driverName}
+Rating: ${rating2} / 5.0
+Compliance Status: Verified RideMate Driver
+Telemetry Alerts: ${active ? active.overspeedEvents : 0} Speeding Warning(s)
+
+Recommendation:
+Driver has high rating of ${rating2}. Telemetry checks are active.
+
+[ALERT: SAFETY] Compliance Monitor - Safety logs are normal.
+
+[SUGGESTION: TRACK_DRIVER] Track Driver`;
+  }
+  if (q.includes("hospital") || q.includes("medical") || q.includes("emergency") || q.includes("doctor") || q.includes("accident") || q.includes("help") || q.includes("danger") || q.includes("sos") || q.includes("unsafe") || q.includes("threat")) {
+    return `Emergency Guidance Mode:
+- Nearest Hospital: Apollo Emergency Care (1.8 km away, ~4 mins)
+- Backup Clinic: Apollo Clinic (2.5 km away)
+- Ambulance Dispatch: Mapped on SOS trigger
+
+Recommendation:
+If you feel unsafe or have an emergency, please press the [Emergency Help] button immediately. This triggers PCR ambulance dispatch, shares live coordinates, and texts your guardians.
+
+[ALERT: SAFETY] Emergency Mode - Emergency guidance active.
+
+[SUGGESTION: EMERGENCY_HELP] Emergency Help`;
+  }
+  const rating = state.driverRating || 4.8;
+  const weather = state.weather;
+  const traffic = state.traffic;
+  return `Hello! I am your RideMate Companion. I have live telemetry access to weather (${weather}), traffic (${traffic}), active routes, and driver details (Rating: ${rating}). How can I help you on your commute today?
+
+[ALERT: SAFETY] Compliance Monitor - Operations logs are nominal.
+
+[SUGGESTION: SHOW_SAFER_ROUTE] Show Safer Route
+[SUGGESTION: EMERGENCY_HELP] Emergency Help`;
 }
 async function queryGeographicCities(userQuery) {
   const LOCAL_CITIES_FILE = import_path2.default.join(process.cwd(), "indian_cities.json");
@@ -1444,7 +1651,7 @@ apiRouter.get("/alerts", (req, res) => {
   res.json(db.getAlerts());
 });
 apiRouter.post("/gemini/assist", asyncWrapper(async (req, res) => {
-  const { question, history, currentUser, role } = req.body;
+  const { question, history, currentUser, role, routes, selectedRouteIndex, driverRating } = req.body;
   if (!question) {
     res.status(400).json({ error: "A user question query is required." });
     return;
@@ -1477,7 +1684,27 @@ Active Ride:
 - Safety Score: ${activeRide.safetyScore}%
 - Overspeed Events: ${activeRide.overspeedEvents}, Harsh Braking: ${activeRide.harshBrakeEvents}
 - Payment Status: ${activeRide.paymentStatus || "Pending"}
-- Active SOS Flag: ${activeRide.hasActiveSOS ? "YES" : "NO"}`;
+- Active SOS Flag: ${activeRide.hasActiveSOS ? "YES" : "NO"}
+- Child Safety Mode: ${activeRide.isChildSafety ? "ACTIVE" : "INACTIVE"}
+- Women Safety Mode: ${activeRide.isWomenSafety ? "ACTIVE" : "INACTIVE"}
+- Family Safety Mode: ${activeRide.isFamilySafety ? "ACTIVE" : "INACTIVE"}
+- Pickup Verification PIN: ${activeRide.pickupCode || "N/A"}
+- Child Arrival Confirmed by Guardian: ${activeRide.childArrivalConfirmed ? "YES" : "NO"}`;
+    }
+    if (routes && Array.isArray(routes) && routes.length > 0) {
+      context += `
+Available Routes:
+`;
+      routes.forEach((route, idx) => {
+        const isSelected = idx === selectedRouteIndex;
+        context += `- Route ${idx + 1}: ${route.name}${isSelected ? " (Selected)" : ""}. ETA: ${route.durationMin} mins, Distance: ${route.distanceKm} km, Traffic Score: ${route.trafficScore}/100, Fuel: ${route.fuelUsageLiters}L, Road Health: ${route.roadHealthScore}/100, Reliability Score: ${route.reliabilityScore || 90}%
+`;
+      });
+    }
+    if (driverRating !== void 0) {
+      context += `
+Driver Reputation / Rating: ${driverRating} stars out of 5.0
+`;
     }
   }
   const answer = await askGeminiAssist(question, history || [], context);

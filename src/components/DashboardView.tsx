@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
+  IndianRupee,
   CheckCircle2, 
   AlertTriangle, 
   TrendingUp, 
@@ -23,10 +24,61 @@ import {
   Heart,
   Send
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { SystemState, Ride, SystemConfig } from '../types';
 import { ZipRideRepository } from '../services/dbInterface';
 import RideMatePanel from './RideMatePanel';
 import { RoadIntelligenceView } from './RoadIntelligenceView';
+
+// High-performance upward-counting stats counter
+function AnimatedCounter({ value, duration = 1.0, formatter = (v: number) => String(Math.floor(v)) }: { value: number; duration?: number; formatter?: (v: number) => string }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = value;
+    if (start === end) {
+      setDisplayValue(end);
+      return;
+    }
+
+    const totalMiliseconds = duration * 1000;
+    const intervalTime = 30; // ~33fps
+    const totalSteps = totalMiliseconds / intervalTime;
+    const stepIncrement = (end - start) / totalSteps;
+
+    let current = start;
+    const timer = setInterval(() => {
+      current += stepIncrement;
+      if ((stepIncrement > 0 && current >= end) || (stepIncrement < 0 && current <= end)) {
+        clearInterval(timer);
+        setDisplayValue(end);
+      } else {
+        setDisplayValue(current);
+      }
+    }, intervalTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return <>{formatter(displayValue)}</>;
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+} as const;
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 14 } }
+} as const;
+
 
 interface DashboardViewProps {
   systemState: SystemState;
@@ -154,9 +206,9 @@ export default function DashboardView({
 
   if (userRole === 'admin') {
     return (
-      <div className="space-y-6">
+      <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
         {/* Title block with refresh action */}
-      <div className="flex items-center justify-between">
+      <motion.div variants={cardVariants} className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-theme-text-primary tracking-tight">System Operations Console</h2>
           <p className="text-sm text-theme-text-secondary">Real-time dynamic monitoring, traffic surcharging, and safety compliance feeds.</p>
@@ -169,10 +221,10 @@ export default function DashboardView({
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Synchronize Stream</span>
         </button>
-      </div>
+      </motion.div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <motion.div variants={cardVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* KPI: Active Rides */}
         <div id="kpi-active" className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
@@ -180,7 +232,7 @@ export default function DashboardView({
           </div>
           <div>
             <p className="text-xs font-mono font-medium tracking-wide uppercase text-theme-text-secondary">Active Rides</p>
-            <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5">{activeCount}</h3>
+            <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5"><AnimatedCounter value={activeCount} /></h3>
           </div>
         </div>
 
@@ -192,7 +244,7 @@ export default function DashboardView({
           <div>
             <p className="text-xs font-mono font-medium tracking-wide uppercase text-theme-text-secondary">Successful Payments</p>
             <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5">
-              {successfulPaymentsCount}
+              <AnimatedCounter value={successfulPaymentsCount} />
             </h3>
           </div>
         </div>
@@ -200,12 +252,12 @@ export default function DashboardView({
         {/* KPI: Revenue Today */}
         <div id="kpi-revenue" className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-emerald/10 text-brand-emerald flex items-center justify-center shrink-0">
-            <TrendingUp className="w-6 h-6" />
+            <IndianRupee className="w-6 h-6 text-[#00C896]" />
           </div>
           <div>
             <p className="text-xs font-mono font-medium tracking-wide uppercase text-theme-text-secondary">Revenue Today</p>
             <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5">
-              ₹{getRevenueToday().toFixed(2)}
+              ₹<AnimatedCounter value={getRevenueToday()} formatter={(v) => v.toFixed(2)} />
             </h3>
           </div>
         </div>
@@ -218,7 +270,7 @@ export default function DashboardView({
           <div>
             <p className="text-xs font-mono font-medium tracking-wide uppercase text-theme-text-secondary">Pending Payments</p>
             <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5">
-              {pendingPaymentsCount}
+              <AnimatedCounter value={pendingPaymentsCount} />
             </h3>
           </div>
         </div>
@@ -230,10 +282,10 @@ export default function DashboardView({
           </div>
           <div>
             <p className="text-xs font-mono font-medium tracking-wide uppercase text-theme-text-secondary">Safety Alerts</p>
-            <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5">{overspeedCount + harshBrakeCount}</h3>
+            <h3 className="text-2xl font-bold text-theme-text-primary font-mono mt-0.5"><AnimatedCounter value={overspeedCount + harshBrakeCount} /></h3>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Grid: Settings Console & Surcharge Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -488,11 +540,11 @@ export default function DashboardView({
         </div>
 
         {/* Live System Operational Alerts Feed Panel */}
-        <div id="alerts-panel" className="lg:col-span-4 bg-slate-950 border border-slate-900 rounded-2xl flex flex-col justify-between overflow-hidden shadow-md text-slate-300">
-          <div className="p-5 border-b border-slate-900/80 bg-slate-950 flex items-center justify-between">
+        <div id="alerts-panel" className="lg:col-span-4 bg-theme-card border border-theme-border rounded-2xl flex flex-col justify-between overflow-hidden shadow-md text-theme-text-primary">
+          <div className="p-5 border-b border-theme-border bg-theme-bg flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-brand-emerald rotate-12 shrink-0" />
-              <h3 className="font-bold text-white text-sm">Live System Alarm Stream</h3>
+              <h3 className="font-bold text-theme-text-primary text-sm">Live System Alarm Stream</h3>
             </div>
             <span className="w-2 h-2 rounded-full bg-brand-emerald animate-ping shrink-0" />
           </div>
@@ -500,10 +552,10 @@ export default function DashboardView({
           <div className="flex-1 p-4 space-y-3 max-h-[300px] overflow-y-auto">
             {recentAlerts.length > 0 ? (
               recentAlerts.map((log) => {
-                let colorClass = 'border-slate-800 bg-slate-900/30 text-slate-300';
-                if (log.severity === 'high') colorClass = 'border-rose-950 bg-rose-950/20 text-rose-300';
-                else if (log.severity === 'medium') colorClass = 'border-yellow-950 bg-yellow-950/20 text-yellow-300';
-                else if (log.severity === 'critical') colorClass = 'border-red-900 bg-red-950/40 text-red-200 animate-pulse';
+                let colorClass = 'border-theme-border bg-theme-bg/30 text-theme-text-primary';
+                if (log.severity === 'high') colorClass = 'border-rose-300 dark:border-rose-950 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300';
+                else if (log.severity === 'medium') colorClass = 'border-yellow-300 dark:border-yellow-950 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-300';
+                else if (log.severity === 'critical') colorClass = 'border-red-400 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-200 animate-pulse';
 
                 return (
                   <div key={log.id} className={`p-3.5 rounded-xl border text-[11px] font-mono leading-relaxed transition ${colorClass}`}>
@@ -516,7 +568,7 @@ export default function DashboardView({
                     </div>
                     <div className="font-medium">{log.message}</div>
                     {log.rideId !== 'SYSTEM' && (
-                      <span className="inline-block mt-1.5 px-1.5 py-0.5 bg-slate-900 rounded text-[10px] text-theme-text-secondary font-bold">RIDE: {log.rideId}</span>
+                      <span className="inline-block mt-1.5 px-1.5 py-0.5 bg-theme-bg border border-theme-border rounded text-[10px] text-theme-text-secondary font-bold">RIDE: {log.rideId}</span>
                     )}
                   </div>
                 );
@@ -529,7 +581,7 @@ export default function DashboardView({
             )}
           </div>
 
-          <div className="p-4 border-t border-slate-900 bg-slate-950/90 text-[10px] font-mono text-theme-text-secondary flex justify-between items-center">
+          <div className="p-4 border-t border-theme-border bg-theme-bg text-[10px] font-mono text-theme-text-secondary flex justify-between items-center">
             <span>Buffer Limit: 200 Logs</span>
             <span className="text-brand-emerald">Automatic Flush Active</span>
           </div>
@@ -625,13 +677,13 @@ export default function DashboardView({
         </div>
 
         {/* RideMate Advanced Impact & Admin Analytics Dashboard */}
-        <div className="lg:col-span-12 bg-[#0b1329]/40 border border-slate-800 rounded-3xl p-6 shadow-sm mt-6 text-slate-300">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+        <div className="lg:col-span-12 bg-theme-card border border-theme-border rounded-3xl p-6 shadow-sm mt-6 text-theme-text-secondary">
+          <div className="flex items-center justify-between mb-4 border-b border-theme-border pb-3">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-indigo-400" />
-              <h3 className="font-bold text-white text-base">RideMate Platform Impact & Admin Analytics</h3>
+              <Shield className="w-5 h-5 text-indigo-500 shrink-0" />
+              <h3 className="font-bold text-theme-text-primary text-base">RideMate Platform Impact & Admin Analytics</h3>
             </div>
-            <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/25">
+            <span className="text-xs font-mono font-bold text-indigo-650 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
               Ecosystem Dashboard
             </span>
           </div>
@@ -639,17 +691,17 @@ export default function DashboardView({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Column 1: Safety & Accessibility Analytics */}
-            <div className="space-y-4 border-r border-slate-850 pr-6">
-              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-400">🛡️ Safety & Accessibility Analytics</span>
+            <div className="space-y-4 border-r border-theme-border pr-6">
+              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-650 dark:text-indigo-400">🛡️ Safety & Accessibility Analytics</span>
               
               <div className="space-y-3">
                 {/* Women Safety */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-300">Women Safety Rides</span>
-                    <span className="font-mono text-slate-400">{womenRidesCount} rides</span>
+                    <span className="text-theme-text-primary">Women Safety Rides</span>
+                    <span className="font-mono text-theme-text-secondary">{womenRidesCount} rides</span>
                   </div>
-                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                  <div className="w-full bg-theme-bg rounded-full h-1.5 border border-theme-border">
                     <div className="bg-pink-500 h-1.5 rounded-full animate-pulse" style={{ width: `${Math.min(100, (womenRidesCount / (allRides.length || 1)) * 100)}%` }} />
                   </div>
                 </div>
@@ -657,10 +709,10 @@ export default function DashboardView({
                 {/* Child Safety */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-300">Child Safety Rides (Verification)</span>
-                    <span className="font-mono text-slate-400">{childRidesCount} rides</span>
+                    <span className="text-theme-text-primary">Child Safety Rides (Verification)</span>
+                    <span className="font-mono text-theme-text-secondary">{childRidesCount} rides</span>
                   </div>
-                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                  <div className="w-full bg-theme-bg rounded-full h-1.5 border border-theme-border">
                     <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (childRidesCount / (allRides.length || 1)) * 100)}%` }} />
                   </div>
                 </div>
@@ -668,48 +720,48 @@ export default function DashboardView({
                 {/* Accessibility Support */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-300">Accessibility Support Dispatches</span>
-                    <span className="font-mono text-slate-400">{accessibilityRidesCount} rides</span>
+                    <span className="text-theme-text-primary">Accessibility Support Dispatches</span>
+                    <span className="font-mono text-theme-text-secondary">{accessibilityRidesCount} rides</span>
                   </div>
-                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-slate-850">
+                  <div className="w-full bg-theme-bg rounded-full h-1.5 border border-theme-border">
                     <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (accessibilityRidesCount / (allRides.length || 1)) * 100)}%` }} />
                   </div>
                 </div>
 
                 {/* Guardian Alerts */}
-                <div className="flex justify-between items-center text-xs font-semibold bg-slate-950/40 p-2.5 rounded-xl border border-slate-850">
-                  <span className="text-slate-400">Guardian Alerts Sent</span>
-                  <span className="font-mono bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-bold">{totalSafetyRides * 2 + 1} alerts</span>
+                <div className="flex justify-between items-center text-xs font-semibold bg-theme-bg/40 p-2.5 rounded-xl border border-theme-border">
+                  <span className="text-theme-text-secondary">Guardian Alerts Sent</span>
+                  <span className="font-mono bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded font-bold">{totalSafetyRides * 2 + 1} alerts</span>
                 </div>
               </div>
             </div>
 
             {/* Column 2: Road Intelligence & Emergency Statistics */}
-            <div className="space-y-4 md:border-r border-slate-850 md:px-6">
-              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400">🛣️ Road Intelligence & Emergencies</span>
+            <div className="space-y-4 md:border-r border-theme-border md:px-6">
+              <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-650 dark:text-emerald-400">🛣️ Road Intelligence & Emergencies</span>
               
               <div className="space-y-3.5 text-xs">
-                <div className="flex justify-between border-b border-slate-850 pb-2">
-                  <span className="text-slate-400">Reported Potholes (Verified / Total):</span>
-                  <span className="font-bold text-slate-200 font-mono">{verifiedPotholes} / {potholesCount}</span>
+                <div className="flex justify-between border-b border-theme-border pb-2">
+                  <span className="text-theme-text-secondary">Reported Potholes (Verified / Total):</span>
+                  <span className="font-bold text-theme-text-primary font-mono">{verifiedPotholes} / {potholesCount}</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-850 pb-2">
-                  <span className="text-slate-400">Reported Floods (Verified / Total):</span>
-                  <span className="font-bold text-slate-200 font-mono">{verifiedFloods} / {floodsCount}</span>
+                <div className="flex justify-between border-b border-theme-border pb-2">
+                  <span className="text-theme-text-secondary">Reported Floods (Verified / Total):</span>
+                  <span className="font-bold text-theme-text-primary font-mono">{verifiedFloods} / {floodsCount}</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-850 pb-2">
-                  <span className="text-slate-400">Other Community Hazards:</span>
-                  <span className="font-bold text-slate-200 font-mono">{otherHazardsCount} reports</span>
+                <div className="flex justify-between border-b border-theme-border pb-2">
+                  <span className="text-theme-text-secondary">Other Community Hazards:</span>
+                  <span className="font-bold text-theme-text-primary font-mono">{otherHazardsCount} reports</span>
                 </div>
                 
                 {/* Emergency Stats block */}
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 text-center">
-                    <span className="text-[9px] uppercase font-mono text-slate-500 font-bold block">Active SOS Alerts</span>
+                  <div className="bg-theme-bg p-2.5 rounded-xl border border-theme-border text-center">
+                    <span className="text-[9px] uppercase font-mono text-theme-text-secondary font-bold block">Active SOS Alerts</span>
                     <span className="text-lg font-bold text-rose-500 font-mono mt-0.5 block">{allRides.filter(r => r.hasActiveSOS).length}</span>
                   </div>
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 text-center">
-                    <span className="text-[9px] uppercase font-mono text-slate-500 font-bold block">Compliance Alerts</span>
+                  <div className="bg-theme-bg p-2.5 rounded-xl border border-theme-border text-center">
+                    <span className="text-[9px] uppercase font-mono text-theme-text-secondary font-bold block">Compliance Alerts</span>
                     <span className="text-lg font-bold text-amber-500 font-mono mt-0.5 block">{overspeedCount + harshBrakeCount}</span>
                   </div>
                 </div>
@@ -722,28 +774,28 @@ export default function DashboardView({
               
               <div className="space-y-2.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Travel Time Saved:</span>
+                  <span className="text-theme-text-secondary">Travel Time Saved:</span>
                   <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 4.5).toFixed(0)} mins</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Estimated Fuel Saved:</span>
+                  <span className="text-theme-text-secondary">Estimated Fuel Saved:</span>
                   <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 0.35).toFixed(2)} Liters</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">CO₂ Emissions Reduced:</span>
+                  <span className="text-theme-text-secondary">CO₂ Emissions Reduced:</span>
                   <span className="font-bold font-mono text-brand-emerald">{(completedRides.length * 0.82).toFixed(2)} kg</span>
                 </div>
 
                 {/* Weighted Platform Impact Score */}
-                <div className="mt-3.5 bg-gradient-to-br from-indigo-950/40 to-slate-950 border border-indigo-500/20 p-4 rounded-2xl flex flex-col justify-between">
-                  <span className="text-[9px] uppercase font-mono tracking-wider text-indigo-400 font-extrabold block">Platform Impact Score</span>
+                <div className="mt-3.5 bg-gradient-to-br from-indigo-500/5 to-theme-bg border border-indigo-500/20 p-4 rounded-2xl flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-mono tracking-wider text-indigo-650 dark:text-indigo-400 font-extrabold block">Platform Impact Score</span>
                   <div className="flex items-baseline gap-2 mt-1.5">
-                    <span className="text-2xl font-black text-white tracking-tight">
+                    <span className="text-2xl font-black text-theme-text-primary tracking-tight">
                       {((completedRides.length * 4.5 * 0.1) + (completedRides.length * 0.35 * 2) + (completedRides.length * 0.82 * 1.5) + (totalSafetyRides * 5) + (accessibilityRidesCount * 3) + 15).toFixed(1)}
                     </span>
-                    <span className="text-[10px] font-bold text-indigo-400 font-mono uppercase animate-pulse">HIGH IMPACT</span>
+                    <span className="text-[10px] font-bold text-indigo-650 dark:text-indigo-400 font-mono uppercase animate-pulse">HIGH IMPACT</span>
                   </div>
-                  <p className="text-[9px] text-slate-500 mt-1">Weighted metric index of travel savings, carbon reduction, and safety activations</p>
+                  <p className="text-[9px] text-theme-text-secondary mt-1">Weighted metric index of travel savings, carbon reduction, and safety activations</p>
                 </div>
               </div>
             </div>
@@ -751,22 +803,22 @@ export default function DashboardView({
           </div>
           
           {/* Driver Leaderboard in Admin Dashboard */}
-          <div className="mt-6 pt-6 border-t border-slate-800">
-            <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-3">⭐ Active Driver Reputation Leaderboard</span>
+          <div className="mt-6 pt-6 border-t border-theme-border">
+            <span className="block text-[11px] font-mono font-bold uppercase tracking-wider text-theme-text-secondary mb-3">⭐ Active Driver Reputation Leaderboard</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { name: 'Rajesh Kumar', score: 98, trips: 24, compliance: '100% compliant' },
                 { name: 'Karthik Raja', score: 94, trips: 18, compliance: '96% compliant' },
                 { name: 'Siva Murugan', score: 91, trips: 15, compliance: '94% compliant' }
               ].map((drv, idx) => (
-                <div key={idx} className="bg-slate-950 p-3.5 rounded-2xl border border-slate-850 flex items-center justify-between text-xs">
+                <div key={idx} className="bg-theme-bg p-3.5 rounded-2xl border border-theme-border flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold block text-slate-200">#{idx+1} {drv.name}</span>
-                    <span className="text-[10px] text-slate-400">{drv.trips} rides • {drv.compliance}</span>
+                    <span className="font-bold block text-theme-text-primary">#{idx+1} {drv.name}</span>
+                    <span className="text-[10px] text-theme-text-secondary">{drv.trips} rides • {drv.compliance}</span>
                   </div>
-                  <div className="bg-indigo-550/15 border border-indigo-550/20 px-2 py-1 rounded text-center">
-                    <span className="font-black text-indigo-400 block font-mono">{drv.score}</span>
-                    <span className="text-[8px] uppercase text-indigo-400 font-bold block">Score</span>
+                  <div className="bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded text-center">
+                    <span className="font-black text-indigo-650 dark:text-indigo-400 block font-mono">{drv.score}</span>
+                    <span className="text-[8px] uppercase text-indigo-650 dark:text-indigo-400 font-bold block">Score</span>
                   </div>
                 </div>
               ))}
@@ -776,9 +828,9 @@ export default function DashboardView({
         </div>
 
       </div>
-    </div>
-    );
-  }
+    </motion.div>
+  );
+}
 
   // Find active passenger ride
   const passengerActiveRide = allRides.find(r => 
@@ -817,6 +869,12 @@ export default function DashboardView({
     onSelectTab('/booking');
   };
 
+  const handleRebook = (pickup: string, drop: string) => {
+    localStorage.setItem('zipride_rebook_pickup', pickup);
+    localStorage.setItem('zipride_rebook_drop', drop);
+    onSelectTab('/booking');
+  };
+
   // Use the same filter logic as RideHistoryView for consistency
   // Passengers see their own completed rides (or legacy rides without riderName)
   // Drivers see their own completed rides (or legacy rides without driverName)
@@ -824,16 +882,16 @@ export default function DashboardView({
   const HISTORY_STATUSES = ['completed', 'cancelled', 'disputed'];
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6 max-w-5xl mx-auto">
       {/* Premium Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-8 shadow-lg">
+      <motion.div variants={cardVariants} className="relative overflow-hidden rounded-3xl bg-theme-card border border-theme-border text-theme-text-primary p-6 md:p-8 shadow-sm">
         {/* Decorative elements */}
         <div className="absolute right-0 top-0 -mt-6 -mr-6 w-40 h-40 bg-brand-emerald/10 rounded-full blur-2xl" />
         <div className="absolute left-1/3 bottom-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700/50 text-[11px] font-semibold text-brand-emerald">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-theme-bg border border-theme-border text-[11px] font-semibold text-brand-emerald">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Premium Bike Taxi Pool</span>
             </div>
@@ -847,16 +905,16 @@ export default function DashboardView({
 
           <button 
             onClick={() => onSelectTab('/booking')}
-            className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-3 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 font-bold rounded-2xl transition shadow-md hover:scale-[1.02] active:scale-[0.98] text-xs cursor-pointer"
+            className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-3 bg-brand-emerald hover:bg-brand-emerald-dark text-slate-950 font-bold rounded-2xl transition shadow-md hover:scale-[1.02] active:scale-[0.98] text-xs cursor-pointer border-0"
           >
             <span>Book a Ride Now</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 animate-pulse" />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Sub-tab navigation */}
-      <div className="flex border-b border-theme-border pb-px gap-6">
+      <motion.div variants={cardVariants} className="flex border-b border-theme-border pb-px gap-6">
         <button
           onClick={() => setActiveSubTab('overview')}
           className={`py-2 text-xs font-bold font-mono border-b-2 transition ${
@@ -877,196 +935,16 @@ export default function DashboardView({
         >
           Community Road Intelligence
         </button>
-      </div>
+      </motion.div>
 
       {activeSubTab === 'overview' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Main Content Column (Left, span 8) */}
           <div className="lg:col-span-8 space-y-6">
-            {/* RideMate Command Center Panel */}
-            {(() => {
-              const profile = ZipRideRepository.getProfile();
-              const isAccessActive = profile.accessibilityRequirements && profile.accessibilityRequirements.length > 0;
-              const isGuardianActive = !!profile.guardianName;
-              const activeSosCount = allRides.filter(r => r.hasActiveSOS).length;
-              return (
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-md space-y-4 text-white">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                        <Shield className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-extrabold text-sm tracking-tight text-slate-100">RideMate Central Intelligence Command Center</h3>
-                        <p className="text-[10px] text-slate-400">Ecosystem telemetry monitoring & safety diagnostics</p>
-                      </div>
-                    </div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 animate-pulse">
-                      System Diagnostics: Nominal
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {/* Safety Score */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-indigo-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🛡️ Safety Score</span>
-                        <span className="text-xs font-black">98%</span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: '98%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">Excellent history</span>
-                    </div>
-
-                    {/* Weather Risk */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-sky-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🌦️ Weather Risk</span>
-                        <span className={`text-[10px] font-black uppercase ${
-                          ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'text-amber-400' : 'text-emerald-400'
-                        }`}>
-                          {['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'MODERATE' : 'LOW RISK'}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${
-                          ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`} style={{ width: ['Rainy', 'Stormy', 'Extreme Surcharge'].includes(systemState.config.weather) ? '60%' : '15%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{systemState.config.weather} conditions</span>
-                    </div>
-
-                    {/* Traffic Risk */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-orange-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🚦 Traffic Risk</span>
-                        <span className={`text-[10px] font-black uppercase ${
-                          ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'text-rose-400 animate-pulse' : systemState.config.traffic === 'Moderate' ? 'text-amber-400' : 'text-emerald-400'
-                        }`}>
-                          {['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'HIGH RISK' : systemState.config.traffic === 'Moderate' ? 'MODERATE' : 'LOW RISK'}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${
-                          ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? 'bg-rose-500' : systemState.config.traffic === 'Moderate' ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`} style={{ width: ['Heavy Congestion', 'Gridlock'].includes(systemState.config.traffic) ? '90%' : systemState.config.traffic === 'Moderate' ? '50%' : '15%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{systemState.config.traffic} congestion</span>
-                    </div>
-
-                    {/* Road Health */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-emerald-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🛣️ Road Health</span>
-                        <span className="text-xs font-black">{Math.max(100 - (hazardsList.length * 4), 40)}%</span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.max(100 - (hazardsList.length * 4), 40)}%` }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">{hazardsList.length} reported hazards</span>
-                    </div>
-
-                    {/* Fuel Efficiency */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-brand-emerald">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">⛽ Fuel efficiency</span>
-                        <span className="text-xs font-black">94%</span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-[#00C896] rounded-full" style={{ width: '94%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">Eco compliance rate</span>
-                    </div>
-
-                    {/* Guardian Status */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-pink-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">👨‍👩‍👧 Guardian</span>
-                        <span className={`text-[10px] font-black uppercase ${isGuardianActive ? 'text-emerald-400' : 'text-slate-400'}`}>
-                          {isGuardianActive ? 'SYNCED' : 'INACTIVE'}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${isGuardianActive ? 'bg-emerald-500' : 'bg-slate-700'}`} style={{ width: isGuardianActive ? '100%' : '0%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold truncate">
-                        {isGuardianActive ? profile.guardianName : 'Not configured'}
-                      </span>
-                    </div>
-
-                    {/* Emergency Status */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-rose-500">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">🚨 Emergency</span>
-                        <span className={`text-[10px] font-black uppercase ${activeSosCount > 0 ? 'text-rose-500 animate-pulse' : 'text-emerald-400'}`}>
-                          {activeSosCount > 0 ? 'SOS ACTIVE' : 'SECURE'}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold">SOS hold trigger active</span>
-                    </div>
-
-                    {/* Accessibility Mode */}
-                    <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-violet-400">
-                        <span className="text-[9px] font-bold font-mono uppercase tracking-wider text-slate-400">♿ Access Mode</span>
-                        <span className={`text-[10px] font-black uppercase ${isAccessActive ? 'text-violet-400' : 'text-slate-400'}`}>
-                          {isAccessActive ? 'CUSTOM' : 'STANDARD'}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 rounded-full" style={{ width: isAccessActive ? '100%' : '20%' }}></div>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-semibold truncate">
-                        {isAccessActive ? profile.accessibilityRequirements.join(', ') : 'No assistive toggles'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Dynamic Surcharges & Weather Status Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
-                  <CloudSun className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Weather</span>
-                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
-                    {liveWeather ? `${liveWeather.temp}°C (${liveWeather.weatherText})` : config.weather}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-                  <Activity className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Traffic Surcharge</span>
-                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">
-                    {config.traffic === 'Moderate' ? '1.1x Multiplier' : config.traffic === 'Heavy Congestion' ? '1.3x Multiplier' : config.traffic === 'Gridlock' ? '1.5x Multiplier' : '1.0x (Standard)'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-theme-card border border-theme-border rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider block font-mono">Safety Compliance</span>
-                  <span className="text-xs font-bold text-theme-text-primary block mt-0.5">Limit: {currentLimits.speed} km/h</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Active Ride Card (Pulsing state if active) */}
-            {passengerActiveRide && (
+            
+            {/* 1. Current Ride Overview */}
+            {passengerActiveRide ? (
               <div className="bg-gradient-to-r from-teal-500/5 to-emerald-500/5 border border-emerald-500/25 rounded-3xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-pulse">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-brand-emerald/10 border border-brand-emerald/20 flex items-center justify-center text-brand-emerald relative shrink-0">
@@ -1075,35 +953,51 @@ export default function DashboardView({
                   </div>
                   <div>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-emerald/15 text-emerald-700">
-                      Trip In Progress
+                      Active Trip
                     </span>
                     <h4 className="text-sm font-bold text-theme-text-primary mt-1">
                       {passengerActiveRide.driverName ? `Riding with ${passengerActiveRide.driverName}` : 'Finding your driver...'}
                     </h4>
                     <p className="text-xs text-theme-text-secondary font-medium mt-1 line-clamp-1">
-                      Drop: {passengerActiveRide.drop}
+                      Drop Target: {passengerActiveRide.drop}
                     </p>
                   </div>
                 </div>
                 <button 
                   onClick={() => onSelectTab('/tracker')}
-                  className="w-full md:w-auto px-5 py-3 bg-slate-900 hover:bg-slate-850 text-white font-bold rounded-2xl transition shadow text-xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full md:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition shadow text-xs flex items-center justify-center gap-2 cursor-pointer border-0"
                 >
                   <span>Track Live Journey</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
+            ) : (
+              <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-xs flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-150">
+                    Ride Status
+                  </span>
+                  <h4 className="text-base font-bold text-theme-text-primary mt-1">No Active Ride</h4>
+                  <p className="text-xs text-theme-text-secondary font-medium">Ready for your next trip? Enter your destinations to view fares and routes.</p>
+                </div>
+                <button
+                  onClick={() => onSelectTab('/booking')}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                >
+                  Book Ride
+                </button>
+              </div>
             )}
 
-            {/* Quick Booking Shortcuts */}
+            {/* 7. Saved Places */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono">Quick Commute Locations</h3>
+                <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider font-mono">Saved Places</h3>
                 <button 
                   onClick={() => onSelectTab('/settings')}
-                  className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  className="text-[11px] font-bold text-indigo-600 hover:underline cursor-pointer"
                 >
-                  <span>Manage Shortcuts</span>
+                  Manage presets
                 </button>
               </div>
 
@@ -1132,20 +1026,20 @@ export default function DashboardView({
                     <MapPin className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-theme-text-primary block">Custom Booking</span>
-                    <span className="text-[11px] text-theme-text-secondary font-medium block mt-1">Enter any pickup and destination</span>
+                    <span className="text-xs font-bold text-theme-text-primary block">Custom Destination</span>
+                    <span className="text-[11px] text-theme-text-secondary font-medium block mt-1">Enter any pickup and drop coords</span>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Recent Rides Table */}
+            {/* 6. Recent Trips (Recent Rides) */}
             <div className="bg-theme-card border border-theme-border rounded-3xl overflow-hidden shadow-xs">
               <div className="p-5 border-b border-theme-border flex items-center justify-between">
-                <h3 className="font-bold text-theme-text-primary text-sm uppercase tracking-wider font-mono">Recent Rides</h3>
+                <h3 className="font-bold text-theme-text-primary text-sm uppercase tracking-wider font-mono">Recent Trips</h3>
                 <button 
                   onClick={() => onSelectTab('/history')}
-                  className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>View All Trips</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1199,7 +1093,7 @@ export default function DashboardView({
                           </td>
                           <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                             <button
-                              onClick={() => handleQuickBook(ride.drop)}
+                              onClick={() => handleRebook(ride.pickup, ride.drop)}
                               className="px-3.5 py-1.5 bg-theme-bg border border-theme-border text-theme-text-primary hover:bg-theme-card font-bold rounded-xl transition text-[11px] cursor-pointer"
                             >
                               Rebook
@@ -1219,8 +1113,10 @@ export default function DashboardView({
             </div>
           </div>
 
-          {/* Right Column: AI Companion and Analytics */}
+          {/* Right Column: AI RideMate, Travel updates & Emergency monitor (Right, span 4) */}
           <div className="lg:col-span-4 space-y-6">
+            
+            {/* 10. AI RideMate Panel */}
             <RideMatePanel 
               weatherCondition={liveWeather ? liveWeather.weatherText : config.weather}
               trafficLevel={config.traffic}
@@ -1228,112 +1124,82 @@ export default function DashboardView({
               driverMode={false}
             />
 
-            {/* Safety Travel Modes Distribution Card */}
+            {/* Travel Intelligence Updates Dashboard Card */}
             <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-4">
               <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
-                <Shield className="w-4.5 h-4.5 text-emerald-500" />
-                <span>Safety Modes Distribution</span>
+                <Shield className="w-4.5 h-4.5 text-indigo-500" />
+                <span>Live Travel Conditions</span>
               </h4>
-              <div className="space-y-3.5">
-                {/* Women Safety */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-theme-text-secondary">👩 Women Safety Mode</span>
-                    <span className="text-theme-text-primary font-mono">{womenRidesCount} rides</span>
-                  </div>
-                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-pink-500 rounded-full"
-                      style={{ width: `${totalSafetyRides > 0 ? (womenRidesCount / totalSafetyRides) * 100 : 40}%` }}
-                    />
+              
+              <div className="space-y-4 text-xs font-semibold leading-relaxed">
+                
+                {/* 5. Safety Monitor */}
+                <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">🛡️</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-emerald-600 block uppercase font-mono">Safety Monitor</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">No incidents reported on your active routes.</span>
                   </div>
                 </div>
-                {/* Child Safety */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-theme-text-secondary">👶 Child Safety Mode</span>
-                    <span className="text-theme-text-primary font-mono">{childRidesCount} rides</span>
-                  </div>
-                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-indigo-500 rounded-full"
-                      style={{ width: `${totalSafetyRides > 0 ? (childRidesCount / totalSafetyRides) * 100 : 30}%` }}
-                    />
-                  </div>
-                </div>
-                {/* Family Safety */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-theme-text-secondary">🛡️ Family Safety (Guardian Sync)</span>
-                    <span className="text-theme-text-primary font-mono">{familyRidesCount} rides</span>
-                  </div>
-                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-500 rounded-full"
-                      style={{ width: `${totalSafetyRides > 0 ? (familyRidesCount / totalSafetyRides) * 100 : 30}%` }}
-                    />
+
+                {/* 2. Traffic Update */}
+                <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">🚦</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-amber-600 block uppercase font-mono">Traffic Update</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">
+                      {config.traffic === 'Light' ? 'Light traffic flows. Main city corridors clear.' : 
+                       `Moderate congestion near Gandhipuram. Traffic index: ${config.traffic}.`}
+                    </span>
                   </div>
                 </div>
+
+                {/* 3. Weather Update */}
+                <div className="p-3 bg-sky-500/5 border border-sky-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">🌦️</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-sky-600 block uppercase font-mono">Weather Update</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">
+                      {config.weather === 'Clear' ? 'Clear skies. Optimal road grip.' : 
+                       `Weather condition is ${config.weather}. Drive carefully.`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Road Conditions */}
+                <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">🛣️</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-indigo-600 block uppercase font-mono">Road Conditions</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">
+                      {hazardsList.length > 0 ? `${hazardsList.length} road hazards reported near active paths.` : 'Road conditions clean. No delays.'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 8. Family Tracking */}
+                <div className="p-3 bg-pink-500/5 border border-pink-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">👨‍👩‍👧</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-pink-600 block uppercase font-mono">Family Tracking</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">
+                      {ZipRideRepository.getProfile().guardianName ? `Alerts linked to guardian: ${ZipRideRepository.getProfile().guardianName}.` : 'Guardian sync is inactive.'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 9. Emergency Services Nearby */}
+                <div className="p-3 bg-rose-500/5 border border-rose-500/10 rounded-xl flex gap-3">
+                  <span className="text-lg">🏥</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-rose-600 block uppercase font-mono">Emergency Services Nearby</span>
+                    <span className="text-theme-text-primary text-[11px] block mt-0.5">City emergency dispatch clinic active. SOS armed.</span>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            {/* Crowd Hazard Reports Card */}
-            <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-4">
-              <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
-                <AlertTriangle className="w-4 h-4 text-rose-500" />
-                <span>Community Hazards Impact</span>
-              </h4>
-              <div className="space-y-3.5">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-theme-text-secondary">🕳️ Potholes Reported</span>
-                    <span className="text-theme-text-primary font-mono">{verifiedPotholes}/{potholesCount} verified</span>
-                  </div>
-                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-amber-500 rounded-full"
-                      style={{ width: `${potholesCount > 0 ? (verifiedPotholes / potholesCount) * 100 : 50}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-theme-text-secondary">🌊 Flood Zones Flagged</span>
-                    <span className="text-theme-text-primary font-mono">{verifiedFloods}/{floodsCount} verified</span>
-                  </div>
-                  <div className="h-2 bg-theme-bg rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-blue-500 rounded-full"
-                      style={{ width: `${floodsCount > 0 ? (verifiedFloods / floodsCount) * 100 : 75}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs pt-1">
-                  <span className="text-theme-text-secondary">🚧 Road Works / Accidents:</span>
-                  <span className="font-mono font-bold text-theme-text-primary">{otherHazardsCount} active alerts</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Accessibility Support Usage Card */}
-            <div className="bg-theme-card border border-theme-border rounded-2xl p-5 shadow-xs space-y-3">
-              <h4 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider font-mono flex items-center gap-1.5 border-b border-theme-border pb-3">
-                <TrendingUp className="w-4 h-4 text-violet-500" />
-                <span>Accessibility Assistance Stats</span>
-              </h4>
-              <div className="flex items-center gap-4">
-                <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-slate-900 border-2 border-violet-500 shrink-0">
-                  <span className="font-mono text-base font-black text-violet-400">{accessibilityRidesCount}</span>
-                  <span className="absolute -bottom-1.5 text-[7px] bg-violet-600 text-white font-bold px-1.5 py-0.5 rounded-full uppercase leading-none">TRIPS</span>
-                </div>
-                <div>
-                  <h5 className="text-xs font-bold text-theme-text-primary">Inclusive Travel Services</h5>
-                  <p className="text-[10px] text-theme-text-secondary mt-0.5 leading-normal">
-                    Completed accessibility assist commutes (senior assistance, wheelchair access, medical aid).
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       ) : (
@@ -1341,6 +1207,6 @@ export default function DashboardView({
           <RoadIntelligenceView />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
