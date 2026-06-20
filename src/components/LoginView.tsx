@@ -878,6 +878,7 @@ export default function LoginView({
   const [vehicleType, setVehicleType] = useState<'Bike' | 'Auto' | 'Cab'>('Bike');
   const [vehicleNumber, setVehicleNumber] = useState('TN-09-XX-8822');
   const [showingOTP, setShowingOTP] = useState(false);
+  const [agreementChecked, setAgreementChecked] = useState(false);
 
   const [savedAccounts, setSavedAccounts] = useState<any[]>([]);
 
@@ -1079,6 +1080,7 @@ export default function LoginView({
   const handleRideOffComplete = () => {
     if (phase === 'riding-off') {
       setShowFlashOverlay(true);
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       setTimeout(() => {
         if (successData) {
           onLoginSuccess(successData.name, successData.role, successData.phone);
@@ -1242,7 +1244,23 @@ export default function LoginView({
             triggerSuccessTransition(fullName, 'rider', formattedPhone);
           }
         } else {
-          setShowingLocationSetup(true);
+          // Driver flow: check if unregistered first-time driver
+          const finalPhone = loginMethod === 'mobile' ? phoneNumber : '9876543210';
+          const formattedPhone = finalPhone.startsWith('+91') ? finalPhone : `+91 ${finalPhone}`;
+          
+          const isRegistered = drivers.some(d => {
+            const cleanD = d.phone.replace('+91 ', '').replace('+91', '').trim();
+            const cleanP = finalPhone.replace('+91 ', '').replace('+91', '').trim();
+            return cleanD === cleanP || d.name.toLowerCase() === fullName.toLowerCase();
+          });
+          
+          const hasAccepted = localStorage.getItem(`zipride_driver_accepted_agreement_${formattedPhone}`) === 'true';
+          
+          if (!isRegistered && !hasAccepted) {
+            setShowingAgreement(true);
+          } else {
+            setShowingLocationSetup(true);
+          }
         }
       } else {
         setErrorText(`Incorrect OTP. Please enter the generated OTP code: ${generatedOTP}`);
@@ -1252,8 +1270,12 @@ export default function LoginView({
   };
 
   const handleAcceptAgreement = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     setShowingAgreement(false);
     if (role === 'driver') {
+      const finalPhone = loginMethod === 'mobile' ? phoneNumber : '9876543210';
+      const formattedPhone = finalPhone.startsWith('+91') ? finalPhone : `+91 ${finalPhone}`;
+      localStorage.setItem(`zipride_driver_accepted_agreement_${formattedPhone}`, 'true');
       setShowingLocationSetup(true);
     } else {
       setShowingProfileWizard(true);
@@ -1313,6 +1335,7 @@ export default function LoginView({
 
       setShowingProfileWizard(false);
       setIsSubmitting(false);
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       triggerSuccessTransition(fullName, 'rider', formattedPhone);
     }, 800);
   };
@@ -1394,6 +1417,7 @@ export default function LoginView({
         console.error(e);
       }
 
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       triggerSuccessTransition(fullName, 'driver', formattedPhone);
       setShowingLocationSetup(false);
     } catch (err: any) {
@@ -1406,6 +1430,7 @@ export default function LoginView({
   const handleSkipAnimation = () => {
     localStorage.setItem("skipZipRideIntro", "true");
     setSkipPreference(true);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     if (phase === 'riding-off' || phase === 'success-dissolve' || phase === 'passenger-walk' || phase === 'passenger-mount') {
       if (successData) {
         onLoginSuccess(successData.name, successData.role, successData.phone);
@@ -1906,11 +1931,30 @@ export default function LoginView({
                   </button>.
                 </div>
 
+                {/* Acceptance Checkbox */}
+                <div className="flex items-start gap-2.5 px-1 py-1 select-none text-left">
+                  <input
+                    type="checkbox"
+                    id="fairness-checkbox"
+                    checked={agreementChecked}
+                    onChange={(e) => setAgreementChecked(e.target.checked)}
+                    className="w-4 h-4 rounded border-theme-border text-emerald-600 bg-theme-input-bg focus:ring-[#00C896] focus:ring-offset-0 cursor-pointer mt-0.5"
+                  />
+                  <label htmlFor="fairness-checkbox" className="text-xs text-theme-text-secondary font-medium leading-snug cursor-pointer">
+                    I have read, understood, and agree to follow the <span className="font-bold text-theme-text-primary">Fairness Agreement</span>, <span className="font-bold text-theme-text-primary">Fare Policy</span>, and <span className="font-bold text-theme-text-primary">Ride Policy</span>.
+                  </label>
+                </div>
+
                 <motion.button
+                  disabled={!agreementChecked}
                   onClick={handleAcceptAgreement}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-3.5 bg-[#00C896] hover:bg-[#00b384] text-slate-950 font-black rounded-xl text-[14px] flex items-center justify-center gap-2 transition cursor-pointer shadow-md shadow-emerald-400/10"
+                  whileHover={agreementChecked ? { scale: 1.01 } : {}}
+                  whileTap={agreementChecked ? { scale: 0.98 } : {}}
+                  className={`w-full py-3.5 font-black rounded-xl text-[14px] flex items-center justify-center gap-2 transition shadow-md ${
+                    agreementChecked
+                      ? 'bg-[#00C896] hover:bg-[#00b384] text-slate-950 shadow-emerald-400/10 cursor-pointer'
+                      : 'bg-theme-input-bg border border-theme-border text-theme-text-secondary opacity-60 cursor-not-allowed'
+                  }`}
                 >
                   <Check className="w-4.5 h-4.5" strokeWidth={3} />
                   <span>I Accept & Agree</span>

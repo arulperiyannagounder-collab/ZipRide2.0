@@ -48,7 +48,7 @@ export class SessionResetService {
       if (key && (
         key.includes('child_arrival_confirmed_') || 
         key.includes('zipride_dismissed_driver_') || 
-        key.includes('zipride_dismissed_passenger_ride_') ||
+        // key.includes('zipride_dismissed_passenger_ride_') ||
         key.includes('zipride_auto_redirect_') ||
         key.includes('zipride_guardian_alerts')
       )) {

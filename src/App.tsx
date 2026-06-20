@@ -30,6 +30,10 @@ import { useToast } from './components/ToastNotification';
 import { ZipRideRepository } from './services/dbInterface';
 import { SessionResetService } from './services/SessionResetService';
 
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
 export default function App() {
   // Path Router Configuration matching precisely /login, /, /booking, etc.
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
@@ -95,6 +99,42 @@ export default function App() {
   const [prevRideStatuses, setPrevRideStatuses] = useState<Record<string, string>>({});
   const [driverFoundRide, setDriverFoundRide] = useState<Ride | null>(null);
 
+  // Lock theme to dark before login, restore user theme after login
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!isLoggedIn) {
+      root.classList.add('dark');
+    } else {
+      const currentTheme = localStorage.getItem('zipride_theme') || 'system';
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const isDark = currentTheme === 'dark' || (currentTheme === 'system' && mediaQuery.matches);
+      if (isDark) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+  }, [isLoggedIn]);
+
+  // Reset scroll to top on every path change exactly once
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant"
+    });
+    
+    const timer = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant"
+      });
+    }, 80);
+    
+    return () => clearTimeout(timer);
+  }, [currentPath]);
+
   useEffect(() => {
     allRides.forEach(ride => {
       const prevStatus = prevRideStatuses[ride.id];
@@ -157,7 +197,7 @@ export default function App() {
   }, [currentPath, profile.accessibilityRequirements]);
 
   // Derived states
-  const activeRide = allRides.find(r => {
+  const activeRide = [...allRides].reverse().find(r => {
     const activeStatuses = ['booked', 'accepted', 'assigned', 'pickup', 'en_route', 'arrived', 'anomaly', 'in_progress'];
     const isDismissedByDriver = localStorage.getItem(`zipride_dismissed_driver_ride_${r.id}`) === 'true';
     const isDismissedByPassenger = localStorage.getItem(`zipride_dismissed_passenger_ride_${r.id}`) === 'true';
@@ -328,6 +368,9 @@ export default function App() {
     }
   ) => {
     console.log("New Ride Created");
+    if (activeRide) {
+      localStorage.setItem(`zipride_dismissed_passenger_ride_${activeRide.id}`, 'true');
+    }
     SessionResetService.resetRideSession();
     const res = await fetch('/api/rides', {
       method: 'POST',
@@ -531,6 +574,7 @@ export default function App() {
   };
 
   const handleLoginSuccess = (email: string, role: 'passenger' | 'driver' | 'admin' | 'rider', phone?: string) => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const normalizedRole = role === 'rider' ? 'passenger' : role;
     localStorage.setItem('zipride_logged', 'true');
     localStorage.setItem('zipride_user', email);

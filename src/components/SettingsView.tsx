@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Sun, Moon, Laptop, MapPin, Plus, Trash2, LogOut, ShieldAlert, Heart, Accessibility, ShieldCheck, RefreshCw, Flame } from 'lucide-react';
 import { useToast } from './ToastNotification';
 import { ZipRideRepository, UserProfile } from '../services/dbInterface';
@@ -19,6 +19,10 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({ currentUser, currentUserRole, onLogout, theme, onThemeChange }: SettingsViewProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   const { showToast } = useToast();
   
   // Animation settings state

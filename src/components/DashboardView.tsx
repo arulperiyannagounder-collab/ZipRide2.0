@@ -107,6 +107,10 @@ export default function DashboardView({
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'road_intel'>('overview');
   const [localWeather, setLocalWeather] = useState<SystemConfig['weather']>(config.weather);
   const [localTraffic, setLocalTraffic] = useState<SystemConfig['traffic']>(config.traffic);

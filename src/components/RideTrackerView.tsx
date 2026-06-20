@@ -13,8 +13,10 @@ import {
   Play, 
   HelpCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Check
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Ride, Driver } from '../types';
 import { SosButton } from './SosButton';
 import LiveJourneyMap from './LiveJourneyMap';
@@ -43,6 +45,10 @@ export default function RideTrackerView({
   onRateRide,
   onPayRide
 }: RideTrackerViewProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   console.log("Active Ride:", activeRide);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -281,7 +287,17 @@ export default function RideTrackerView({
     // Fully clear ride-completion state
     console.log("Ride Reset");
     localStorage.setItem(`zipride_dismissed_passenger_ride_${rideToRate.id}`, 'true');
+    prevRideIdRef.current = null;
     setCompletedRide(null);
+    setDisputeFiled(false);
+    setComplaintText('');
+    setShowQRPanel(false);
+    setSafetyLog([]);
+    setShowSafetyConfirm(false);
+    setPaymentInfoMessage('');
+    setIsPaying(false);
+    setIsSuccessPaid(false);
+    
     onRefresh();
     
     // Redirect to booking
@@ -1236,29 +1252,37 @@ export default function RideTrackerView({
       {/* RATING MODAL OVERLAY */}
       {rideState === 'rating' && (activeRide || completedRide) && (
         <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <div className="bg-theme-card border-2 border-brand-emerald rounded-3xl p-8 shadow-2xl max-w-sm w-full space-y-6 text-center animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-500">
-              <span className="text-3xl">★</span>
+          <div className="bg-theme-card border border-theme-border rounded-3xl p-8 shadow-2xl max-w-sm w-full space-y-6 text-center animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full bg-brand-emerald/10 border border-brand-emerald/20 flex items-center justify-center mx-auto text-[#00C896] animate-pulse">
+              <Check className="w-8 h-8" strokeWidth={3} />
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-theme-text-primary">Rate Your Commute</h3>
-              <p className="text-xs text-theme-text-secondary mt-1">Let us know how your driver performed on this trip.</p>
-            </div>
-
-            <div className="flex justify-center gap-4 py-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => handleRatingSelect(star)}
-                  className="text-4xl text-theme-text-secondary hover:text-amber-500 cursor-pointer transition-colors border-0 bg-transparent"
-                  id={`modal-rate-star-${star}`}
-                >
-                  ★
-                </button>
-              ))}
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-theme-text-primary leading-tight">Ride Completed Successfully 🎉</h3>
+              <p className="text-xs text-theme-text-secondary leading-relaxed">
+                Thank you for riding with ZipRide 🚕<br />
+                Your feedback helps us deliver safer and better journeys every day.
+              </p>
             </div>
 
-            <p className="text-[11px] text-theme-text-secondary">Your feedback helps keep the ZipRide community safe and reliable.</p>
+            <div className="bg-theme-bg/50 border border-theme-border/60 rounded-2xl p-4 space-y-3">
+              <span className="text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider font-mono">How was your ride today?</span>
+              <div className="flex justify-center gap-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <motion.button
+                    key={star}
+                    onClick={() => handleRatingSelect(star)}
+                    whileHover={{ scale: 1.25, rotate: 15 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="text-3xl text-slate-400 hover:text-amber-400 cursor-pointer transition-colors border-0 bg-transparent"
+                    id={`modal-rate-star-${star}`}
+                  >
+                    ★
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-[10px] text-theme-text-secondary font-medium">Your feedback is instantly synced to improve driver reputation scores.</p>
           </div>
         </div>
       )}

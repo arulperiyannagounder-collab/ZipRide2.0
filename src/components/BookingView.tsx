@@ -398,6 +398,10 @@ export default function BookingView({
   onBookRide,
   onSelectTab
 }: BookingViewProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   const apiKey = "";
   const hasValidKey = false;
   
