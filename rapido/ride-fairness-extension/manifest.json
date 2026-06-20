@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Ride Fairness Assistant",
+  "version": "1.0.0",
+  "description": "Analyzes ride fares and helps you determine if the price is fair and transparent.",
+  "action": {
+    "default_popup": "dist/index.html",
+    "default_title": "Open Ride Fairness Assistant"
+  },
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.uber.com/*",
+    "*://*.olacabs.com/*",
+    "*://*.rapido.bike/*",
+    "https://nominatim.openstreetmap.org/*"
+  ]
+}

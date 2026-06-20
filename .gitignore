@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build outputs
+dist/
+**/dist/
+
+# System and logs
+*.log
+.DS_Store
+.idea/
+.vscode/
+.agents/
+C:/Users/AMRUDAVARSHINI/.gemini/
