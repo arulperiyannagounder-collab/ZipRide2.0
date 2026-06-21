@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+/* Define the custom variant for Tailwind CSS v4 class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f8fafc;
+  --card-background: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --sidebar-background: #ffffff;
+  --sidebar-border: #e2e8f0;
+  --sidebar-text: #475569;
+  --sidebar-hover-bg: #f1f5f9;
+  --sidebar-active-bg: #e2e8f0;
+  --sidebar-active-border: #cbd5e1;
+  --header-background: #ffffff;
+  --header-border: #e2e8f0;
+  --header-text: #0f172a;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --hover-bg: #f8fafc;
+}
+
+.dark {
+  --background: #090d16;
+  --card-background: #111827;
+  --border-color: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --sidebar-background: #0b111e;
+  --sidebar-border: #151d30;
+  --sidebar-text: #9ca3af;
+  --sidebar-hover-bg: #111a2e;
+  --sidebar-active-bg: #151e33;
+  --sidebar-active-border: #1c2a49;
+  --header-background: #0f172a;
+  --header-border: #1e293b;
+  --header-text: #f9fafb;
+  --input-bg: #1e293b;
+  --input-border: #334155;
+  --hover-bg: #1e293b;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom palette colors matching the ZipRide premium visual design */
+  --color-brand-emerald: #00C896;
+  --color-brand-emerald-dark: #00b384;
+
+  /* Global Theme Tokens */
+  --color-theme-bg: var(--background);
+  --color-theme-card: var(--card-background);
+  --color-theme-border: var(--border-color);
+  --color-theme-text-primary: var(--text-primary);
+  --color-theme-text-secondary: var(--text-secondary);
+  --color-theme-sidebar-bg: var(--sidebar-background);
+  --color-theme-sidebar-border: var(--sidebar-border);
+  --color-theme-sidebar-text: var(--sidebar-text);
+  --color-theme-sidebar-hover-bg: var(--sidebar-hover-bg);
+  --color-theme-sidebar-active-bg: var(--sidebar-active-bg);
+  --color-theme-sidebar-active-border: var(--sidebar-active-border);
+  --color-theme-header-bg: var(--header-background);
+  --color-theme-header-border: var(--header-border);
+  --color-theme-header-text: var(--header-text);
+  --color-theme-input-bg: var(--input-bg);
+  --color-theme-input-border: var(--input-border);
+  --color-theme-hover-bg: var(--hover-bg);
+}
+
+/* Custom Scrollbar Styles for live feed alerts */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Base resets & theme variable defaults */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--input-border);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-brand-emerald);
+}
+
+/* Hide Google Maps default error alerts, dialogs, banners, and warning containers */
+.gm-err-container,
+.gm-err-message,
+.gm-style-mtc,
+.gm-err-title,
+.gm-err-content,
+.gm-err-icon,
+.gm-style .gm-style-moc,
+.gm-style-pbc,
+.gm-style iframe + div,
+div[style*="opacity: 0.6"],
+div[class*="gm-err"],
+div[class*="gm-style-moc"],
+div[class*="gm-style"] > div:first-child + div {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Clear grayscale/dimmed filters Google Maps imposes on failure */
+.gm-style > div:first-child,
+.gm-style > div:first-child * {
+  filter: none !important;
+  background-color: transparent !important;
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: Senior Citizen overrides */
+.accessibility-senior {
+  font-size: 1.15rem !important;
+}
+.accessibility-senior h1 { font-size: 2.25rem !important; }
+.accessibility-senior h2 { font-size: 1.85rem !important; }
+.accessibility-senior h3 { font-size: 1.5rem !important; }
+.accessibility-senior p, 
+.accessibility-senior span, 
+.accessibility-senior input, 
+.accessibility-senior button, 
+.accessibility-senior select, 
+.accessibility-senior label,
+.accessibility-senior div {
+  font-size: 1.05rem;
+}
+
+/* High Contrast mode for Senior Citizen */
+.accessibility-senior {
+  --background: #000000 !important;
+  --card-background: #0b1329 !important;
+  --border-color: #ffffff !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #cbd5e1 !important;
+  --input-bg: #000000 !important;
+  --input-border: #ffffff !important;
+}
+.accessibility-senior * {
+  border-color: #ffffff !important;
+}
+.accessibility-senior .text-slate-400,
+.accessibility-senior .text-slate-500,
+.accessibility-senior .text-slate-600 {
+  color: #f1f5f9 !important;
+}
+.accessibility-senior button {
+  border: 2px solid #ffffff !important;
+}
+
+/* Leaflet custom map glows and animations */
+.leaflet-selected-route-green {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px #10b981);
+  animation: routePulseGreen 2s infinite ease-in-out;
+}
+
+.leaflet-selected-route-yellow {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px #fbbf24);
+  animation: routePulseYellow 2s infinite ease-in-out;
+}
+
+.leaflet-selected-route-red {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px #ef4444);
+  animation: routePulseRed 2s infinite ease-in-out;
+}
+
+.leaflet-emergency-route-pulse {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px #ef4444);
+  animation: routePulseEmergency 1.5s infinite linear;
+}
+
+.leaflet-hover-route {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px #6366f1);
+  transition: all 0.2s ease;
+}
+
+@keyframes routePulseGreen {
+  0% { stroke-opacity: 0.85; stroke-width: 8px; }
+  50% { stroke-opacity: 0.98; stroke-width: 9.5px; }
+  100% { stroke-opacity: 0.85; stroke-width: 8px; }
+}
+
+@keyframes routePulseYellow {
+  0% { stroke-opacity: 0.85; stroke-width: 8px; }
+  50% { stroke-opacity: 0.98; stroke-width: 9.5px; }
+  100% { stroke-opacity: 0.85; stroke-width: 8px; }
+}
+
+@keyframes routePulseRed {
+  0% { stroke-opacity: 0.85; stroke-width: 8px; }
+  50% { stroke-opacity: 0.98; stroke-width: 9.5px; }
+  100% { stroke-opacity: 0.85; stroke-width: 8px; }
+}
+
+@keyframes routePulseEmergency {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -20; }
+}
+
+/* Radar pulse keyframes for tracking pins */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
+/* Animated flow effect for selected routes */
+@keyframes routeFlow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-route-flow {
+  stroke-dasharray: 12, 12;
+  animation: routeFlow 2s linear infinite !important;
+}

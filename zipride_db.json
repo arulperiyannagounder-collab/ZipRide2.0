@@ -1,0 +1,464 @@
+{
+  "drivers": [
+    {
+      "id": "DRV-4581",
+      "name": "Saran",
+      "vehicle": "BIKE-TN37AB3286",
+      "rating": 4.7,
+      "status": "online",
+      "vehicleType": "Bike",
+      "vehicleNumber": "TN37AB3286",
+      "baseCompletedRides": 24,
+      "baseTodayEarnings": 1250,
+      "phone": "+91 9876543210",
+      "location": {
+        "lat": 11.0168,
+        "lng": 76.9558
+      }
+    },
+    {
+      "id": "DRV-2038",
+      "name": "Arul",
+      "vehicle": "BIKE-TN37AB6609",
+      "rating": 4.9,
+      "status": "online",
+      "vehicleType": "Bike",
+      "vehicleNumber": "TN37AB6609",
+      "baseCompletedRides": 24,
+      "baseTodayEarnings": 1250,
+      "phone": "+91 9876543210",
+      "location": {
+        "lat": 11.0168,
+        "lng": 76.9558
+      }
+    }
+  ],
+  "rides": [
+    {
+      "id": "ZR-350945",
+      "pickup": "Ukkadam Bus Stand, Coimbatore, Tamil Nadu",
+      "drop": "Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu",
+      "distanceKm": 3.6,
+      "durationMin": 4,
+      "baseFare": 25,
+      "distanceFare": 28.8,
+      "durationFare": 4,
+      "weatherType": "Cloudy",
+      "weatherFactor": 10,
+      "trafficType": "Light",
+      "trafficFactor": 1,
+      "initialFare": 120,
+      "safetyScore": 100,
+      "overspeedEvents": 0,
+      "harshBrakeEvents": 0,
+      "behaviorDiscount": 0,
+      "finalFare": 120,
+      "paymentMethod": "UPI",
+      "paymentStatus": "pending",
+      "status": "booked",
+      "createdAt": "2026-06-21T06:43:09.363Z",
+      "nightSurcharge": 0,
+      "fuelUsage": 0.072,
+      "fuelCost": 7.38,
+      "fuelAdjustment": 2.95,
+      "tollCharges": 0,
+      "platformFee": 7,
+      "tax": 13.99,
+      "gpsLat": 10.995,
+      "gpsLng": 76.9609,
+      "speed": 0,
+      "ignition": "off",
+      "seat": "empty",
+      "motion": "stationary",
+      "nfc": "inactive",
+      "progress": 0,
+      "selectedRouteIndex": 0,
+      "routePath": [
+        {
+          "lat": 10.994995,
+          "lng": 76.960725
+        },
+        {
+          "lat": 10.994394,
+          "lng": 76.960741
+        },
+        {
+          "lat": 10.994331,
+          "lng": 76.960738
+        },
+        {
+          "lat": 10.994277,
+          "lng": 76.960736
+        },
+        {
+          "lat": 10.994077,
+          "lng": 76.960727
+        },
+        {
+          "lat": 10.99353,
+          "lng": 76.960698
+        },
+        {
+          "lat": 10.993355,
+          "lng": 76.959756
+        },
+        {
+          "lat": 10.993216,
+          "lng": 76.95892
+        },
+        {
+          "lat": 10.993132,
+          "lng": 76.958419
+        },
+        {
+          "lat": 10.994168,
+          "lng": 76.958208
+        },
+        {
+          "lat": 10.994781,
+          "lng": 76.958083
+        },
+        {
+          "lat": 10.995567,
+          "lng": 76.957931
+        },
+        {
+          "lat": 10.996257,
+          "lng": 76.957797
+        },
+        {
+          "lat": 10.996721,
+          "lng": 76.957696
+        },
+        {
+          "lat": 10.997244,
+          "lng": 76.957583
+        },
+        {
+          "lat": 10.998484,
+          "lng": 76.957332
+        },
+        {
+          "lat": 10.998541,
+          "lng": 76.957319
+        },
+        {
+          "lat": 10.999345,
+          "lng": 76.95713
+        },
+        {
+          "lat": 10.99941,
+          "lng": 76.957115
+        },
+        {
+          "lat": 11.0002,
+          "lng": 76.95693
+        },
+        {
+          "lat": 11.000592,
+          "lng": 76.956849
+        },
+        {
+          "lat": 11.000619,
+          "lng": 76.95684
+        },
+        {
+          "lat": 11.000794,
+          "lng": 76.956787
+        },
+        {
+          "lat": 11.000919,
+          "lng": 76.956745
+        },
+        {
+          "lat": 11.00097,
+          "lng": 76.956728
+        },
+        {
+          "lat": 11.001326,
+          "lng": 76.956608
+        },
+        {
+          "lat": 11.001489,
+          "lng": 76.956553
+        },
+        {
+          "lat": 11.002264,
+          "lng": 76.956308
+        },
+        {
+          "lat": 11.002317,
+          "lng": 76.956292
+        },
+        {
+          "lat": 11.003032,
+          "lng": 76.956097
+        },
+        {
+          "lat": 11.003409,
+          "lng": 76.956025
+        },
+        {
+          "lat": 11.003499,
+          "lng": 76.956017
+        },
+        {
+          "lat": 11.003559,
+          "lng": 76.955986
+        },
+        {
+          "lat": 11.003621,
+          "lng": 76.955978
+        },
+        {
+          "lat": 11.00386,
+          "lng": 76.955957
+        },
+        {
+          "lat": 11.004225,
+          "lng": 76.955916
+        },
+        {
+          "lat": 11.004663,
+          "lng": 76.955872
+        },
+        {
+          "lat": 11.004865,
+          "lng": 76.955841
+        },
+        {
+          "lat": 11.005608,
+          "lng": 76.955726
+        },
+        {
+          "lat": 11.00576,
+          "lng": 76.955708
+        },
+        {
+          "lat": 11.006179,
+          "lng": 76.955652
+        },
+        {
+          "lat": 11.006502,
+          "lng": 76.955625
+        },
+        {
+          "lat": 11.006553,
+          "lng": 76.955619
+        },
+        {
+          "lat": 11.006743,
+          "lng": 76.955611
+        },
+        {
+          "lat": 11.007275,
+          "lng": 76.955544
+        },
+        {
+          "lat": 11.00774,
+          "lng": 76.955473
+        },
+        {
+          "lat": 11.008198,
+          "lng": 76.955424
+        },
+        {
+          "lat": 11.009058,
+          "lng": 76.955239
+        },
+        {
+          "lat": 11.009757,
+          "lng": 76.955114
+        },
+        {
+          "lat": 11.009976,
+          "lng": 76.955083
+        },
+        {
+          "lat": 11.010869,
+          "lng": 76.954999
+        },
+        {
+          "lat": 11.011451,
+          "lng": 76.954985
+        },
+        {
+          "lat": 11.011994,
+          "lng": 76.954942
+        },
+        {
+          "lat": 11.01298,
+          "lng": 76.954871
+        },
+        {
+          "lat": 11.013172,
+          "lng": 76.954857
+        },
+        {
+          "lat": 11.013203,
+          "lng": 76.954847
+        },
+        {
+          "lat": 11.013236,
+          "lng": 76.954843
+        },
+        {
+          "lat": 11.013268,
+          "lng": 76.954845
+        },
+        {
+          "lat": 11.0133,
+          "lng": 76.954854
+        },
+        {
+          "lat": 11.013329,
+          "lng": 76.954868
+        },
+        {
+          "lat": 11.013811,
+          "lng": 76.954838
+        },
+        {
+          "lat": 11.01422,
+          "lng": 76.95479
+        },
+        {
+          "lat": 11.01472,
+          "lng": 76.954707
+        },
+        {
+          "lat": 11.015125,
+          "lng": 76.954613
+        },
+        {
+          "lat": 11.015369,
+          "lng": 76.954547
+        },
+        {
+          "lat": 11.015635,
+          "lng": 76.954467
+        },
+        {
+          "lat": 11.016019,
+          "lng": 76.954308
+        },
+        {
+          "lat": 11.016267,
+          "lng": 76.954223
+        },
+        {
+          "lat": 11.016823,
+          "lng": 76.954012
+        },
+        {
+          "lat": 11.017138,
+          "lng": 76.953904
+        },
+        {
+          "lat": 11.01732,
+          "lng": 76.953842
+        },
+        {
+          "lat": 11.017438,
+          "lng": 76.953749
+        },
+        {
+          "lat": 11.017483,
+          "lng": 76.953599
+        },
+        {
+          "lat": 11.017466,
+          "lng": 76.95341
+        },
+        {
+          "lat": 11.017422,
+          "lng": 76.953276
+        },
+        {
+          "lat": 11.017378,
+          "lng": 76.953188
+        },
+        {
+          "lat": 11.017327,
+          "lng": 76.953147
+        },
+        {
+          "lat": 11.017122,
+          "lng": 76.953057
+        },
+        {
+          "lat": 11.016929,
+          "lng": 76.953067
+        },
+        {
+          "lat": 11.016789,
+          "lng": 76.953122
+        },
+        {
+          "lat": 11.016671,
+          "lng": 76.953239
+        },
+        {
+          "lat": 11.016631,
+          "lng": 76.95343
+        },
+        {
+          "lat": 11.016703,
+          "lng": 76.954256
+        },
+        {
+          "lat": 11.016739,
+          "lng": 76.954612
+        },
+        {
+          "lat": 11.016805,
+          "lng": 76.955305
+        },
+        {
+          "lat": 11.016828,
+          "lng": 76.95561
+        },
+        {
+          "lat": 11.01683,
+          "lng": 76.955761
+        },
+        {
+          "lat": 11.016828,
+          "lng": 76.955801
+        }
+      ],
+      "riderName": "Arul",
+      "riderPhone": "9876543210",
+      "riderLat": 10.995,
+      "riderLng": 76.9609,
+      "vehicleType": "Bike",
+      "weatherCondition": "Cloudy",
+      "temperature": 31.9,
+      "humidity": 50,
+      "windSpeed": 13.2,
+      "weatherMultiplier": 1.1,
+      "rainChance": 94,
+      "isChildSafety": true,
+      "isWomenSafety": true,
+      "isFamilySafety": true,
+      "pickupCode": "7837",
+      "childArrivalConfirmed": false
+    }
+  ],
+  "disputes": [],
+  "config": {
+    "weather": "Clear",
+    "traffic": "Light"
+  },
+  "alerts": [
+    {
+      "id": "EVT-1782024189365",
+      "rideId": "ZR-350945",
+      "type": "info",
+      "message": "Ride ZR-350945 booked (Bike). Pickup: \"Ukkadam Bus Stand, Coimbatore, Tamil Nadu\" -> Drop: \"Gandhipuram Town Central Bus Stand, Coimbatore, Tamil Nadu\". Dynamic Fare calculated at ₹120 (Weather fee: +₹10, Traffic Multiplier: 1x, Dist: 3.6 km).",
+      "severity": "info",
+      "timestamp": "2026-06-21T06:43:09.365Z"
+    }
+  ],
+  "sosAlerts": []
+}
